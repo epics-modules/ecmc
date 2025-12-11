@@ -591,7 +591,7 @@ int ecmcEncoder::readHwLatch(bool domainOK) {
   }
   encLatchStatusOld_ = encLatchStatus_;
   encLatchStatus_    = tempRaw > 0;
-
+  
   if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE, &tempRaw)) {
     return ERROR_ENC_ENTRY_READ_FAIL;
   }
