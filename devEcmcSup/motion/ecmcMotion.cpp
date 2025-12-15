@@ -1319,7 +1319,7 @@ const char* getAxisPLCExpr(int axisIndex, int *error) {
            __LINE__,
            axisIndex);
 
-  if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex <= 0)) {
+  if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex < 0)) {
     LOGERR("ERROR: Axis index out of range.\n");
     *error = ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
     return "";

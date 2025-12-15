@@ -17,7 +17,7 @@
 #include "ecmcAxisGroup.h"
 
 #define CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndex) {             \
-  if(axIndex>=ECMC_MAX_AXES || axIndex<=0){                   \
+  if(axIndex>=ECMC_MAX_AXES || axIndex<0){                    \
     mc_errorCode=0;                                           \
     LOGERR("ERROR: Axis index out of range.\n");              \
     return (double)ERROR_PLC_AXIS_ID_OUT_OF_RANGE;}           \

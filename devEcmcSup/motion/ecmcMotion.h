@@ -25,7 +25,7 @@ extern "C" {
 
 #define CHECK_AXIS_RETURN_IF_ERROR(axisIndex)\
         {\
-          if (axisIndex >= ECMC_MAX_AXES || axisIndex <= 0) {\
+          if (axisIndex >= ECMC_MAX_AXES || axisIndex < 0) {\
             LOGERR("ERROR: Axis index out of range.\n");\
             return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;\
           }\
