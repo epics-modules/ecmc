@@ -761,6 +761,8 @@ asynStatus ecmcMotorRecordAxis::move(double position,
             maxVelocity,
             acceleration);
 
+  printf("ecmcMotorRecordAxis::move(%d) to pos %lf\n",axisNo_,position);
+
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
 
   /* Do range check */

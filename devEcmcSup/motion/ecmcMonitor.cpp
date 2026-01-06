@@ -730,7 +730,8 @@ int ecmcMonitor::checkLimits() {
 
   // Bwd soft limit switch
   bool virtSoftlimitBwd =
-    (data_->status_.currentPositionSetpoint < data_->control_.softLimitBwd) &&
+    ((data_->status_.currentPositionSetpoint < data_->control_.softLimitBwd) ||
+     (data_->control_.positionTarget < data_->control_.softLimitBwd)) &&
     data_->status_.statusWord_.enabled && data_->statusOld_.statusWord_.enabled; /*&&
     (data_->status_.currentPositionSetpoint <
     data_->status_.currentPositionSetpointOld); */// data_->control_.execute;
@@ -756,7 +757,8 @@ int ecmcMonitor::checkLimits() {
   }
 
   bool virtSoftlimitFwd =
-    (data_->status_.currentPositionSetpoint > data_->control_.softLimitFwd) &&
+    ((data_->status_.currentPositionSetpoint > data_->control_.softLimitFwd) || 
+     (data_->control_.positionTarget > data_->control_.softLimitFwd)) &&
     data_->status_.statusWord_.enabled && data_->statusOld_.statusWord_.enabled; /*&&
     (data_->status_.currentPositionSetpoint >
       data_->status_.currentPositionSetpointOld);*/// && data_->control_.execute;

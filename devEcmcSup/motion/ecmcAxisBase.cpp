@@ -1749,7 +1749,6 @@ int ecmcAxisBase::moveAbsolutePosition(
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
 
-  printf("ecmcAxisBase::moveAbsolutePosition(): 1 localBusy %d, global %d\n",data_.status_.statusWord_.localBusy,data_.status_.statusWord_.globalBusy);
   if (getExecute() && (getCommand() == ECMC_CMD_MOVEABS) && data_.status_.statusWord_.localBusy) {
     setTargetVel(velocitySet);
     setAcc(accelerationSet);
