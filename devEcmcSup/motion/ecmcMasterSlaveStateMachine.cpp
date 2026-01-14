@@ -65,6 +65,13 @@ void ecmcMasterSlaveStateMachine::execute(){
   setMrIgnoreEnableAlarm();
 
   if(!control_.enable) {
+    // unblock commands
+    if(state_ != ECMC_MST_SLV_STATE_IDLE) {
+      masterGrp_->setBlocked(false);
+      slaveGrp_->setBlocked(false);
+      slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
+      state_ = ECMC_MST_SLV_STATE_IDLE;
+    }
     memcpy(&controlOld_,&control_, sizeof(control_));
     return;
   }
@@ -108,6 +115,9 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
     return 0;
   }
 
+  slaveGrp_->setBlocked(false);
+  masterGrp_->setBlocked(false);
+
   // optimize
   bool anySlaveBusy     = slaveGrp_->getAnyBusy();
   bool anySlaveErrorId  = slaveGrp_->getAnyErrorId();
@@ -118,7 +128,9 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
     !slaveGrp_->getTrajSrcAnyExt() && 
     !anyMasterEnabled && 
     !masterGrp_->getAnyEnable()) {
-
+    // (un)block commands
+    slaveGrp_->setBlocked(false);
+    masterGrp_->setBlocked(true);
     state_ = ECMC_MST_SLV_STATE_SLAVES;
     if(control_.enableDbgPrintouts) {
       printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> SLAVE\n",name_.c_str());
@@ -133,6 +145,9 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
       if(masterGrp_->getAnyBusy()) {
         slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_EXTERNAL);
         state_ = ECMC_MST_SLV_STATE_MASTERS;
+        // (un)block commands
+        masterGrp_->setBlocked(false);
+        slaveGrp_->setBlocked(true);
         if(control_.enableDbgPrintouts) {
           printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> MASTER\n", name_.c_str());
         }
@@ -272,6 +287,8 @@ int ecmcMasterSlaveStateMachine::stateReset() {
   masterGrp_->setErrorReset();
   slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
   masterGrp_->setEnableAutoDisable(1);
+  masterGrp_->setBlocked(false);
+  slaveGrp_->setBlocked(false);
   state_ = ECMC_MST_SLV_STATE_IDLE;
   if(control_.enableDbgPrintouts) {
     printf("ecmcMasterSlaveStateMachine: %s: State change, RESET -> IDLE\n", name_.c_str());

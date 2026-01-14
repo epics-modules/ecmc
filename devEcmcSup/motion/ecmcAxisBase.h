@@ -242,6 +242,8 @@ public:
   int        setCntrlKi(double ki);
   int        setCntrlKd(double kd);
   int        setCntrlKff(double kff);
+  void       setBlocked(bool blocked); // Block axes, for use in master slave systems
+  bool       getBlocked(); // get blocked
 
   /*
      Ignore status when motor record tries to disable.
@@ -318,6 +320,7 @@ protected:
   bool enableAutoEnable_;
   bool enableAutoDisable_;
   double positionTargetAsyn_;
+  bool blocked_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */

@@ -515,7 +515,12 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     break;
 
   case 0x1432F:
-    return "ERROR_AUTO_ENABLE_TIMEOUT";
+    return "ERROR_AXIS_AUTO_ENABLE_TIMEOUT";
+
+    break;
+
+  case 0x14330:
+    return "ERROR_AXIS_BLOCKED";
 
     break;
 

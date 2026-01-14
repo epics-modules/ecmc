@@ -748,20 +748,43 @@ asynStatus ecmcMotorRecordAxis::move(double position,
                                      double minVelocity,
                                      double maxVelocity,
                                      double acceleration) {
-  asynPrint(pPrintOutAsynUser,
-            ASYN_TRACE_INFO,
-            "%s/%s:%d: Axis[%d] Move cmd: trgpos=%lf, rel=%d, velo = %lf..%lf, acc=%lf\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            axisNo_,
-            position,
-            relative,
-            minVelocity,
-            maxVelocity,
-            acceleration);
 
-  printf("ecmcMotorRecordAxis::move(%d) to pos %lf\n",axisNo_,position);
+  if (drvlocal.axisPrintDbg) {
+    LOGERR(
+        "%s/%s:%d: Axis[%d]: move(): tgtpos=%lf, rel=%d, velo = %lf..%lf, acc=%lf\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        drvlocal.axisId,
+        position,
+        relative,
+        minVelocity,
+        maxVelocity,
+        acceleration);
+  }
+  printf("%s/%s:%d: Axis[%d]: move(): tgtpos=%lf, rel=%d, velo = %lf..%lf, acc=%lf\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        drvlocal.axisId,
+        position,
+        relative,
+        minVelocity,
+        maxVelocity,
+        acceleration);
+
+  //asynPrint(pPrintOutAsynUser,
+  //          ASYN_TRACE_INFO,
+  //          "%s/%s:%d: Axis[%d] Move cmd: trgpos=%lf, rel=%d, velo = %lf..%lf, acc=%lf\n",
+  //          __FILE__,
+  //          __FUNCTION__,
+  //          __LINE__,
+  //          axisNo_,
+  //          position,
+  //          relative,
+  //          minVelocity,
+  //          maxVelocity,
+  //          acceleration);
 
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
 
@@ -774,14 +797,26 @@ asynStatus ecmcMotorRecordAxis::move(double position,
   int errorCode = 0;
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-
+  
+  // Communication to axis blocked
   if (drvlocal.ecmcAxis->getBlockExtCom()) {
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
     LOGERR(
-      "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Communication to ECMC blocked, motion commands not allowed..\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
+      __LINE__, axisNo_);
+    return asynError;
+  }
+
+  // Axis blocked (maybe by master slave statemachine, only one grouop can accept commands at a time)
+  if (drvlocal.ecmcAxis->getBlocked()) {
+    if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+    LOGERR(
+      "%s/%s:%d: ERROR: Axis[%d]: Axis blocked (could be Masters/Slave related).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__, axisNo_);
     return asynError;
   }
 
@@ -934,6 +969,17 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
     return asynError;
   }
   
+  // Axis blocked (maybe by master slave statemachine, only one grouop can accept commands at a time)
+  if (drvlocal.ecmcAxis->getBlocked()) {
+    if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+    LOGERR(
+      "%s/%s:%d: ERROR: Axis[%d]: Axis blocked (could be Masters/Slave related).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__, axisNo_);
+    return asynError;
+  }
+  
   // "-1" will lead to not overwriting anything that is set in ecmc
   errorCode =  drvlocal.ecmcAxis->moveHome(cmdData,
                                            homPos,
@@ -1008,6 +1054,17 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
       __FILE__,
       __FUNCTION__,
       __LINE__);
+    return asynError;
+  }
+
+  // Axis blocked (maybe by master slave statemachine, only one grouop can accept commands at a time)
+  if (drvlocal.ecmcAxis->getBlocked()) {
+    if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+    LOGERR(
+      "%s/%s:%d: ERROR: Axis[%d]: Axis blocked (could be Masters/Slave related).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__, axisNo_);
     return asynError;
   }
 
@@ -1117,7 +1174,7 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
  *  Method is called cyclic from asynMotorController::autoPowerOn()
  */
 bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
-  
+  printf("ecmcMotorRecordAxis::pollPowerIsOn(): Axis: %d\n",drvlocal.axisId);
   int enabled = 0;
   bool interlock = 0;
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
@@ -1452,7 +1509,16 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
  * and then calls callParamCallbacks() at the end.
  * \param[out] moving A flag that is set indicating that the axis is moving (true) or done (false). */
 asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
-  double timeBefore = ecmcMotorRecordgetNowTimeSecs();
+  double timeBefore = ecmcMotorRecordgetNowTimeSecs();  
+
+  if (drvlocal.axisPrintDbg) {
+    LOGERR(
+        "%s/%s:%d: INFO: Axis[%d]: poll()\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        drvlocal.axisId);
+  }
 
 #ifndef motorWaitPollsBeforeReadyString
   int waitNumPollsBeforeReady_ = drvlocal.waitNumPollsBeforeReady;

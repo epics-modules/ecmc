@@ -3083,7 +3083,7 @@ int addAxisToGroupByIndex(int axIndex, int grpIndex) {
   }
 
   try {
-    axisGroups[grpIndex]->addAxis(axes[axIndex]);
+    axisGroups[grpIndex]->addAxis(axes[axIndex]);    
   }
   catch (std::exception& e) {
     LOGERR("%s/%s:%d: EXCEPTION %s WHEN ADDING AXIS to GROUP.\n",

@@ -16,6 +16,7 @@ ecmcAxisGroup::ecmcAxisGroup(int index, const char *name){
   name_ = name;
   axesCounter_ = 0;
   index_ = index;
+  blocked_ = false;
   printf("ecmcAxisGroup: Created axis group[%d] %s.\n", index_, name_.c_str());
 };
 
@@ -359,4 +360,20 @@ bool ecmcAxisGroup::getAnyIlocked() {
     }
   }
   return ilocked;
+}
+
+// set Group blocked
+void ecmcAxisGroup::setBlocked(bool blocked) {
+  blocked_ = blocked;
+  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
+    if((*axis)) {
+      (*axis)->setBlocked(blocked);
+    }
+  }
+
+}
+
+// get Group blocked
+bool ecmcAxisGroup::getBlocked() {
+  return blocked_;
 }
