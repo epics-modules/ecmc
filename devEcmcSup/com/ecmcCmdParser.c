@@ -2500,6 +2500,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisHomeVelOffCam(iValue, dValue);
   }
 
+  /*int Cfg.SetAxisEncAllowOverUnderFlow(int axis_no, int allow);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEncAllowOverUnderFlow(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return  setAxisEncAllowOverUnderFlow(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisHomeLatchCountOffset(int axis_no, int count);*/
   nvals = sscanf(myarg_1,
                  "SetAxisHomeLatchCountOffset(%d,%d)",
