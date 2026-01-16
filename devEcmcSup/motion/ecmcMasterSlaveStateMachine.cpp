@@ -185,11 +185,12 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
 
 int ecmcMasterSlaveStateMachine::stateSlave(){
 
+  // Maybe add atTarget here?!
   if(!slaveGrp_->getAnyBusy()) {
 
     if(control_.autoDisableSlaves) {
       slaveGrp_->setEnable(0);
-      slaveGrp_->setMRCnen(0);
+      //slaveGrp_->setMRCnen(0);     
     }
     
     if(control_.autoDisableMasters) {      
@@ -208,7 +209,8 @@ int ecmcMasterSlaveStateMachine::stateSlave(){
       printf("ecmcMasterSlaveStateMachine: %s: State change, SLAVE -> IDLE\n", name_.c_str());
     }
   }
-  if(masterGrp_->getAnyEnabled() && masterGrp_->getAnyEnable()) {
+
+  if(masterGrp_->getAnyEnabled() || masterGrp_->getAnyEnable()) {
     masterGrp_->setEnable(0);
     masterGrp_->setMRCnen(0);
   }
@@ -229,18 +231,32 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
       masterGrp_->setMRCnen(0);
     }
   }
-
-  // One master axis gets killed during motion then kill all and goto IDLE
-  if( masterGrp_->getAnyBusy() && 
-      ((masterGrp_->getAnyEnabled() && !masterGrp_->getEnabled()) || 
-      (slaveGrp_->getAnyEnabled() && !slaveGrp_->getEnabled()))) {
-    state_ = ECMC_MST_SLV_STATE_RESET;
-    if(control_.enableDbgPrintouts) {
-      printf("ecmcMasterSlaveStateMachine: %s: At least one axis lost enable during motion. Disable all axes..\n", name_.c_str());    
-      printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> RESET\n", name_.c_str());
+  
+  bool lostEnableCmd = !slaveGrp_->getEnable() || !masterGrp_->getEnable();
+  
+  // One master or slave axis gets killed during motion then kill all and goto IDLE
+  if( masterGrp_->getAnyBusy() || lostEnableCmd) {
+    bool lostEnabled =          masterGrp_->getAnyEnabled() && !masterGrp_->getEnabled();
+    lostEnabled = lostEnabled  || (slaveGrp_->getAnyEnabled() && !slaveGrp_->getEnabled());
+    if(lostEnabled) {
+      state_ = ECMC_MST_SLV_STATE_IDLE;
+      //if(control_.enableDbgPrintouts) {
+        printf("ecmcMasterSlaveStateMachine: %s: At least one axis lost enable during motion. Disable all axes..\n", name_.c_str());    
+        printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> RESET\n", name_.c_str());
+      //}
+      masterGrp_->halt();
+      masterGrp_->setEnable(0);
+      masterGrp_->setMRStop(1);
+      masterGrp_->setMRSync(1);
+      slaveGrp_->halt();
+      slaveGrp_->setEnable(0);
+      slaveGrp_->setMRStop(1);
+      slaveGrp_->setMRSync(1);
+      masterGrp_->setSlavedAxisIlocked();
+      masterGrp_->setEnableAutoDisable(1);
+      //stateReset(); // A bit nasty but ....
+      return 0;
     }
-    stateReset(); // A bit nasty but ....
-    return 0;
   }
 
   // postpone disable until all master axes are done

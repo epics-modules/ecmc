@@ -980,7 +980,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
       __LINE__, axisNo_);
     return asynError;
   }
-  
+
   // "-1" will lead to not overwriting anything that is set in ecmc
   errorCode =  drvlocal.ecmcAxis->moveHome(cmdData,
                                            homPos,
@@ -1254,43 +1254,46 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
   }
 
   status = setEnable(on);
-
+  
   if (status) return status;
 
-  while (counter) {
-    asynStatus status = readEcmcAxisStatusData();
-    if (status) {
-      return status;
-    }    
-    if (((drvlocal.status_.statusWord_.enabled == on) ||
-         justCheckForEnable) &&
-        (drvlocal.status_.statusWord_.enable == on) &&
-        !drvlocal.status_.statusWord_.busy) {
-      /* The poller co-ordinates the writing into the parameter library */
-      poll(&moving);
-      return asynSuccess;
-    }
-    counter = counter - 1;
-    epicsThreadSleep(ECMC_AXIS_ENABLE_SLEEP_PERIOD);
-  }
+  //while (counter) {
+  //  asynStatus status = readEcmcAxisStatusData();
+  //  if (status) {
+  //    return status;
+  //  }    
+  //  if (((drvlocal.status_.statusWord_.enabled == on) ||
+  //       justCheckForEnable) &&
+  //      (drvlocal.status_.statusWord_.enable == on) &&
+  //      !drvlocal.status_.statusWord_.busy) {
+  //    /* The poller co-ordinates the writing into the parameter library */
+  //    poll(&moving);
+  //    return asynSuccess;
+  //  }
+  //  counter = counter - 1;
+  //  epicsThreadSleep(ECMC_AXIS_ENABLE_SLEEP_PERIOD);
+  //}
 
-  /* 
-    Ignore disable error.
-    For use with master axes groups when plc code control disabling of axes.   
-  */
-  if(drvlocal.ecmcIgnoreDisableAxisStatus && !on) {
-    poll(&moving);
-    return asynSuccess;
-  }
+  poll(&moving);
+  return asynSuccess;
 
-  /* if we come here, it went wrong */
-  if (!drvlocal.cmdErrorMessage[0]) {
-    snprintf(drvlocal.cmdErrorMessage, sizeof(drvlocal.cmdErrorMessage) - 1,
-             "E: enableAmplifier(%d) failed.",
-             axisNo_);
-  }
-
-  return asynError;
+  ///* 
+  //  Ignore disable error.
+  //  For use with master axes groups when plc code control disabling of axes.   
+  //*/
+  //if(drvlocal.ecmcIgnoreDisableAxisStatus && !on) {
+  //  poll(&moving);
+  //  return asynSuccess;
+  //}
+//
+  ///* if we come here, it went wrong */
+  //if (!drvlocal.cmdErrorMessage[0]) {
+  //  snprintf(drvlocal.cmdErrorMessage, sizeof(drvlocal.cmdErrorMessage) - 1,
+  //           "E: enableAmplifier(%d) failed.",
+  //           axisNo_);
+  //}
+//
+  //return asynError;
 }
 
 /**
@@ -1304,13 +1307,15 @@ asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name,
             axisNo_, function_name, acceleration);
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-  int errorCode = drvlocal.ecmcAxis->setExecute(0);
+  int errorCode = drvlocal.ecmcAxis->stopMotion(0);
+
   int exeAbort = false;
   if(pC_->pvtController_){      
       exeAbort=pC_->pvtController_->getBusy();
   }
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
+  
   if(profileInProgress_) {
     if(exeAbort) {
       pC_->abortProfile();

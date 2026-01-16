@@ -651,7 +651,10 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
       firstEnableDone_                      = true;
     }
   }
-
+  if(!enable) {
+    setMRStop(1);
+  }
+  //setMRCnen(enable);
   traj_->setEnable(enable);
 
   // reset axis error if ERROR_AXIS_NOT_ENABLED or ERROR_AXIS_SAFETY_IL_ACTIVE when try to enable
@@ -2132,7 +2135,7 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
       return errorCode;
     }
   }
-
+  
   if (errorCode) {
     return errorCode;
   }
@@ -2141,7 +2144,7 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
 }
 
 /**
- * Function to link to ecmcDataItem. Execute function instead of copoy data.
+ * Function to link to ecmcDataItem. Execute function instead of copy data.
  * This function implements commands execution of commands from motor record
  * or other (binary) asyn source.
  *
