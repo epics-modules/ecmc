@@ -150,7 +150,7 @@ public:
                                    int               lineNumber,
                                    int               errorID,
                                    ecmcAlarmSeverity severity) override;
-
+  int                   setAllowOverUnderFlow(bool allow);
 protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -170,7 +170,7 @@ protected:
   int      readHwWarningError(bool domainOK);
   int      readHwLatch(bool domainOK);
   int      readHwReady(bool domainOK);
-
+  
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -272,6 +272,7 @@ protected:
   
   double delayTimeS_; // Compensate for delay between setpoint and actual value (should default to 2 cycles)
   bool enableDelayTime_;
+  bool allowOverUnderFlow_;
 };
 
 #endif  /* ECMCENCODER_H_ */

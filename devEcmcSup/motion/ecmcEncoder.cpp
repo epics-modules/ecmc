@@ -149,6 +149,7 @@ void ecmcEncoder::initVars() {
   encLatchControlWordArm_ = 0;
   encLatchControlWordIdle_= 0;
   encLatchControlBits_    = 1;  // default to write 1 bit to arm latch
+  allowOverUnderFlow_     = true;  // Allow as default
 }
 
 bool ecmcEncoder::isPrimary() const {
@@ -310,6 +311,10 @@ int64_t ecmcEncoder::handleOverUnderFlow(uint64_t rawPosOld,
                                          int64_t  rawTurns,
                                          uint64_t rawLimit,
                                          int      bits) {
+  if(!allowOverUnderFlow_) {
+    return 0;
+  }
+
   int64_t turns = rawTurns;
 
   // Only support for over/under flow of datatypes less than 64 bit
@@ -1570,5 +1575,10 @@ int ecmcEncoder::setLookupTableScale(double scale) {
 int ecmcEncoder::setHomeLatchArmControlWord(uint64_t control, int bits) {
   encLatchControlBits_ = bits;
   encLatchControlWordArm_ = control;
+  return 0;
+}
+
+int ecmcEncoder::setAllowOverUnderFlow(bool allow) {
+  allowOverUnderFlow_ = allow;
   return 0;
 }

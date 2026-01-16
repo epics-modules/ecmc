@@ -1615,6 +1615,22 @@ int setAxisErrorId(int axisIndex,
  */
 int setAxisEncHomeLatchCountOffset(int axisIndex,
                                    int count);
+/** \brief Set allow over/under flow of encoder raw counter
+ *
+ * Set flag to allow over- and under-flows of encoder raw counter (default over/underflow are allowed).\n
+ * Use case:
+ *  - rotatry encoders (and openloop counter): normally allow==true is preferred.\n
+ *  - linear encoders: normally allow==false is preferred (should not overflow).\n
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] allow Number of latches before homing (default is true, allow).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set home latch count to 1 for axis 10.\n
+ * "Cfg.SetAxisEncHomeLatchCountOffset(10,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncAllowOverUnderFlow(int axisIndex, int allow);
 
 /** \brief Set Towards cam referencing/homing velocity setpoint.\n
  *
