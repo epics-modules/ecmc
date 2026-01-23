@@ -93,7 +93,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   profileInProgress_   = false;
   profileSwitchPVTObject_ = false;
   pvtEnabled_             = 0;
-  
   pvtPrepare_ = NULL;
   pvtRunning_ = NULL;
 
@@ -748,7 +747,7 @@ asynStatus ecmcMotorRecordAxis::move(double position,
                                      double minVelocity,
                                      double maxVelocity,
                                      double acceleration) {
-
+  drvlocal.moveReady = false;
   if (drvlocal.axisPrintDbg) {
     LOGERR(
         "%s/%s:%d: Axis[%d]: move(): tgtpos=%lf, rel=%d, velo = %lf..%lf, acc=%lf\n",
@@ -851,6 +850,8 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
                                      double maxVelocity,
                                      double acceleration,
                                      int    forwards) {
+  drvlocal.moveReady = false;
+
   // cmd, nCmddata,homepos,velhigh,vellow,acc
   //printf("velo min max acc= %lf %lf, %lf \n",minVelocity,maxVelocity,acceleration);
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
@@ -1005,6 +1006,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
 asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
                                              double maxVelocity,
                                              double acceleration) {
+  drvlocal.moveReady = false;
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
             "%s/%s:%d: Axis[%d] Move vel cmd:  = %lf..%lf, acc=%lf\n",
             __FILE__, __FUNCTION__, __LINE__,
@@ -1012,6 +1014,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
 
   drvlocal.eeAxisWarning = eeAxisWarningNoWarning;
 
+  
   /* Do range check */
   if (!maxVelocity) {
     drvlocal.eeAxisWarning = eeAxisWarningVeloZero;
@@ -1559,10 +1562,12 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   }
 
   if (drvlocal.ecmcAxis) {
-    if(drvlocal.ecmcAtTargetMonEnable && drvlocal.status_.statusWord_.enabled) {
-      drvlocal.moveReady = !drvlocal.ecmcBusy && drvlocal.status_.statusWord_.attarget; //&& !drvlocal.status_.statusWord_.enabled;
-    } else {
-      drvlocal.moveReady = !drvlocal.ecmcBusy;// && !drvlocal.status_.statusWord_.enabled;
+    if(!drvlocal.moveReady) {
+      if(drvlocal.ecmcAtTargetMonEnable && drvlocal.status_.statusWord_.enabled) {
+        drvlocal.moveReady = !drvlocal.ecmcBusy && drvlocal.status_.statusWord_.attarget; //&& !drvlocal.status_.statusWord_.enabled;
+      } else {
+        drvlocal.moveReady = !drvlocal.ecmcBusy;// && !drvlocal.status_.statusWord_.enabled;
+      }
     }
   } else {
     drvlocal.moveReady = false;
