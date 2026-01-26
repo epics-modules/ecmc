@@ -1562,8 +1562,8 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   }
 
   if (drvlocal.ecmcAxis) {
-    if(!drvlocal.moveReady) {
-      if(drvlocal.ecmcAtTargetMonEnable && drvlocal.status_.statusWord_.enabled) {
+    if(!drvlocal.moveReady && !drvlocal.ecmcBusy) {
+      if(drvlocal.ecmcAtTargetMonEnable) {
         drvlocal.moveReady = !drvlocal.ecmcBusy && drvlocal.status_.statusWord_.attarget; //&& !drvlocal.status_.statusWord_.enabled;
       } else {
         drvlocal.moveReady = !drvlocal.ecmcBusy;// && !drvlocal.status_.statusWord_.enabled;
