@@ -163,6 +163,7 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
         masterGrp_->setMRCnen(0);
         slaveGrp_->setMRSync(1);
         masterGrp_->setMRSync(1);
+        slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);        
         if(errorSlave) {
           masterGrp_->setSlavedAxisInError();
         }
@@ -171,6 +172,7 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
           printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> IDLE\n", name_.c_str());
         }
         state_ = ECMC_MST_SLV_STATE_IDLE;
+        
       }
       if(anySlaveBusy) {
         slaveGrp_->halt();
@@ -252,6 +254,7 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
       slaveGrp_->setEnable(0);
       slaveGrp_->setMRStop(1);
       slaveGrp_->setMRSync(1);
+      slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
       masterGrp_->setSlavedAxisIlocked();
       masterGrp_->setEnableAutoDisable(1);
       //stateReset(); // A bit nasty but ....

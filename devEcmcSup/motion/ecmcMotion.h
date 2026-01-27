@@ -3622,6 +3622,15 @@ int addAxisToGroupByIndex(int axIndex, int grpIndex);
  */
 int getAxisGroupIndexByName(const char* grpName, int *index);
 
+/** \brief Get total group count
+ *
+ * \param[out] count total group count.\n
+ *
+ * \note Example: Get total group count.\n
+ *  "GetAxisGroupCount()" //Command string to ecmcCmdParser.c\n
+ */
+int getAxisGroupCount(int *count);
+
 /** \brief Links an EtherCAT entry to the encoder object of the axis at axisIndex.
    *
    *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n

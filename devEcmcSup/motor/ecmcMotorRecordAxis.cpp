@@ -1573,6 +1573,10 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
       } else {
         drvlocal.moveReady = !drvlocal.ecmcBusy;// && !drvlocal.status_.statusWord_.enabled;
       }
+      // If killed then set dmove = true
+      if(!drvlocal.status_.statusWord_.enabled && !drvlocal.ecmcBusy) {
+        drvlocal.moveReady = true;
+      }
     }
   } else {
     drvlocal.moveReady = false;

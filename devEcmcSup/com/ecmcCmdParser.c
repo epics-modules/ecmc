@@ -3655,6 +3655,14 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisGroupIndexByName(cIdBuffer, &iValue));
   }
 
+  /*GetAxisGroupIndexByName()*/
+  nvals = strcmp(myarg_1, "GetAxisGroupCount()");
+
+  if (nvals == 0) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(GetAxisGroupCount(&iValue));
+  }
+  
+
   /*GetAxisBlockCom(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisBlockCom(%d)", &motor_axis_no);
 

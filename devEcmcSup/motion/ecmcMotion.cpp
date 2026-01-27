@@ -3057,6 +3057,12 @@ int getAxisGroupIndexByName(const char* grpName, int *index) {
   return ERROR_AXISGRP_NOT_FOUND;
 }
 
+int getAxisGroupCount(int *count)
+{
+  *count = axisGroupCounter;
+  return 0;
+}
+
 int addAxisToGroupByName(int axIndex, const char *grpName) {
 
   int index = -1;
