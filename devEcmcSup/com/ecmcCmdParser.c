@@ -3659,7 +3659,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   nvals = strcmp(myarg_1, "GetAxisGroupCount()");
 
   if (nvals == 0) {
-    SEND_RESULT_OR_ERROR_AND_RETURN_INT(GetAxisGroupCount(&iValue));
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisGroupCount(&iValue));
   }
   
 
