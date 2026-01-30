@@ -1752,7 +1752,7 @@ int ecmcConfigOrDie(const char *ecmcCommand) {
     }
     exit(EXIT_FAILURE);
   }
-  printf("%s\n", ecmcConfigBuffer.buffer);
+  //printf("%s\n", ecmcConfigBuffer.buffer);
 
   // Set return variable
   epicsEnvSet(ECMC_IOCSH_CFG_CMD_RETURN_VAR_NAME, ecmcConfigBuffer.buffer);
