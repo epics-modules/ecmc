@@ -64,7 +64,6 @@ public:
   void setEnablePVTFunc(int enable);
   void invalidatePVTBuild();
 
-
 private:
   typedef enum
   {
@@ -194,7 +193,8 @@ private:
   int getProfileCurrentSegementID();
   size_t getProfilePointCount();
   void updateError();
-
+  void newCmd();
+  bool dataIsSampledAfterNewCmd();
   ecmcAxisPVTSequence *pvtRunning_;
   ecmcAxisPVTSequence *pvtPrepare_;
   size_t profileCurrentDefinedPoints_;
@@ -208,6 +208,7 @@ private:
   size_t profileMaxPoints_;  
   bool updateFirstPollDone_;
   friend class ecmcMotorRecordController;
+  int ecmcCycleCounterAtNewCmd_;
 };
 
 #endif // ifndef ECMC_MOTOR_RECORD_AXIS_H

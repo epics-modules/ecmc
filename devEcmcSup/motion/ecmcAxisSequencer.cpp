@@ -3624,5 +3624,5 @@ void  ecmcAxisSequencer::setHomeDec(double dec) {
 }
 
 void ecmcAxisSequencer::setGlobalBusy(bool busy) {
-  data_->status_.statusWord_.globalBusy = busy;
+  data_->status_.statusWord_.globalBusy = busy > 0;
 }

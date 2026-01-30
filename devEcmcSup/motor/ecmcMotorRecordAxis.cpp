@@ -95,6 +95,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   pvtEnabled_             = 0;
   pvtPrepare_ = NULL;
   pvtRunning_ = NULL;
+  ecmcCycleCounterAtNewCmd_ = 0;
 
   updateFirstPollDone_ = false;
   if (!drvlocal.ecmcAxis) {
@@ -747,7 +748,7 @@ asynStatus ecmcMotorRecordAxis::move(double position,
                                      double minVelocity,
                                      double maxVelocity,
                                      double acceleration) {
-  drvlocal.moveReady = false;
+  newCmd();
   if (drvlocal.axisPrintDbg) {
     LOGERR(
         "%s/%s:%d: Axis[%d]: move(): tgtpos=%lf, rel=%d, velo = %lf..%lf, acc=%lf\n",
@@ -831,6 +832,8 @@ asynStatus ecmcMotorRecordAxis::move(double position,
                                                         acceleration);
   }
 
+  //printf("Axis[%d]:ecmcMotorRecordAxis::move(): ecmc busy %d\n", axisNo_,drvlocal.ecmcAxis->getBusy());
+
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
 #ifndef motorWaitPollsBeforeReadyString
@@ -850,8 +853,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
                                      double maxVelocity,
                                      double acceleration,
                                      int    forwards) {
-  drvlocal.moveReady = false;
-
+   newCmd();
   // cmd, nCmddata,homepos,velhigh,vellow,acc
   //printf("velo min max acc= %lf %lf, %lf \n",minVelocity,maxVelocity,acceleration);
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
@@ -1006,7 +1008,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
 asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
                                              double maxVelocity,
                                              double acceleration) {
-  drvlocal.moveReady = false;
+  newCmd();
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
             "%s/%s:%d: Axis[%d] Move vel cmd:  = %lf..%lf, acc=%lf\n",
             __FILE__, __FUNCTION__, __LINE__,
@@ -1075,7 +1077,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
   errorCode = drvlocal.ecmcAxis->moveVelocity(velo,
                                               acc,
                                               acc);
-
+ 
   // } else
   // {
   //  LOGERR(
@@ -1563,10 +1565,12 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   }
 
   if (status) {
+    printf("Error: Axis[%d]: ecmcMotorRecordAxis::poll() returned early (readEcmcAxisStatusData() returned error)\n",axisNo_);
     return status;
   }
 
-  if (drvlocal.ecmcAxis) {
+  // Ensure data is polled after command was executed ensure 2 polls after 
+  if (dataIsSampledAfterNewCmd()/* && pollsAfterNewCommandCounter_>=2*/) {
     if(!drvlocal.moveReady && !drvlocal.ecmcBusy) {
       if(drvlocal.ecmcAtTargetMonEnable) {
         drvlocal.moveReady = !drvlocal.ecmcBusy && drvlocal.status_.statusWord_.attarget; //&& !drvlocal.status_.statusWord_.enabled;
@@ -1574,13 +1578,21 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
         drvlocal.moveReady = !drvlocal.ecmcBusy;// && !drvlocal.status_.statusWord_.enabled;
       }
       // If killed then set dmove = true
-      if(!drvlocal.status_.statusWord_.enabled && !drvlocal.ecmcBusy) {
+      if(!drvlocal.status_.statusWord_.enable && !drvlocal.ecmcBusy) {
         drvlocal.moveReady = true;
       }
     }
   } else {
     drvlocal.moveReady = false;
   }
+
+  //if(!drvlocal.moveReady){
+  //  printf("Axis[%d]:ecmcMotorRecordAxis::poll(): ecmc busy %d\n", axisNo_,drvlocal.ecmcAxis->getBusy());
+  //}
+  //
+  //if(!dataIsSampledAfterNewCmd()) {
+  //  printf("Axis[%d]:ecmcMotorRecordAxis::poll(): Ecmc data older than newest command so wait for next poll, drvlocal.moveReady = %d\n", axisNo_,drvlocal.moveReady);
+  //}
 
   // Axis in external mode and busy, then trigg SYNC
   if((drvlocal.ecmcTrjSrc && drvlocal.ecmcBusy)) {
@@ -1612,7 +1624,6 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   setDoubleParam(pC_->ecmcMotorRecordAcc_RB_,
                  drvlocal.status_.currentAccelerationSetpoint);
 
-  callParamCallbacks();
 #ifndef motorWaitPollsBeforeReadyString
 
   if (drvlocal.waitNumPollsBeforeReady) {
@@ -1649,7 +1660,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   // }
   setDoubleParam(pC_->ecmcMotorRecordEncAct_,
                  (double)drvlocal.statusOld_.currentPositionActualRaw);
-
+  
   if (drvlocal.statusOld_.statusWord_.homed !=
       drvlocal.status_.statusWord_.homed) {
     asynPrint(pPrintOutAsynUser,
@@ -1735,6 +1746,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 
 
   updateError();
+  callParamCallbacks();
   
 //
   //if ((drvlocal.bErrorOld !=
@@ -2858,7 +2870,7 @@ void ecmcMotorRecordAxis::updateError() {
 
     if (bytes >= sizeof(drvlocal.sErrorMessage) - 1) {
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-                "Warning: Error message trucated (%s)\n", sErrorMessage);
+                "Warning: Error message truncated (%s)\n", sErrorMessage);
     }
 
     /* The poller will update the MsgTxt field */
@@ -2867,4 +2879,24 @@ void ecmcMotorRecordAxis::updateError() {
     callParamCallbacksUpdateError();
   }
   drvlocal.bErrorOld = drvlocal.status_.errorCode > 0;                   
+}
+
+// Make sure new data is polled after new command is recived (for setting DMOV)
+void ecmcMotorRecordAxis::newCmd() {
+
+  drvlocal.moveReady = false;
+  // update motor record
+  setIntegerParam(pC_->motorStatusMoving_, !drvlocal.moveReady);
+  setIntegerParam(pC_->motorStatusDone_,   drvlocal.moveReady);
+  callParamCallbacks(); 
+
+  // latch and comapre when setting DMOV
+  ecmcCycleCounterAtNewCmd_ = drvlocal.status_.cycleCounter;
+
+  //printf("Axis[%d]: New command recived!\n", axisNo_);
+}
+
+bool ecmcMotorRecordAxis::dataIsSampledAfterNewCmd() {
+  // the diff >1000 is just to handle overfows so not stuck in DMOV=0.
+  return drvlocal.status_.cycleCounter > ecmcCycleCounterAtNewCmd_ || abs(ecmcCycleCounterAtNewCmd_ - drvlocal.status_.cycleCounter) > 1000;
 }

@@ -118,6 +118,9 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
   slaveGrp_->setBlocked(false);
   masterGrp_->setBlocked(false);
 
+  //masterGrp_->setEnable(false);
+  //slaveGrp_->setEnable(false);
+
   // optimize
   bool anySlaveBusy     = slaveGrp_->getAnyBusy();
   bool anySlaveErrorId  = slaveGrp_->getAnyErrorId();
@@ -237,7 +240,7 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
   bool lostEnableCmd = !slaveGrp_->getEnable() || !masterGrp_->getEnable();
   
   // One master or slave axis gets killed during motion then kill all and goto IDLE
-  if( masterGrp_->getAnyBusy() || lostEnableCmd) {
+  if( masterGrp_->getAnyBusy() && lostEnableCmd) {
     bool lostEnabled =          masterGrp_->getAnyEnabled() && !masterGrp_->getEnabled();
     lostEnabled = lostEnabled  || (slaveGrp_->getAnyEnabled() && !slaveGrp_->getEnabled());
     if(lostEnabled) {
