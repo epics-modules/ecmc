@@ -392,7 +392,10 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     break;
 
   case ECMC_AXIS_STATE_DISABLED:
-    seq_.setGlobalBusy(false);
+    // Allow axes to be busy if auto enabling..
+    if (!autoEnableRequest_ ) {
+      seq_.setGlobalBusy(false); 
+    }   
     data_.status_.statusWord_.busy = false;
     data_.status_.distToStop = 0;
 
@@ -1805,7 +1808,7 @@ int ecmcAxisBase::moveAbsolutePosition(
   if (errorCode) {
     return errorCode;
   }
-  
+
   return 0;
 }
 
