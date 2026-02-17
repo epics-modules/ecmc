@@ -309,6 +309,7 @@ void ecmcAxisBase::initVars() {
   enableAutoEnable_             = 0;
   enableAutoDisable_            = 0;
   positionTargetAsyn_           = 0;
+  enableAutoResetError_         = 0;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
@@ -627,7 +628,7 @@ int ecmcAxisBase::getErrorID() {
 
 int ecmcAxisBase::setEnableLocal(bool enable) {
   if (enable && !data_.status_.statusWord_.enable) {
-    errorReset();
+    if(enableAutoResetError_) errorReset();
     extEncVeloFilter_->initFilter(0);  // init to 0 vel
     extTrajVeloFilter_->initFilter(0);  // init to 0 vel    
     if( (!data_.status_.statusWord_.attarget) || (!firstEnableDone_) || (!mon_->getEnableAtTargetMon())) {
@@ -1402,6 +1403,11 @@ int ecmcAxisBase::setModType(int type) {
 
 int ecmcAxisBase::getModType() {
   return (int)data_.control_.moduloType;
+}
+
+int ecmcAxisBase::setAutoResetError(bool enable) {
+  enableAutoResetError_ = enable;
+  return 0;
 }
 
 int ecmcAxisBase::getCntrlError(double *error) {

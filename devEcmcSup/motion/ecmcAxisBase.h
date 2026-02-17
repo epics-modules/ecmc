@@ -316,6 +316,7 @@ protected:
   bool enableAutoEnable_;
   bool enableAutoDisable_;
   double positionTargetAsyn_;
+  bool enableAutoResetError_;
 };
 
 #endif  /* ECMCAXISBASE_H_ */
