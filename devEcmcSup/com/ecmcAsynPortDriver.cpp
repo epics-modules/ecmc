@@ -1150,7 +1150,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser    *pasynUser,
         (pEcmcParamInUseArray_[index]->getEcmcBitCount() != 64)) {
       asynPrint(pasynUser,
                 ASYN_TRACE_ERROR,
-                "%s:%s: Command " ECMC_OPTION_CMD_INT_TO_FLOAT64 " is only valid for 8 byte parameters (drvInfo = %s).\n",
+                "%s:%s: Command " ECMC_OPTION_CMD_INT64_TO_FLOAT64 " is only valid for 8 byte parameters (drvInfo = %s).\n",
                 driverName,
                 functionName,
                 drvInfo);
@@ -1186,7 +1186,7 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser    *pasynUser,
         (pEcmcParamInUseArray_[index]->getEcmcDataSize() != 8)) {
       asynPrint(pasynUser,
                 ASYN_TRACE_ERROR,
-                "%s:%s: Command " ECMC_OPTION_CMD_FLOAT64_INT " is only valid for 8 byte parameters (drvInfo = %s).\n",
+                "%s:%s: Command " ECMC_OPTION_CMD_FLOAT64_TO_INT32 " is only valid for 8 byte parameters (drvInfo = %s).\n",
                 driverName,
                 functionName,
                 drvInfo);
