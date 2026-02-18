@@ -3205,7 +3205,12 @@ void ecmcAxisBase::autoDisableSM() {
     autoDisbleTimeCounter_ = 0;
     return;
   }
-  
+
+  if(!data_.status_.statusWord_.attarget && getMon()->getEnableAtTargetMon()) {
+    autoDisbleTimeCounter_ = 0;
+    return;
+  }
+
   if(autoDisbleTimeCounter_ > autoDisableAfterS_ && data_.control_.controlWord_.enableCmd) {
     if(data_.control_.controlWord_.enableDbgPrintout) {
       printf("INFO: Axis[%d]: ecmcAxisBase::autoDisableSM(): Auto disable axis (axis idle for %lfs)\n",

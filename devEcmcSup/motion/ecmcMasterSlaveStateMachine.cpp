@@ -228,7 +228,7 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     masterGrp_->setSlavedAxisInError();
   }
 
-  if(!masterGrp_->getAnyBusy() && masterGrp_->getAnyEnabled()) {
+  if( masterGrp_->getAnyEnabled() && !masterGrp_->getAnyBusy()) {
     if(control_.autoDisableMasters) {
       slaveGrp_->setEnable(0);
       masterGrp_->setEnable(0);
@@ -240,10 +240,10 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
   bool lostEnableCmd = !slaveGrp_->getEnable() || !masterGrp_->getEnable();
   
   // One master or slave axis gets killed during motion then kill all and goto IDLE
-  if( masterGrp_->getAnyBusy() && lostEnableCmd) {
+  if( (masterGrp_->getAnyBusy() && lostEnableCmd) || masterGrp_->getAnyErrorId()) {
     bool lostEnabled =          masterGrp_->getAnyEnabled() && !masterGrp_->getEnabled();
     lostEnabled = lostEnabled  || (slaveGrp_->getAnyEnabled() && !slaveGrp_->getEnabled());
-    if(lostEnabled) {
+    if(lostEnabled || masterGrp_->getAnyErrorId()) {
       state_ = ECMC_MST_SLV_STATE_IDLE;
       //if(control_.enableDbgPrintouts) {
         printf("ecmcMasterSlaveStateMachine: %s: At least one axis lost enable during motion. Disable all axes..\n", name_.c_str());    
@@ -258,7 +258,9 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
       slaveGrp_->setMRStop(1);
       slaveGrp_->setMRSync(1);
       slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
-      masterGrp_->setSlavedAxisIlocked();
+      if(!masterGrp_->getAnyErrorId()) { // Dont overwrite error if master error
+        masterGrp_->setSlavedAxisIlocked();
+      }
       masterGrp_->setEnableAutoDisable(1);
       //stateReset(); // A bit nasty but ....
       return 0;
@@ -266,7 +268,8 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
   }
 
   // postpone disable until all master axes are done
-  masterGrp_->setEnableAutoDisable(masterGrp_->getAnyBusy() == 0);
+  //masterGrp_->setEnableAutoDisable(masterGrp_->getAnyBusy() == 0);
+  masterGrp_->setEnableAutoDisable(masterGrp_->getAtTarget() == 1 && masterGrp_->getAnyBusy() == 0);
   // ensure attarget/reduced current of slave axes
   slaveGrp_->setAxisIsWithinCtrlDBExtTraj(masterGrp_->getAxisIsWithinCtrlDB());
   

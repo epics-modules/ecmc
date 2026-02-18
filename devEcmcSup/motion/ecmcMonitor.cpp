@@ -22,9 +22,9 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
                                                                      status_.
                                                                      warningCode))
 {
-  initVars();
   data_ = axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
+  initVars();
   encArray_ = encArray;
 
   if (!data_) {
@@ -52,9 +52,11 @@ void ecmcMonitor::initVars() {
   maxStallCounter_    = 0;
   stallLastMotionCmdCycles_  = 0;
   stallCheckAtTargetAtCycle_ = 0;
-  stallMinTimeoutCycles_     = 0;
+  // Allow atleast 10 seconds before stall
+  stallMinTimeoutCycles_     = 15 / data_->status_.sampleTime;
+  // Allow stallMinTimeoutCycles_ + stallTimeFactor_*(last_move_time) befire stall
   stallTimeFactor_           = 10;
-  enableStallMon_            = 0;
+  enableStallMon_            = 1;
 
   // 200 cycles
   maxVelTrajILDelay_ = 200;
@@ -863,8 +865,8 @@ int  ecmcMonitor::checkStall() {
         stallCheckAtTargetAtCycle_ = stallMinTimeoutCycles_;
       }
       if(data_->control_.controlWord_.enableDbgPrintout) {
-        printf("Axis[%d]: Time to check stall after: %" PRIu64 "\n", data_->status_.axisId, stallCheckAtTargetAtCycle_);        
-      }
+        printf("Axis[%d]: Time to check stall after: %" PRIu64 ", factor %lf, min time %lf\n", data_->status_.axisId, stallCheckAtTargetAtCycle_,stallTimeFactor_,stallMinTimeoutCycles_);        
+      }      
     }
   }
 
@@ -874,9 +876,10 @@ int  ecmcMonitor::checkStall() {
     data_->interlocks_.stallInterlock = false;
     if(!data_->statusOld_.statusWord_.attarget) {
       if(data_->control_.controlWord_.enableDbgPrintout) {
-        printf("Axis[%d]: No stall.. Brilliant!!\n",data_->status_.axisId);
+        printf("Axis[%d]: No stall.. Brilliant!!\n",data_->status_.axisId);                
       }
     }
+    stallLastMotionCmdCycles_ = 0;
     maxStallCounter_ = 0;
     return 0;
   }
@@ -884,8 +887,9 @@ int  ecmcMonitor::checkStall() {
   if((maxStallCounter_ > stallCheckAtTargetAtCycle_) && 
      (stallCheckAtTargetAtCycle_ > 0)) {
     if(data_->control_.controlWord_.enableDbgPrintout) {
-      printf("Axis[%d]: Stall...\n",data_->status_.axisId);
+      printf("Axis[%d]: Stall...\n",data_->status_.axisId);      
     }
+    stallLastMotionCmdCycles_ = 0;  
     stallCheckAtTargetAtCycle_ = 0;
     data_->interlocks_.stallInterlock = true;    
     return setErrorID(__FILE__,

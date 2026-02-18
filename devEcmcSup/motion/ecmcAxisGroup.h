@@ -44,6 +44,8 @@ class ecmcAxisGroup : public ecmcError {
     bool getAnyAtLimitBwd();
     // Check if any axes in group is interlocked
     bool getAnyIlocked();
+    // Check if all axes in group is attarget
+    bool getAtTarget();
     // Check if all axes in group are busy
     bool getBusy();
     // Check if at least one axis in group are busy
