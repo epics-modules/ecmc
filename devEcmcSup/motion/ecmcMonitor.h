@@ -43,6 +43,8 @@ public:
   bool               getEnableAtTargetMon();
   int                setCtrlDeadband(double tol);
   int                setCtrlDeadbandTime(int time);
+  double             getCtrlDeadband();
+  int                getCtrlDeadbandTime();
   bool               getCtrlInDeadband();
   int                setPosLagTol(double tol);
   double             getPosLagTol();

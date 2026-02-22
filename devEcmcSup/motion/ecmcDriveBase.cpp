@@ -154,6 +154,10 @@ double ecmcDriveBase::getScaleNum(void) {
   return scaleNum_;
 }
 
+double ecmcDriveBase::getScaleDenom(void) {
+  return scaleDenom_;
+}
+
 void ecmcDriveBase::setScaleNum(double scaleNum) {
   scaleNum_ = scaleNum;
 
@@ -935,5 +939,4 @@ void ecmcDriveBase::setCspEnc(ecmcEncoder * enc) {
 int ecmcDriveBase::hwReady() {
   return 1;
 }
-
 

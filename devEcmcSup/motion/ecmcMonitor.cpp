@@ -1315,6 +1315,14 @@ int ecmcMonitor::setCtrlDeadbandTime(int cycles) {
   return 0;
 }
 
+double ecmcMonitor::getCtrlDeadband() {
+  return ctrlDeadbandTol_;
+}
+
+int ecmcMonitor::getCtrlDeadbandTime() {
+  return ctrlDeadbandTime_;
+}
+
 void ecmcMonitor::setSafetyInterlock(int interlock) {
   data_->interlocks_.safetyInterlock = interlock > 0;
 }

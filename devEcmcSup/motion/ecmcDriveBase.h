@@ -58,6 +58,7 @@ public:
   bool         getEnable();
   bool         getEnabled();
   double       getScaleNum(void);
+  double       getScaleDenom(void);
   void         setScaleNum(double scaleNum);
   int          setScaleDenom(double scaleDenom);
   double       getScale();

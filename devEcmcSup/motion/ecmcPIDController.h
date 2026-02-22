@@ -61,6 +61,14 @@ public:
   double getKi();
   double getKd();
   double getKff();
+  double getIOutMax();
+  double getIOutMin();
+  double getOutMax();
+  double getOutMin();
+  double getInnerKp();
+  double getInnerKi();
+  double getInnerKd();
+  double getInnerTol();
   void   setOutMax(double outMax);
   void   setOutMin(double outMin);
   void   setIOutMax(double outMax);

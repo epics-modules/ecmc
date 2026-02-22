@@ -1839,6 +1839,82 @@ int setAxisCntrlInnerParams(int    axisIndex,
   return 0;
 }
 
+int setAxisCntrlInnerKp(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  ecmcPIDController *cntrl = axes[axisIndex]->getCntrl();
+  cntrl->setInnerCtrlParams(value,
+                            cntrl->getInnerKi(),
+                            cntrl->getInnerKd(),
+                            cntrl->getInnerTol());
+  return 0;
+}
+
+int setAxisCntrlInnerKi(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  ecmcPIDController *cntrl = axes[axisIndex]->getCntrl();
+  cntrl->setInnerCtrlParams(cntrl->getInnerKp(),
+                            value,
+                            cntrl->getInnerKd(),
+                            cntrl->getInnerTol());
+  return 0;
+}
+
+int setAxisCntrlInnerKd(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  ecmcPIDController *cntrl = axes[axisIndex]->getCntrl();
+  cntrl->setInnerCtrlParams(cntrl->getInnerKp(),
+                            cntrl->getInnerKi(),
+                            value,
+                            cntrl->getInnerTol());
+  return 0;
+}
+
+int setAxisCntrlInnerTol(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  ecmcPIDController *cntrl = axes[axisIndex]->getCntrl();
+  cntrl->setInnerCtrlParams(cntrl->getInnerKp(),
+                            cntrl->getInnerKi(),
+                            cntrl->getInnerKd(),
+                            value);
+  return 0;
+}
+
 int setAxisCntrlOutHL(int axisIndex, double value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
            __FILE__,
@@ -1896,6 +1972,188 @@ int setAxisCntrlIpartLL(int axisIndex, double value) {
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getCntrl()->setIOutMin(value);
+  return 0;
+}
+
+int getAxisCntrlKp(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getKp();
+  return 0;
+}
+
+int getAxisCntrlKi(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getKi();
+  return 0;
+}
+
+int getAxisCntrlKd(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getKd();
+  return 0;
+}
+
+int getAxisCntrlKff(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getKff();
+  return 0;
+}
+
+int getAxisCntrlDeadband(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getCtrlDeadband();
+  return 0;
+}
+
+int getAxisCntrlDeadbandTime(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getCtrlDeadbandTime();
+  return 0;
+}
+
+int getAxisCntrlIpartHL(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getIOutMax();
+  return 0;
+}
+
+int getAxisCntrlIpartLL(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getIOutMin();
+  return 0;
+}
+
+int getAxisCntrlOutHL(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getOutMax();
+  return 0;
+}
+
+int getAxisCntrlOutLL(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getOutMin();
+  return 0;
+}
+
+int getAxisCntrlInnerKp(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getInnerKp();
+  return 0;
+}
+
+int getAxisCntrlInnerKi(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getInnerKi();
+  return 0;
+}
+
+int getAxisCntrlInnerKd(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getInnerKd();
+  return 0;
+}
+
+int getAxisCntrlInnerTol(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getInnerTol();
   return 0;
 }
 
@@ -2160,6 +2418,12 @@ int setAxisEncDelayCyclesAndEnable(int axisIndex, double cycles, int enable) {
 int getAxisDrvScaleNum(int axisIndex, double *value) {
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
   *value = axes[axisIndex]->getDrv()->getScaleNum();
+  return 0;
+}
+
+int getAxisDrvScaleDenom(int axisIndex, double *value) {
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getDrv()->getScaleDenom();
   return 0;
 }
 

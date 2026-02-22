@@ -837,6 +837,48 @@ int getAxisEncScaleDenom(int     axisIndex,
 int getAxisEncPosRaw(int      axisIndex,
                      int64_t *value);
 
+int getAxisCntrlKp(int     axisIndex,
+                   double *value);
+
+int getAxisCntrlKi(int     axisIndex,
+                   double *value);
+
+int getAxisCntrlKd(int     axisIndex,
+                   double *value);
+
+int getAxisCntrlKff(int     axisIndex,
+                    double *value);
+
+int getAxisCntrlDeadband(int     axisIndex,
+                         double *value);
+
+int getAxisCntrlDeadbandTime(int axisIndex,
+                             int *value);
+
+int getAxisCntrlIpartHL(int     axisIndex,
+                        double *value);
+
+int getAxisCntrlIpartLL(int     axisIndex,
+                        double *value);
+
+int getAxisCntrlOutHL(int     axisIndex,
+                      double *value);
+
+int getAxisCntrlOutLL(int     axisIndex,
+                      double *value);
+
+int getAxisCntrlInnerKp(int     axisIndex,
+                        double *value);
+
+int getAxisCntrlInnerKi(int     axisIndex,
+                        double *value);
+
+int getAxisCntrlInnerKd(int     axisIndex,
+                        double *value);
+
+int getAxisCntrlInnerTol(int     axisIndex,
+                         double *value);
+
 /** \brief Get PID-controller proportional output part.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2337,6 +2379,18 @@ int setAxisCntrlInnerParams(int    axisIndex,
                             double kd,
                             double tol);
 
+int setAxisCntrlInnerKp(int    axisIndex,
+                        double value);
+
+int setAxisCntrlInnerKi(int    axisIndex,
+                        double value);
+
+int setAxisCntrlInnerKd(int    axisIndex,
+                        double value);
+
+int setAxisCntrlInnerTol(int    axisIndex,
+                         double value);
+
 /** \brief Set PID-controller maximum output value.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2398,6 +2452,9 @@ int setAxisCntrlIpartHL(int    axisIndex,
  */
 int getAxisDrvScaleNum(int     axisIndex,
                        double *value);
+
+int getAxisDrvScaleDenom(int     axisIndex,
+                         double *value);
 
 /** \brief Set drive output scale numerator.\n
  *
