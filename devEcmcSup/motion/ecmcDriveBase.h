@@ -70,6 +70,8 @@ public:
   int          setEnableReduceTorque(bool enable);
   int          getEnableBrake();
   int          getEnableReduceTorque();
+  int          getBrakeOpenDelayTime();
+  int          getBrakeCloseAheadTime();
   int          setAxisDataRef(ecmcAxisData *data);
   int          setBrakeOpenDelayTime(int delayTime);
   int          setBrakeCloseAheadTime(int aheadTime);

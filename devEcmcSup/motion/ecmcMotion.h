@@ -1644,6 +1644,18 @@ int setAxisEncInvHwReady(int axisIndex,
  */
 int setAxisHomePos(int    axisIndex,
                    double value);
+int getAxisHomePos(int    axisIndex,
+                   double *value);
+int getAxisHomeSeqId(int axisIndex,
+                     int *value);
+int getAxisHomeAcc(int    axisIndex,
+                   double *value);
+int getAxisHomeDec(int    axisIndex,
+                   double *value);
+int getAxisHomePostMoveEnable(int axisIndex,
+                              int *value);
+int getAxisHomePostMoveTargetPosition(int    axisIndex,
+                                      double *value);
 
 /** \brief Set axis error code.\n
  *
@@ -1877,6 +1889,14 @@ int setAxisEncVelFilterSize(int axisIndex,
  */
 int setAxisEncVelFilterEnable(int axisIndex,
                               int enable);
+int getAxisEncVelFilterSize(int axisIndex,
+                            int *size);
+int getAxisEncVelFilterEnable(int axisIndex,
+                              int *enable);
+int getAxisEncPosFilterSize(int axisIndex,
+                            int *size);
+int getAxisEncPosFilterEnable(int axisIndex,
+                              int *enable);
 
 /** \brief Set size of encoder position filter.\n
  *
@@ -2027,6 +2047,12 @@ int setAxisEncBits(int axisIndex,
  */
 int setAxisEncAbsBits(int axisIndex,
                       int bits);
+int getAxisEncOffset(int    axisIndex,
+                     double *value);
+int getAxisEncBits(int axisIndex,
+                   int *bits);
+int getAxisEncAbsBits(int axisIndex,
+                      int *bits);
 
 /** \brief Set encoder raw data mask.\n
  *
@@ -2046,6 +2072,8 @@ int setAxisEncAbsBits(int axisIndex,
  */
 int setAxisEncRawMask(int      axisIndex,
                       uint64_t rawMask);
+int getAxisEncRawMask(int      axisIndex,
+                      uint64_t *rawMask);
 
 /** \brief Add encoder object to axis.\n
  *
@@ -2147,6 +2175,8 @@ int selectAxisEncConfig(int axisIndex,
  */
 int setAxisEncEnableRefAtHome(int axisIndex,
                               int enable);
+int getAxisEncEnableRefAtHome(int axisIndex,
+                              int *enable);
 
 /** \brief Get index of current encoder being used for control (PID).\n
  *
@@ -2222,6 +2252,14 @@ int setAxisEncMaxDiffToPrimEnc(int    axisIndex,
  * "Cfg.SetAxisEncDelayCyclesAndEnable(3,2.5,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncDelayCyclesAndEnable(int axisIndex, double timeMs, int enable);
+int setAxisEncDelayCompTime(int axisIndex,
+                           double cycles);
+int setAxisEncDelayCompEnable(int axisIndex,
+                             int enable);
+int getAxisEncDelayCompTime(int axisIndex,
+                           double *cycles);
+int getAxisEncDelayCompEnable(int axisIndex,
+                             int *enable);
 
 /** \brief Load encoder correction lookup table file.\n
  *
@@ -2269,6 +2307,7 @@ int loadAxisEncLookupTable(int axisIndex, const char* filename);
  * "Cfg.SetAxisEncLookupTableEnable(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncLookupTableEnable(int axisIndex, int enable);
+int getAxisEncLookupTableEnable(int axisIndex, int *enable);
 
 /** \brief Set encoder lookup table mask
  *
@@ -2616,6 +2655,15 @@ int setAxisDrvStateMachineTimeout(int    axisIndex,
  */
 int setAxisDrvReduceTorqueEnable(int axisIndex,
                                  int enable);
+
+int getAxisDrvBrakeEnable(int axisIndex,
+                        int *value);
+int getAxisDrvBrakeOpenDelayTime(int axisIndex,
+                              int *value);
+int getAxisDrvBrakeCloseAheadTime(int axisIndex,
+                               int *value);
+int getAxisDrvReduceTorqueEnable(int axisIndex,
+                               int *value);
 
 /** \brief Set drive type.\n
  *  OBSOLETE COMMAND. USE CREATEAXIS(id,type,drvtype).

@@ -242,6 +242,14 @@ int ecmcDriveBase::getEnableReduceTorque() {
   return enableReduceTorque_;
 }
 
+int ecmcDriveBase::getBrakeOpenDelayTime() {
+  return brakeOpenDelayTime_;
+}
+
+int ecmcDriveBase::getBrakeCloseAheadTime() {
+  return brakeCloseAheadTime_;
+}
+
 void ecmcDriveBase::writeEntries() {
   if (!driveInterlocksOK() && data_->status_.statusWord_.enable) {
     data_->status_.statusWord_.enable = false;

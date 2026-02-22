@@ -260,6 +260,10 @@ int ecmcEncoder::setOffset(double offset) {
   return 0;
 }
 
+double ecmcEncoder::getOffset() {
+  return engOffset_;
+}
+
 double ecmcEncoder::getSampleTime() {
   return sampleTimeMs_;
 }
@@ -412,6 +416,10 @@ int ecmcEncoder::setRawMask(uint64_t mask) {
   totalRawRegShift_ = pow(2, trailingZeros) - 1;
   totalRawMask_     = mask;
   return 0;
+}
+
+uint64_t ecmcEncoder::getRawMask() {
+  return totalRawMask_;
 }
 
 double ecmcEncoder::getScaleNum() {
@@ -1145,6 +1153,10 @@ int ecmcEncoder::setVeloFilterSize(size_t size) {
   return velocityFilter_->setFilterSize(size);
 }
 
+int ecmcEncoder::getVeloFilterSize() {
+  return (int)velocityFilter_->getFilterSize();
+}
+
 /*
 * Set position filter size (to get stable position
   if resolution is poor compared to sample rate)
@@ -1159,6 +1171,10 @@ int ecmcEncoder::setPosFilterSize(size_t size) {
   return positionFilter_->setFilterSize(size);
 }
 
+int ecmcEncoder::getPosFilterSize() {
+  return (int)positionFilter_->getFilterSize();
+}
+
 /*
 * Set position filter enable (to get stable position
   if resolution is poor compared to sample rate)
@@ -1168,9 +1184,17 @@ int ecmcEncoder::setPosFilterEnable(bool enable) {
   return 0;
 }
 
+int ecmcEncoder::getPosFilterEnable() {
+  return enablePositionFilter_;
+}
+
 int ecmcEncoder::setVelFilterEnable(bool enable) {
   enableVelocityFilter_ = enable;
   return 0;
+}
+
+int ecmcEncoder::getVelFilterEnable() {
+  return enableVelocityFilter_;
 }
 
 void ecmcEncoder::errorReset() {
@@ -1556,6 +1580,10 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
   return 0;
 }
 
+int ecmcEncoder::getLookupTableEnable() {
+  return lookupTableEnable_;
+}
+
 int ecmcEncoder::setLookupTableRange(double range) {
   lookupTableRange_ = range;
   return 0;
@@ -1565,6 +1593,17 @@ int ecmcEncoder::setDelayCyclesAndEnable(double cycles, bool enable) {
   delayTimeS_      = cycles * sampleTimeMs_ / 1000;
   enableDelayTime_ = enable;
   return 0;
+}
+
+double ecmcEncoder::getDelayCycles() {
+  if (sampleTimeMs_ <= 0) {
+    return 0;
+  }
+  return delayTimeS_ * 1000.0 / sampleTimeMs_;
+}
+
+int ecmcEncoder::getDelayCompEnable() {
+  return enableDelayTime_;
 }
 
 int ecmcEncoder::setLookupTableScale(double scale) {
