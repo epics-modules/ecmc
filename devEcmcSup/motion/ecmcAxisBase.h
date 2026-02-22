@@ -175,7 +175,9 @@ public:
   int        setPosition(double homePositionSet);                  // Autosave
   int        stopMotion(int killAmplifier);
   int        setAutoEnableTimeout(double timeS);
+  double     getAutoEnableTimeout();
   int        setAutoDisableAfterTime(double timeS);
+  double     getAutoDisableAfterTime();
   int        setEnableAutoEnable(bool enable);
   int        setEnableAutoDisable(bool enable);
   asynStatus axisAsynWriteCmd(void         *data,
@@ -225,10 +227,12 @@ public:
   double     getExtSetPos();
   double     getExtActPos();
   int        setAllowSourceChangeWhenEnabled(bool allow);
+  int        getAllowSourceChangeWhenEnabled();
   void       setTargetVel(double velTarget);
   void       setTargetPos(double posTarget);
   void       setTargetPosToCurrSetPos();
   void       setTweakDist(double dist);
+  double     getTweakDist();
   void       setAcc(double acc);
   void       setDec(double dec);
   void       setEmergencyStopInterlock(int stop);

@@ -2993,6 +2993,10 @@ int ecmcAxisBase::setAllowSourceChangeWhenEnabled(bool allow) {
   return 0;
 }
 
+int ecmcAxisBase::getAllowSourceChangeWhenEnabled() {
+  return data_.control_.allowSourceChangeWhenEnabled;
+}
+
 void ecmcAxisBase::setTargetPos(double posTarget) {
   getSeq()->setTargetPos(posTarget);
   refreshAsynTargetValue();  
@@ -3015,6 +3019,10 @@ void ecmcAxisBase::setTweakDist(double dist) {
   refreshAsynTargetValue();
 
   data_.axAsynParams_[ECMC_ASYN_AX_TWEAK_VALUE_ID]->refreshParamRT(1);
+}
+
+double ecmcAxisBase::getTweakDist() {
+  return data_.control_.tweakValue;
 }
 
 void ecmcAxisBase::setAcc(double acc) {
@@ -3229,6 +3237,10 @@ int ecmcAxisBase::setAutoEnableTimeout(double timeS) {
   return 0;
 }
 
+double ecmcAxisBase::getAutoEnableTimeout() {
+  return autoEnableTimoutS_;
+}
+
 int ecmcAxisBase::setEnableAutoEnable(bool enable) {
   if(enableAutoEnable_ != enable) {
     autoDisbleTimeCounter_ = 0;
@@ -3241,6 +3253,10 @@ int ecmcAxisBase::setAutoDisableAfterTime(double timeS) {
   autoDisableAfterS_ = timeS;
   enableAutoDisable_ = timeS > 0;
   return 0;
+}
+
+double ecmcAxisBase::getAutoDisableAfterTime() {
+  return autoDisableAfterS_;
 }
 
 int ecmcAxisBase::setEnableAutoDisable(bool enable) {

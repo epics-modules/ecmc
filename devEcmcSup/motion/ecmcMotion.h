@@ -1283,6 +1283,26 @@ int setAxisEnableMotionFunctions(int axisIndex,
                                  int enablePos,
                                  int enableConstVel,
                                  int enableHome);
+int setAxisEnablePos(int axisIndex,
+                     int enablePos);
+int setAxisEnableConstVel(int axisIndex,
+                          int enableConstVel);
+int setAxisEnableHome(int axisIndex,
+                      int enableHome);
+int getAxisEnablePos(int axisIndex,
+                     int *value);
+int getAxisEnableConstVel(int axisIndex,
+                          int *value);
+int getAxisEnableHome(int axisIndex,
+                      int *value);
+int getAxisAllowSourceChangeWhenEnabled(int axisIndex,
+                                     int *value);
+int getAxisAutoEnableTimeout(int axisIndex,
+                             double *value);
+int getAxisAutoDisableAfterTime(int axisIndex,
+                                double *value);
+int getAxisTweakDist(int axisIndex,
+                     double *value);
 
 /** \brief Set axis amplifier enable at ioc startup.\n
  *

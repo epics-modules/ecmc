@@ -487,6 +487,111 @@ int setAxisEnableMotionFunctions(int axisIndex,
                                                   enableHome);
 }
 
+int setAxisEnablePos(int axisIndex, int enablePos) {
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  int enableConstVel = axes[axisIndex]->getAllowConstVelo();
+  int enableHome     = axes[axisIndex]->getAllowHome();
+
+  if (enableConstVel < 0) {
+    return -enableConstVel;
+  }
+  if (enableHome < 0) {
+    return -enableHome;
+  }
+
+  return axes[axisIndex]->setAllowMotionFunctions(enablePos, enableConstVel, enableHome);
+}
+
+int setAxisEnableConstVel(int axisIndex, int enableConstVel) {
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  int enablePos  = axes[axisIndex]->getAllowPos();
+  int enableHome = axes[axisIndex]->getAllowHome();
+
+  if (enablePos < 0) {
+    return -enablePos;
+  }
+  if (enableHome < 0) {
+    return -enableHome;
+  }
+
+  return axes[axisIndex]->setAllowMotionFunctions(enablePos, enableConstVel, enableHome);
+}
+
+int setAxisEnableHome(int axisIndex, int enableHome) {
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  int enablePos      = axes[axisIndex]->getAllowPos();
+  int enableConstVel = axes[axisIndex]->getAllowConstVelo();
+
+  if (enablePos < 0) {
+    return -enablePos;
+  }
+  if (enableConstVel < 0) {
+    return -enableConstVel;
+  }
+
+  return axes[axisIndex]->setAllowMotionFunctions(enablePos, enableConstVel, enableHome);
+}
+
+int getAxisEnablePos(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = 0;
+  int ret = axes[axisIndex]->getAllowPos();
+  if (ret < 0) {
+    return -ret;
+  }
+  *value = ret;
+  return 0;
+}
+
+int getAxisEnableConstVel(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = 0;
+  int ret = axes[axisIndex]->getAllowConstVelo();
+  if (ret < 0) {
+    return -ret;
+  }
+  *value = ret;
+  return 0;
+}
+
+int getAxisEnableHome(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = 0;
+  int ret = axes[axisIndex]->getAllowHome();
+  if (ret < 0) {
+    return -ret;
+  }
+  *value = ret;
+  return 0;
+}
+
+int getAxisAllowSourceChangeWhenEnabled(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getAllowSourceChangeWhenEnabled();
+  return 0;
+}
+
+int getAxisAutoEnableTimeout(int axisIndex, double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getAutoEnableTimeout();
+  return 0;
+}
+
+int getAxisAutoDisableAfterTime(int axisIndex, double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getAutoDisableAfterTime();
+  return 0;
+}
+
+int getAxisTweakDist(int axisIndex, double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getTweakDist();
+  return 0;
+}
+
 int setAxisEnableAlarmAtHardLimits(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
