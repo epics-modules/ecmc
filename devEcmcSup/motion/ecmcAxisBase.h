@@ -145,7 +145,9 @@ public:
   bool                       getEnableExtEncVeloFilter();
   bool                       getEnableExtTrajVeloFilter();
   int                        setExtTrajVeloFiltSize(size_t size);
+  int                        getExtTrajVeloFiltSize();
   int                        setExtEncVeloFiltSize(size_t size);
+  int                        getExtEncVeloFiltSize();
   int                        setEncVeloFiltSize(size_t size);
   int                        setEncVeloFiltEnable(bool enable);
   int                        setEncPosFiltSize(size_t size);

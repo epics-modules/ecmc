@@ -1369,6 +1369,12 @@ int compileAxisPLCExpr(int axisIndex) {
   return plcs->compileExpr(AXIS_PLC_ID_TO_PLC_ID(axisIndex));
 }
 
+int getAxisPLCTrajVelFilterEnable(int axisIndex, int *enable) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *enable = axes[axisIndex]->getEnableExtTrajVeloFilter();
+  return 0;
+}
+
 int setAxisPLCTrajVelFilterEnable(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,
@@ -1379,6 +1385,12 @@ int setAxisPLCTrajVelFilterEnable(int axisIndex, int enable) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
   return axes[axisIndex]->setEnableExtTrajVeloFilter(enable);
+}
+
+int getAxisPLCTrajVelFilterSize(int axisIndex, int *size) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *size = axes[axisIndex]->getExtTrajVeloFiltSize();
+  return 0;
 }
 
 int setAxisPLCTrajVelFilterSize(int axisIndex,
@@ -1398,6 +1410,12 @@ int setAxisPLCTrajVelFilterSize(int axisIndex,
   return axes[axisIndex]->setExtTrajVeloFiltSize(size);
 }
 
+int getAxisPLCEncVelFilterEnable(int axisIndex, int *enable) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *enable = axes[axisIndex]->getEnableExtEncVeloFilter();
+  return 0;
+}
+
 int setAxisPLCEncVelFilterEnable(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,
@@ -1409,6 +1427,12 @@ int setAxisPLCEncVelFilterEnable(int axisIndex, int enable) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
   return axes[axisIndex]->setEnableExtEncVeloFilter(enable);
+}
+
+int getAxisPLCEncVelFilterSize(int axisIndex, int *size) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *size = axes[axisIndex]->getExtEncVeloFiltSize();
+  return 0;
 }
 
 int setAxisPLCEncVelFilterSize(int axisIndex,
@@ -1638,6 +1662,33 @@ int getAxisTargetVel(int axisIndex, double *value) {
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
   * value = axes[axisIndex]->getSeq()->getTargetVel();
+  return 0;
+}
+
+int getAxisEmergDeceleration(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__, __FUNCTION__, __LINE__, axisIndex);
+
+  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getTraj()->getEmergDec();
+  return 0;
+}
+
+int getAxisJerk(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__, __FUNCTION__, __LINE__, axisIndex);
+
+  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getTraj()->getJerk();
+  return 0;
+}
+
+int getAxisJogVel(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__, __FUNCTION__, __LINE__, axisIndex);
+
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getSeq()->getJogVel();
   return 0;
 }
 
@@ -3302,6 +3353,12 @@ int getAxisMonLatchLimit(int  axisIndex,
   return 0;
 }
 
+int getAxisMonMaxVelDriveILDelay(int axisIndex, int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getMaxVelDriveTime();
+  return 0;
+}
+
 int setAxisMonMaxVelDriveILDelay(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -3314,6 +3371,12 @@ int setAxisMonMaxVelDriveILDelay(int axisIndex, int value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setMaxVelDriveTime(value);
+}
+
+int getAxisMonMaxVelTrajILDelay(int axisIndex, int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getMaxVelTrajTime();
+  return 0;
 }
 
 int setAxisMonMaxVelTrajILDelay(int axisIndex, int value) {
@@ -3415,6 +3478,12 @@ int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value) {
   return axes[axisIndex]->getMon()->setEnableCntrlHLMon(value);
 }
 
+int getAxisMonEnableVelocityDiff(int axisIndex, int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getEnableVelocityDiffMon();
+  return 0;
+}
+
 int setAxisMonEnableVelocityDiff(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -3427,6 +3496,12 @@ int setAxisMonEnableVelocityDiff(int axisIndex, int value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setEnableVelocityDiffMon(value);
+}
+
+int getAxisMonVelDiffTol(int axisIndex, double *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getVelDiffMaxDifference();
+  return 0;
 }
 
 int setAxisMonVelDiffTol(int axisIndex, double value) {
@@ -3443,6 +3518,12 @@ int setAxisMonVelDiffTol(int axisIndex, double value) {
   return axes[axisIndex]->getMon()->setVelDiffMaxDifference(value);
 }
 
+int getAxisMonVelDiffTrajILDelay(int axisIndex, int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getVelDiffTimeTraj();
+  return 0;
+}
+
 int setAxisMonVelDiffTrajILDelay(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -3455,6 +3536,12 @@ int setAxisMonVelDiffTrajILDelay(int axisIndex, int value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setVelDiffTimeTraj(value);
+}
+
+int getAxisMonVelDiffDriveILDelay(int axisIndex, int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getVelDiffTimeDrive();
+  return 0;
 }
 
 int setAxisMonVelDiffDriveILDelay(int axisIndex, int value) {

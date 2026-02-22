@@ -602,6 +602,12 @@ int getAxisTargetPos(int     axisIndex,
  */
 int getAxisTargetVel(int     axisIndex,
                      double *value);
+int getAxisEmergDeceleration(int     axisIndex,
+                             double *value);
+int getAxisJerk(int     axisIndex,
+                double *value);
+int getAxisJogVel(int     axisIndex,
+                  double *value);
 
 /** \brief Get axis done bit.\n
  *
@@ -1803,6 +1809,8 @@ int axisErrorReset(int axisIndex,
  * \note Example: Enable velocity filter for external setpoint position for axis 5.
  * "Cfg.SetAxisPLCTrajVelFilterEnable(5,1) //Command string to ecmcCmdParser.c.\n
  */
+int getAxisPLCTrajVelFilterEnable(int axisIndex,
+                                  int *enable);
 int setAxisPLCTrajVelFilterEnable(int axisIndex,
                                   int enable);
 
@@ -1826,6 +1834,8 @@ int setAxisPLCTrajVelFilterEnable(int axisIndex,
  * \note Example: Set filter size to 10 for for axis 7.\n
  * "Cfg.SetAxisPLCTrajVelFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisPLCTrajVelFilterSize(int axisIndex,
+                                int *size);
 int setAxisPLCTrajVelFilterSize(int axisIndex,
                                 int size);
 
@@ -1841,6 +1851,8 @@ int setAxisPLCTrajVelFilterSize(int axisIndex,
  * \note Example: Enable velocity filter for external actual position for axis 5.
  * "Cfg.SetAxisPLCEncVelFilterEnable(5,1)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisPLCEncVelFilterEnable(int axisIndex,
+                                 int *enable);
 int setAxisPLCEncVelFilterEnable(int axisIndex,
                                  int enable);
 
@@ -1857,6 +1869,8 @@ int setAxisPLCEncVelFilterEnable(int axisIndex,
  * \note Example: Set filter size to 10 for for axis 7.\n
  * "Cfg.SetAxisPLCEncVelFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisPLCEncVelFilterSize(int axisIndex,
+                               int *size);
 int setAxisPLCEncVelFilterSize(int axisIndex,
                                int size);
 
@@ -3111,6 +3125,8 @@ int getAxisMonEnableMaxVel(int  axisIndex,
  * \note Example: Set drive over speed interlock delay to 10 cycles for axis 4.\n
  * "Cfg.SetAxisMonMaxVelDriveILDelay(4,10)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonMaxVelDriveILDelay(int  axisIndex,
+                                 int *value);
 int setAxisMonMaxVelDriveILDelay(int axisIndex,
                                  int value);
 
@@ -3134,6 +3150,8 @@ int setAxisMonMaxVelDriveILDelay(int axisIndex,
  * for axis 4.\n
  * "Cfg.SetAxisMonMaxVelTrajILDelay(4,10)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonMaxVelTrajILDelay(int  axisIndex,
+                                int *value);
 int setAxisMonMaxVelTrajILDelay(int axisIndex,
                                 int value);
 
@@ -3334,6 +3352,8 @@ int setAxisMonCntrlOutHL(int    axisIndex,
  * \note Example: Enable monitoring for axis 2.\n
  * "Cfg.SetAxisMonEnableVelocityDiff(2,1)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonEnableVelocityDiff(int  axisIndex,
+                                 int *value);
 int setAxisMonEnableVelocityDiff(int axisIndex,
                                  int value);
 
@@ -3348,6 +3368,8 @@ int setAxisMonEnableVelocityDiff(int axisIndex,
  * \note Example: Set filter time to 100 cycles for axis 2.\n
  * "Cfg.SetAxisMonVelDiffTrajILDelay(2,100)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonVelDiffTrajILDelay(int  axisIndex,
+                                 int *value);
 int setAxisMonVelDiffTrajILDelay(int axisIndex,
                                  int value);
 
@@ -3362,6 +3384,8 @@ int setAxisMonVelDiffTrajILDelay(int axisIndex,
  * \note Example: Set filter time to 500 cycles for axis 2.\n
  * "Cfg.SetAxisMonVelDiffDriveILDelay(2,500)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonVelDiffDriveILDelay(int  axisIndex,
+                                  int *value);
 int setAxisMonVelDiffDriveILDelay(int axisIndex,
                                   int value);
 
@@ -3376,6 +3400,8 @@ int setAxisMonVelDiffDriveILDelay(int axisIndex,
  * \note Example: Set maximum difference 0.5 for axis 2.\n
  * "Cfg.SetAxisMonVelDiffTol(2,0.5)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonVelDiffTol(int     axisIndex,
+                         double *value);
 int setAxisMonVelDiffTol(int    axisIndex,
                          double value);
 

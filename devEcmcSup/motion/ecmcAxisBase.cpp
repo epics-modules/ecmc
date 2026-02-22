@@ -1591,6 +1591,14 @@ int ecmcAxisBase::setExtEncVeloFiltSize(size_t size) {
   return extEncVeloFilter_->setFilterSize(size);
 }
 
+int ecmcAxisBase::getExtTrajVeloFiltSize() {
+  return extTrajVeloFilter_ ? (int)extTrajVeloFilter_->getFilterSize() : 0;
+}
+
+int ecmcAxisBase::getExtEncVeloFiltSize() {
+  return extEncVeloFilter_ ? (int)extEncVeloFilter_->getFilterSize() : 0;
+}
+
 int ecmcAxisBase::setEncVeloFiltSize(size_t size) {
   return encArray_[data_.control_.primaryEncIndex]->setVeloFilterSize(size);
 }

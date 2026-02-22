@@ -249,6 +249,10 @@ int ecmcMonitor::setVelDiffTimeTraj(int time) {
   return 0;
 }
 
+int ecmcMonitor::getVelDiffTimeTraj() {
+  return velDiffTimeTraj_;
+}
+
 int ecmcMonitor::setVelDiffTimeDrive(int time) {
   if (time < 0) {
     LOGERR("%s/%s:%d: Velocity diff drive time invalid (time < 0) (0x%x).\n",
@@ -259,6 +263,10 @@ int ecmcMonitor::setVelDiffTimeDrive(int time) {
 
   velDiffTimeDrive_ = time;
   return 0;
+}
+
+int ecmcMonitor::getVelDiffTimeDrive() {
+  return velDiffTimeDrive_;
 }
 
 int ecmcMonitor::setPosLagTime(int time) {
@@ -518,6 +526,10 @@ int ecmcMonitor::setMaxVelDriveTime(int time) {
   return 0;
 }
 
+int ecmcMonitor::getMaxVelDriveTime() {
+  return maxVelDriveILDelay_;
+}
+
 int ecmcMonitor::setMaxVelTrajTime(int time) {
   if (time < 0) {
     LOGERR("%s/%s:%d: Max velocity traj time invalid (time < 0) (0x%x).\n",
@@ -528,6 +540,10 @@ int ecmcMonitor::setMaxVelTrajTime(int time) {
 
   maxVelTrajILDelay_ = time;
   return 0;
+}
+
+int ecmcMonitor::getMaxVelTrajTime() {
+  return maxVelTrajILDelay_;
 }
 
 int ecmcMonitor::reset() {
@@ -631,6 +647,10 @@ int ecmcMonitor::setEnableHardLimitBWDAlarm(bool enable) {
 int ecmcMonitor::setEnableHardLimitFWDAlarm(bool enable) {
   enableAlarmAtHardlimitFwd_ = enable;
   return 0;
+}
+
+double ecmcMonitor::getVelDiffMaxDifference() {
+  return velDiffMaxDiff_;
 }
 
 int ecmcMonitor::setEnableSoftLimitBwd(bool enable) {  
@@ -1355,6 +1375,10 @@ bool ecmcMonitor::getEnableStallMon() {
 
 void  ecmcMonitor::setStallMinTimeOut(double timeCycles) {
   stallMinTimeoutCycles_ = timeCycles;
+}
+
+double ecmcMonitor::getStallMinTimeOut() {
+  return stallMinTimeoutCycles_;
 }
 
 int ecmcMonitor::setLimitSwitchFwdPLCOverride(bool overrideSwitch) {

@@ -86,6 +86,10 @@ double ecmcTrajectoryBase::getDec() {
   return targetDeceleration_;
 }
 
+double ecmcTrajectoryBase::getEmergDec() {
+  return targetDecelerationEmerg_;
+}
+
 double ecmcTrajectoryBase::getJerk() {
   return targetJerk_;
 }

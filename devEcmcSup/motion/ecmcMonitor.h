@@ -58,7 +58,9 @@ public:
   int                setEnableMaxVelMon(bool enable);
   bool               getEnableMaxVelMon();
   int                setMaxVelDriveTime(int time);
+  int                getMaxVelDriveTime();
   int                setMaxVelTrajTime(int time);
+  int                getMaxVelTrajTime();
   int                setLatchAtLimit(bool latchOnLimit);
   int                getLatchAtLimit();
   double             getCurrentPosSet();
@@ -86,8 +88,11 @@ public:
   int                setEnableVelocityDiffMon(bool enable);
   bool               getEnableVelocityDiffMon();
   int                setVelDiffTimeTraj(int time);
+  int                getVelDiffTimeTraj();
   int                setVelDiffTimeDrive(int time);
+  int                getVelDiffTimeDrive();
   int                setVelDiffMaxDifference(double velo);
+  double             getVelDiffMaxDifference();
   int                setEnableSoftLimitBwd(bool enable);
   int                setEnableSoftLimitFwd(bool enable);
   int                setEnableHardLimitBWDAlarm(bool enable);
@@ -120,6 +125,7 @@ public:
   */
   void               setEnableStallMon(bool enable);
   void               setStallMinTimeOut(double timeCycles);
+  double             getStallMinTimeOut();
   void               setStallTimeFactor(double timeFactor);
   bool               getEnableStallMon();
   double             getStallTimeFactor();

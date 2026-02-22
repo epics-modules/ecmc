@@ -3999,6 +3999,118 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                                                      &iValue));
   }
 
+  /*GetAxisMonPosLagTol(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonPosLagTol(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisMonPosLagTol(motor_axis_no,
+                                                               &fValue));
+  }
+
+  /*GetAxisMonPosLagTime(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonPosLagTime(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonPosLagTime(motor_axis_no,
+                                                             &iValue));
+  }
+
+  /*GetAxisMonEnableLagMon(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonEnableLagMon(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonEnableLagMon(motor_axis_no,
+                                                               &iValue));
+  }
+
+  /*GetAxisMonMaxVel(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonMaxVel(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisMonMaxVel(motor_axis_no,
+                                                            &fValue));
+  }
+
+  /*GetAxisMonEnableMaxVel(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonEnableMaxVel(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonEnableMaxVel(motor_axis_no,
+                                                               &iValue));
+  }
+
+  /*GetAxisMonMaxVelDriveILDelay(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonMaxVelDriveILDelay(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonMaxVelDriveILDelay(motor_axis_no,
+                                                                     &iValue));
+  }
+
+  /*GetAxisMonMaxVelTrajILDelay(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonMaxVelTrajILDelay(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonMaxVelTrajILDelay(motor_axis_no,
+                                                                    &iValue));
+  }
+
+  /*GetAxisMonEnableVelocityDiff(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonEnableVelocityDiff(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonEnableVelocityDiff(motor_axis_no,
+                                                                     &iValue));
+  }
+
+  /*GetAxisMonVelDiffTol(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonVelDiffTol(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisMonVelDiffTol(motor_axis_no,
+                                                                &fValue));
+  }
+
+  /*GetAxisMonVelDiffTrajILDelay(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonVelDiffTrajILDelay(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonVelDiffTrajILDelay(motor_axis_no,
+                                                                     &iValue));
+  }
+
+  /*GetAxisMonVelDiffDriveILDelay(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonVelDiffDriveILDelay(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonVelDiffDriveILDelay(motor_axis_no,
+                                                                      &iValue));
+  }
+
+  /*GetAxisMonEnableStallMon(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonEnableStallMon(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonEnableStallMon(motor_axis_no,
+                                                                 &iValue));
+  }
+
+  /*GetAxisMonStallMinTimeOut(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonStallMinTimeOut(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisMonStallMinTimeOut(motor_axis_no,
+                                                                     &fValue));
+  }
+
+  /*GetAxisMonStallTimeFactor(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonStallTimeFactor(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisMonStallTimeFactor(motor_axis_no,
+                                                                     &fValue));
+  }
+
   /*int GetAxisEnableAlarmAtHardLimits(int axis_no);*/
   nvals =
     sscanf(myarg_1, "GetAxisEnableAlarmAtHardLimits(%d)", &motor_axis_no);
@@ -4338,6 +4450,86 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   //                                                          &iValue));
   // }
 
+  /*int GetAxisAcc(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisAcc(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisAcceleration(motor_axis_no,
+                                                               &fValue));
+  }
+
+  /*int GetAxisDec(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisDec(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisDeceleration(motor_axis_no,
+                                                               &fValue));
+  }
+
+  /*int GetAxisVel(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisVel(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisTargetVel(motor_axis_no,
+                                                            &fValue));
+  }
+
+  /*int GetAxisEmergDeceleration(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisEmergDeceleration(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisEmergDeceleration(motor_axis_no,
+                                                                    &fValue));
+  }
+
+  /*int GetAxisJerk(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisJerk(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisJerk(motor_axis_no,
+                                                       &fValue));
+  }
+
+  /*int GetAxisJogVel(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisJogVel(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisJogVel(motor_axis_no,
+                                                         &fValue));
+  }
+
+  /*int GetAxisSoftLimitPosBwd(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisSoftLimitPosBwd(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisSoftLimitPosBwd(motor_axis_no,
+                                                                  &fValue));
+  }
+
+  /*int GetAxisSoftLimitPosFwd(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisSoftLimitPosFwd(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisSoftLimitPosFwd(motor_axis_no,
+                                                                  &fValue));
+  }
+
+  /*int GetAxisEnableSoftLimitBwd(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisEnableSoftLimitBwd(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableSoftLimitBwd(motor_axis_no,
+                                                                  &iValue));
+  }
+
+  /*int GetAxisEnableSoftLimitFwd(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisEnableSoftLimitFwd(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableSoftLimitFwd(motor_axis_no,
+                                                                  &iValue));
+  }
+
   /*int GetAxisTrajSourceType(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisTrajSourceType(%d)", &motor_axis_no);
 
@@ -4363,6 +4555,38 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisPLCEnable(
                                           motor_axis_no, &iValue));
+  }
+
+  /*int GetAxisPLCEncVelFilterEnable(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisPLCEncVelFilterEnable(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisPLCEncVelFilterEnable(motor_axis_no,
+                                                                     &iValue));
+  }
+
+  /*int GetAxisPLCEncVelFilterSize(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisPLCEncVelFilterSize(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisPLCEncVelFilterSize(motor_axis_no,
+                                                                   &iValue));
+  }
+
+  /*int GetAxisPLCTrajVelFilterEnable(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisPLCTrajVelFilterEnable(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisPLCTrajVelFilterEnable(motor_axis_no,
+                                                                      &iValue));
+  }
+
+  /*int GetAxisPLCTrajVelFilterSize(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisPLCTrajVelFilterSize(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisPLCTrajVelFilterSize(motor_axis_no,
+                                                                    &iValue));
   }
 
   /*GetPLCEnable(int plcIndex)*/

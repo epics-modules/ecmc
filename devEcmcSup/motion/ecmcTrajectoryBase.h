@@ -141,6 +141,9 @@ public:
   /// Returns deceleration.
   double          getDec();
 
+  /// Emergency deceleration.
+  double          getEmergDec();
+
   /// Not used.
   double          getJerk();
 
