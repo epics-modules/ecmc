@@ -1336,6 +1336,14 @@ int setAxisEncLookupTableRange(int axisIndex, double range) {
   return axes[axisIndex]->getConfigEnc()->setLookupTableRange(range);
 }
 
+int getAxisEncLookupTableRange(int axisIndex, double *range) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  *range = axes[axisIndex]->getConfigEnc()->getLookupTableRange();
+  return 0;
+}
+
 int setAxisEncLookupTableScale(int axisIndex, double scale) {
   LOGINFO4("%s/%s:%d axisIndex=%d scale=%lf\n",
            __FILE__,
@@ -1348,6 +1356,14 @@ int setAxisEncLookupTableScale(int axisIndex, double scale) {
   CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getConfigEnc()->setLookupTableScale(scale);
+}
+
+int getAxisEncLookupTableScale(int axisIndex, double *scale) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  *scale = axes[axisIndex]->getConfigEnc()->getLookupTableScale();
+  return 0;
 }
 
 int appendAxisPLCExpr(int axisIndex, char *expr) {
@@ -3069,6 +3085,15 @@ int setAxisMonEnableAtTargetMon(int axisIndex, int value) {
   return 0;
 }
 
+int getAxisMonEnableStallMon(int axisIndex,
+                             int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getEnableStallMon();
+  return 0;
+}
+
 int setAxisMonEnableStallMon(int axisIndex,
                              int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
@@ -3085,6 +3110,15 @@ int setAxisMonEnableStallMon(int axisIndex,
   return 0;
 }
 
+int getAxisMonStallMinTimeOut(int axisIndex,
+                              double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getStallMinTimeOut();
+  return 0;
+}
+
 int setAxisMonStallMinTimeOut(int axisIndex,
                              double timeCycles) {
   LOGINFO4("%s/%s:%d axisIndex=%d cycles=%lf\n",
@@ -3098,6 +3132,15 @@ int setAxisMonStallMinTimeOut(int axisIndex,
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getMon()->setStallMinTimeOut(timeCycles);
+  return 0;
+}
+
+int getAxisMonStallTimeFactor(int axisIndex,
+                              double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getStallTimeFactor();
   return 0;
 }
 

@@ -4230,6 +4230,22 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                                                     &iValue));
   }
 
+  /*int GetAxisEncLookupTableRange(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisEncLookupTableRange(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisEncLookupTableRange(motor_axis_no,
+                                                                      &fValue));
+  }
+
+  /*int GetAxisEncLookupTableScale(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisEncLookupTableScale(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisEncLookupTableScale(motor_axis_no,
+                                                                      &fValue));
+  }
+
   /*int GetAxisEncDelayCompTime(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisEncDelayCompTime(%d)", &motor_axis_no);
 

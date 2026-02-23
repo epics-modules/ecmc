@@ -142,7 +142,9 @@ public:
   int                   setLookupTableEnable(bool enable);
   int                   getLookupTableEnable();
   int                   setLookupTableRange(double range);
+  double                getLookupTableRange();
   int                   setLookupTableScale(double scale);
+  double                getLookupTableScale();
   int                   setDelayCyclesAndEnable(double cycles, bool enable); 
   double                getDelayCycles();
   int                   getDelayCompEnable();

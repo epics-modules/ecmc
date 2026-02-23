@@ -1589,6 +1589,10 @@ int ecmcEncoder::setLookupTableRange(double range) {
   return 0;
 }
 
+double ecmcEncoder::getLookupTableRange() {
+  return lookupTableRange_;
+}
+
 int ecmcEncoder::setDelayCyclesAndEnable(double cycles, bool enable) {
   delayTimeS_      = cycles * sampleTimeMs_ / 1000;
   enableDelayTime_ = enable;
@@ -1609,6 +1613,10 @@ int ecmcEncoder::getDelayCompEnable() {
 int ecmcEncoder::setLookupTableScale(double scale) {
   lookupTableScale_ = scale;
   return 0;
+}
+
+double ecmcEncoder::getLookupTableScale() {
+  return lookupTableScale_;
 }
 
 int ecmcEncoder::setHomeLatchArmControlWord(uint64_t control, int bits) {

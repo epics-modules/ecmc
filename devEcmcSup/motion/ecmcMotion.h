@@ -2340,6 +2340,7 @@ int getAxisEncLookupTableEnable(int axisIndex, int *enable);
  * "Cfg.SetAxisEncLookupTableRange(3,360)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncLookupTableRange(int axisIndex, double range);
+int getAxisEncLookupTableRange(int axisIndex, double *range);
 
 /** \brief Set encoder lookup table scale factor\n
  *
@@ -2352,6 +2353,7 @@ int setAxisEncLookupTableRange(int axisIndex, double range);
  * "Cfg.SetAxisEncLookupTableScale(1,-1.0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncLookupTableScale(int axisIndex, double scale);
+int getAxisEncLookupTableScale(int axisIndex, double *scale);
 
 /** \brief Set PID-controller proportional gain.\n
  *
@@ -2842,6 +2844,9 @@ int setAxisHomeSwitchEnable(int axisIndex,
 int setAxisMonEnableStallMon(int axisIndex,
                              int enable);
 
+int getAxisMonEnableStallMon(int  axisIndex,
+                             int *value);
+
 /** \brief Set stall monitong time factor.\n
  * 
  *  See setAxisMonEnableStallMon()\n
@@ -2861,6 +2866,9 @@ int setAxisMonEnableStallMon(int axisIndex,
 int setAxisMonStallTimeFactor(int axisIndex,
                          double timeFactor);
 
+int getAxisMonStallTimeFactor(int     axisIndex,
+                              double *value);
+
 /** \brief Set stall monitong minimum time out.\n
  * 
  *  See setAxisMonEnableStallMon()\n
@@ -2879,6 +2887,9 @@ int setAxisMonStallTimeFactor(int axisIndex,
  */
 int setAxisMonStallMinTimeOut(int axisIndex,
                               double timeCycles);
+
+int getAxisMonStallMinTimeOut(int     axisIndex,
+                              double *value);
 
 /** \brief Get "at target" monitoring time (cycles).\n
  * \param[in] axisIndex  Axis index.\n
