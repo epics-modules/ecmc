@@ -310,7 +310,7 @@ void ecmcAxisBase::initVars() {
   enableAutoDisable_            = 0;
   positionTargetAsyn_           = 0;
   blocked_                      = 0;
-  enableAutoResetError_         = 0;
+  enableAutoResetError_         = 1;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {

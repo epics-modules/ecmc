@@ -12,6 +12,7 @@ Release Notes
 * Remove OK printout after successfull commands (save rows in iocsh log).
 * Wait for attarget before auto disable timer starts
 * Minor tweaks to master/slave state machine
+* Add command to disable auto reset of errors, default some errors will be reset when enabling. 
 
 # 11.0.2
 ## Add datatypes 
