@@ -3175,6 +3175,8 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex,
  */
 int getAxisMonLatchLimit(int  axisIndex,
                          int *value);
+int getAxisMonStopAtAnyLimit(int  axisIndex,
+                             int *value);
 
 /** \brief Set latch control word to arm latch\n
  *  The start bit is defined when linking the entry.\n
@@ -3215,6 +3217,8 @@ int setAxisEncHomeLatchArmControlWord(int axisIndex, uint64_t control, int bits)
  */
 int setAxisMonLatchLimit(int axisIndex,
                          int value);
+int setAxisMonStopAtAnyLimit(int axisIndex,
+                             int value);
 
 /** \brief Set sequence timeout time in seconds.\n
  *

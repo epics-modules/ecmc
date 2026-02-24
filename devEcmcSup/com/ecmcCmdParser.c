@@ -2395,6 +2395,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisMonLatchLimit(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisMonStopAtAnyLimit(int axis_no, int value);*/
+  nvals = sscanf(myarg_1, "SetAxisMonStopAtAnyLimit(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setAxisMonStopAtAnyLimit(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisLimitSwitchBwdPLCOverride(int axis_no, int value);*/
   nvals = sscanf(myarg_1, "SetAxisLimitSwitchBwdPLCOverride(%d,%d)", &iValue, &iValue2);
 
@@ -3973,6 +3980,14 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonLatchLimit(motor_axis_no,
                                                              &iValue));
+  }
+
+  /*GetAxisMonStopAtAnyLimit(int nAxis)*/
+  nvals = sscanf(myarg_1, "GetAxisMonStopAtAnyLimit(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonStopAtAnyLimit(motor_axis_no,
+                                                                 &iValue));
   }
 
   /*GetAxisMonAtTargetTol(int nAxis)*/

@@ -102,6 +102,7 @@ void ecmcMonitor::initVars() {
   homeSwitchPLCOverrideValue_     = false;
   enableHomeSensor_               = false;
   axisIsWithinCtrlDBExtTraj_      = false;
+  stopAtAnyLimit_                 = false;
 }
 
 ecmcMonitor::~ecmcMonitor() {}
@@ -684,9 +685,14 @@ int ecmcMonitor::checkLimits() {
   hardFwdOld_ = data_->status_.statusWord_.limitfwd;
 
   // Both limit switches
-
   data_->interlocks_.bothLimitsLowInterlock = !data_->status_.statusWord_.limitbwd &&
                                               !data_->status_.statusWord_.limitfwd;
+
+  // Stop at any limit (reuse same interlock as both limit)
+  if(stopAtAnyLimit_) {
+    data_->interlocks_.bothLimitsLowInterlock = !data_->status_.statusWord_.limitbwd ||
+                                              !data_->status_.statusWord_.limitfwd;
+  }
 
   if (data_->interlocks_.bothLimitsLowInterlock) {
     return setErrorID(__FILE__,
@@ -1313,6 +1319,15 @@ int ecmcMonitor::setLatchAtLimit(bool latchOnLimit) {
 
 int ecmcMonitor::getLatchAtLimit() {
   return latchOnLimit_;
+}
+
+int ecmcMonitor::setStopAtAnyLimit(bool stop) {
+  stopAtAnyLimit_ = stop;
+  return 0;
+}
+
+bool ecmcMonitor::getStopAtAnyLimit() {
+  return stopAtAnyLimit_;
 }
 
 int ecmcMonitor::setEnableSoftLimitAlarm(bool enable) {

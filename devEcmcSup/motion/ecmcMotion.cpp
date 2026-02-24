@@ -3396,6 +3396,14 @@ int getAxisMonLatchLimit(int  axisIndex,
   return 0;
 }
 
+int getAxisMonStopAtAnyLimit(int  axisIndex,
+                             int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getStopAtAnyLimit();
+  return 0;
+}
+
 int getAxisMonMaxVelDriveILDelay(int axisIndex, int *value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
   *value = axes[axisIndex]->getMon()->getMaxVelDriveTime();
@@ -3449,6 +3457,21 @@ int setAxisMonLatchLimit(int axisIndex,
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setLatchAtLimit(value);
+}
+
+int setAxisMonStopAtAnyLimit(int axisIndex,
+                             int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setStopAtAnyLimit(value);
 }
 
 int setAxisMonEnableExternalInterlock(int axisIndex, int value) {

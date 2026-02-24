@@ -63,6 +63,8 @@ public:
   int                getMaxVelTrajTime();
   int                setLatchAtLimit(bool latchOnLimit);
   int                getLatchAtLimit();
+  int                setStopAtAnyLimit(bool stop);
+  bool               getStopAtAnyLimit();
   double             getCurrentPosSet();
   void               execute();
   void               readEntries();
@@ -151,6 +153,7 @@ private:
   int                checkStall();
   int                filterSwitches();
   int                checkPolarity(ecmcSwitchPolarity pol);
+  int                setStopAtBothLimits(bool stop);
   bool enable_;
 
   // Tolnoerance for reached target. Example 0.1 deg
@@ -226,6 +229,7 @@ private:
   bool homeSwitchPLCOverrideValue_;
   bool enableHomeSensor_;
   bool axisIsWithinCtrlDBExtTraj_;
+  bool stopAtAnyLimit_;
 };
 
 #endif  // ifndef MOTIONMONITOR_H
