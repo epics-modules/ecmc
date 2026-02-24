@@ -2543,6 +2543,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisModType(iValue, iValue2);
   }
 
+  /*int Cfg.SetAxisAutoResetError(int axis_no, int autoResetError);*/
+  nvals = sscanf(myarg_1, "SetAxisAutoResetError(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return SetAxisAutoResetError(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisDisableAtErrorReset(int axis_no, int disable);*/
   nvals = sscanf(myarg_1,
                  "SetAxisDisableAtErrorReset(%d,%d)",

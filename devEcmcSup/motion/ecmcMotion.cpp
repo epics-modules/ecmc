@@ -4317,6 +4317,20 @@ int setAxisModType(int axisIndex,
   return axes[axisIndex]->setModType(type);
 }
 
+int setAxisAutoResetError(int axisIndex,
+                       int autoResetError) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, autoResetError=%d \n",
+  __FILE__,
+  __FUNCTION__,
+  __LINE__,
+  axisIndex,
+  autoResetError);
+
+CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+
+return axes[axisIndex]->setAutoResetError(autoResetError);
+}
+
 int setAxisDisableAtErrorReset(int axisIndex,
                                int disable) {
   LOGINFO4("%s/%s:%d axisIndex=%d, disable=%d \n",
