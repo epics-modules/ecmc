@@ -2547,7 +2547,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "SetAxisAutoResetError(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
-    return SetAxisAutoResetError(iValue, iValue2);
+    return setAxisAutoResetError(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisDisableAtErrorReset(int axis_no, int disable);*/

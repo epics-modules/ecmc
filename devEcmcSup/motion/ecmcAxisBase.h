@@ -230,6 +230,7 @@ public:
   double     getExtActPos();
   int        setAllowSourceChangeWhenEnabled(bool allow);
   int        getAllowSourceChangeWhenEnabled();
+  int        setAutoResetError(bool enable);
   void       setTargetVel(double velTarget);
   void       setTargetPos(double posTarget);
   void       setTargetPosToCurrSetPos();

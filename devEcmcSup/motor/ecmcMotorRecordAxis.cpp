@@ -1225,8 +1225,8 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
   }
 
   asynStatus status  = asynSuccess;
-  unsigned   counter = (int)(ECMC_AXIS_ENABLE_MAX_SLEEP_TIME /
-                             ECMC_AXIS_ENABLE_SLEEP_PERIOD);
+  //unsigned   counter = (int)(ECMC_AXIS_ENABLE_MAX_SLEEP_TIME /
+  //                           ECMC_AXIS_ENABLE_SLEEP_PERIOD);
   int  justCheckForEnable = 0;
   bool moving             = 0;
 

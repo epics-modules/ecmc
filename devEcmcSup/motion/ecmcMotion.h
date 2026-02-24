@@ -4145,6 +4145,9 @@ int setAxisModType(int axisIndex,
 int getAxisModType(int  axisIndex,
                    int *value);
 
+int setAxisAutoResetError(int axisIndex,
+                          int autoResetError);
+
 /** \brief Disable axis at error reset\n
  *
  * If axis is in error state and a reset command is issued,\n
