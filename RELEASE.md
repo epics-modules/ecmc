@@ -5,6 +5,13 @@ Release Notes
 * Fix busy after PVT abort
 * Also allow `plc<id>` in PLC variable declarations (see "Support for variable declarations in plc code" below)
 * Fix PVT trigger validation
+* Add several getter commands in the command parser to allow runtime changes of values trough asyn record with readbacks.
+* Add axis command that stops motion if any of the limits afre engaged (good for commissioning)
+* Auto enable stall monitoring of motion. If not at target after 10s or 15 times the time of the last trajectory busy motion is stopped with an error. 
+* Better sync of motor record poll and commands through motor
+* Remove OK printout after successfull commands (save rows in iocsh log).
+* Wait for attarget before auto disable timer starts
+* Minor tweaks to master/slave state machine
 
 # 11.0.2
 ## Add datatypes 
