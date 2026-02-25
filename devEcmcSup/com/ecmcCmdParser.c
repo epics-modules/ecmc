@@ -54,6 +54,7 @@ static cmd_Motor_cmd_type cmd_Motor_cmd[ECMC_MAX_AXES];
 static int ecmcInitDone = 0;
 
 extern double mcuFrequency;
+extern enum app_mode_type appModeStat;
 
 // Buffers
 static char cExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
@@ -3541,6 +3542,7 @@ static int handleTwincatSyntax(const char           *myarg_1,
 }
 
 int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
+  const char *rawCmd = myarg_1;
   int iValue        = 0;
   int iValue2       = 0;
   int iValue3       = 0;
@@ -3575,6 +3577,11 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
            ECMC_CMD_MAX_SINGLE_CMD_LENGTH,
            ERROR_MAIN_PARSER_CMD_TO_LONG);
     return ERROR_MAIN_PARSER_CMD_TO_LONG;
+  }
+
+  if (appModeStat == ECMC_MODE_RUNTIME) {
+    printf("ecmcCmdParser: %s\n", rawCmd);
+    fflush(stdout);
   }
 
   /* Main.*/
