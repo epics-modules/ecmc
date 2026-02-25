@@ -92,6 +92,7 @@ void ecmcMonitor::initVars() {
   ctrlDeadbandCounter_       = 0;
   ctrlDeadbandTime_          = -1;
   analogRawLimit_            = 0;
+  analogRawValue_            = 0;
   enableAnalogInterlock_     = 0;
   analogPolarity_            = ECMC_POLARITY_NC; // Higher value than analogRawLimit_ is bad
   limitSwitchFwdPLCOverride_ = false;
@@ -416,6 +417,7 @@ void ecmcMonitor::readEntries() {
                  ECMC_SEVERITY_NORMAL);
       return;
     }
+    analogRawValue_ = tempDouble;
 
     switch (analogPolarity_) {
     case ECMC_POLARITY_NC:
@@ -1303,6 +1305,22 @@ ecmcSwitchPolarity ecmcMonitor::getHomePolarity() {
 
 ecmcSwitchPolarity ecmcMonitor::getHardwareInterlockPolarity() {
   return hardwareInterlockPolarity_;
+}
+
+ecmcSwitchPolarity ecmcMonitor::getAnalogInterlockPolarity() {
+  return analogPolarity_;
+}
+
+double ecmcMonitor::getAnalogRawLimit() {
+  return analogRawLimit_;
+}
+
+double ecmcMonitor::getAnalogRawValue() {
+  return analogRawValue_;
+}
+
+bool ecmcMonitor::getEnableAnalogInterlock() {
+  return enableAnalogInterlock_;
 }
 
 int ecmcMonitor::checkPolarity(ecmcSwitchPolarity pol) {

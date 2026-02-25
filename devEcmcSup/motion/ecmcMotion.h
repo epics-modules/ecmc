@@ -3460,6 +3460,8 @@ int setAxisMonEnableExternalInterlock(int axisIndex,
  */
 int setAxisMonEnableAnalogInterlock(int axisIndex,
                                     int value);
+int getAxisMonEnableAnalogInterlock(int  axisIndex,
+                                    int *value);
 
 /** \brief Set polarity of motion axis interlock from EtherCAT entry.\n
  *
@@ -3502,6 +3504,8 @@ int setAxisMonExtHWInterlockPolarity(int axisIndex,
  */
 int setAxisMonAnalogInterlockPolarity(int axisIndex,
                                       int value);
+int getAxisMonAnalogInterlockPolarity(int  axisIndex,
+                                      int *pol);
 
 /** \brief Set analog interlock raw value limit .\n
  *
@@ -3519,6 +3523,10 @@ int setAxisMonAnalogInterlockPolarity(int axisIndex,
  */
 int setAxisMonAnalogInterlockRawLimit(int    axisIndex,
                                       double value);
+int getAxisMonAnalogInterlockRawLimit(int     axisIndex,
+                                      double *value);
+int getAxisMonAnalogInterlockRawValue(int     axisIndex,
+                                      double *value);
 
 /** \brief Get polarity of motion axis interlock from EtherCAT entry.\n
  *

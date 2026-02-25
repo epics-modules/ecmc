@@ -3981,6 +3981,46 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                           motor_axis_no, &iValue));
   }
 
+  /*GetAxisMonEnableAnalogInterlock(int nAxis)*/
+  nvals = sscanf(myarg_1,
+                 "GetAxisMonEnableAnalogInterlock(%d)",
+                 &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonEnableAnalogInterlock(
+                                          motor_axis_no, &iValue));
+  }
+
+  /*GetAxisMonAnalogInterlockPolarity(int nAxis)*/
+  nvals = sscanf(myarg_1,
+                 "GetAxisMonAnalogInterlockPolarity(%d)",
+                 &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisMonAnalogInterlockPolarity(
+                                          motor_axis_no, &iValue));
+  }
+
+  /*GetAxisMonAnalogInterlockRawLimit(int nAxis)*/
+  nvals = sscanf(myarg_1,
+                 "GetAxisMonAnalogInterlockRawLimit(%d)",
+                 &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisMonAnalogInterlockRawLimit(
+                                             motor_axis_no, &fValue));
+  }
+
+  /*GetAxisMonAnalogInterlockRawValue(int nAxis)*/
+  nvals = sscanf(myarg_1,
+                 "GetAxisMonAnalogInterlockRawValue(%d)",
+                 &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisMonAnalogInterlockRawValue(
+                                             motor_axis_no, &fValue));
+  }
+
   /*GetAxisMonLatchLimit(int nAxis)*/
   nvals = sscanf(myarg_1, "GetAxisMonLatchLimit(%d)", &motor_axis_no);
 
