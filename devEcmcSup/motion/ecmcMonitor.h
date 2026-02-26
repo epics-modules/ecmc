@@ -117,8 +117,12 @@ public:
 
   // Analog interlock for temperature sensors
   int                setAnalogInterlockPolarity(ecmcSwitchPolarity pol);
+  ecmcSwitchPolarity getAnalogInterlockPolarity();
   int                setAnalogRawLimit(double analogLimit);
+  double             getAnalogRawLimit();
+  double             getAnalogRawValue();
   int                setEnableAnalogInterlock(bool enable);
+  bool               getEnableAnalogInterlock();
   int                getSumInterlock();
   
   /* Stall monitoring for ABS and REL moves by checking that axis has arrived atTarget 
@@ -213,6 +217,7 @@ private:
   int ctrlDeadbandCounter_;
   int ctrlDeadbandTime_;
   double analogRawLimit_;
+  double analogRawValue_;
   int enableAnalogInterlock_;
   ecmcSwitchPolarity analogPolarity_;
   double stallTimeFactor_;
