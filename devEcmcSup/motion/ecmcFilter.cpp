@@ -22,6 +22,8 @@ ecmcFilter::ecmcFilter(double sampleTime) {
   for (int i = 0; i < (int)filterSize_; i++) {
     bufferVel_[i] = 0;
   }
+  my_ = 0;
+  veloSumValid_ = true;
 }
 
 ecmcFilter::ecmcFilter(double sampleTime, size_t size) {
@@ -33,6 +35,8 @@ ecmcFilter::ecmcFilter(double sampleTime, size_t size) {
   for (int i = 0; i < (int)filterSize_; i++) {
     bufferVel_[i] = 0;
   }
+  my_ = 0;
+  veloSumValid_ = true;
 }
 
 ecmcFilter::~ecmcFilter() {
@@ -42,12 +46,28 @@ ecmcFilter::~ecmcFilter() {
 
 void ecmcFilter::initVars() {
   errorReset();
-  indexVel_ = 0;
+  indexVel_       = 0;
+  my_             = 0;
+  last_           = 0;
+  lastOutput_     = 0;
+  posSum_         = 0;
+  posPrevWrapped_ = 0;
+  posUnwrapped_   = 0;
+  veloSumValid_   = false;
+  posStateValid_  = false;
 }
 
 double ecmcFilter::getFiltVelo(double distSinceLastScan) {
-  double sum = 0;
+  if (!veloSumValid_) {
+    my_ = 0;
+    for (int i = 0; i < (int)filterSize_; i++) {
+      my_ += bufferVel_[i];
+    }
+    veloSumValid_ = true;
+  }
 
+  // Running sum for O(1) moving average update.
+  my_ += distSinceLastScan - bufferVel_[indexVel_];
   bufferVel_[indexVel_] = distSinceLastScan;
   indexVel_++;
 
@@ -55,39 +75,62 @@ double ecmcFilter::getFiltVelo(double distSinceLastScan) {
     indexVel_ = 0;
   }
 
-  for (int i = 0; i < (int)filterSize_; i++) {
-    sum = sum + bufferVel_[i];
-  }
-
-  lastOutput_ = sum / (static_cast<double>(filterSize_)) / sampleTime_;
+  posStateValid_ = false;
+  lastOutput_ = my_ / (static_cast<double>(filterSize_)) / sampleTime_;
 
   return lastOutput_;
 }
 
 double ecmcFilter::getFiltPos(double pos, double modRange) {
-  double sum = 0;
+  double modThreshold = FILTER_POS_MODULO_OVER_UNDER_FLOW_LIMIT * modRange;
 
-  bufferVel_[indexVel_] = pos;
+  if (!posStateValid_) {
+    // Build an unwrapped ring buffer once, preserving the original wrap-compensated
+    // startup behavior relative to the latest sample.
+    bufferVel_[indexVel_] = pos;
+    posSum_               = 0;
+    posPrevWrapped_       = pos;
+    posUnwrapped_         = pos;
+
+    for (int i = 0; i < (int)filterSize_; i++) {
+      double sample = bufferVel_[i];
+
+      if (modRange > 0) {
+        if ((pos - sample) > modThreshold) {
+          sample += modRange;
+        } else if ((pos - sample) < -modThreshold) {
+          sample -= modRange;
+        }
+      }
+      bufferVel_[i] = sample;
+      posSum_ += sample;
+    }
+    posStateValid_ = true;
+  } else {
+    double delta = pos - posPrevWrapped_;
+
+    if (modRange > 0) {
+      if (delta > modThreshold) {
+        delta -= modRange;
+      } else if (delta < -modThreshold) {
+        delta += modRange;
+      }
+    }
+
+    posPrevWrapped_ = pos;
+    posUnwrapped_ += delta;
+    posSum_ += posUnwrapped_ - bufferVel_[indexVel_];
+    bufferVel_[indexVel_] = posUnwrapped_;
+  }
+
   indexVel_++;
 
   if (indexVel_ >= filterSize_) {
     indexVel_ = 0;
   }
 
-  double modThreshold = FILTER_POS_MODULO_OVER_UNDER_FLOW_LIMIT * modRange;
-
-  for (int i = 0; i < (int)filterSize_; i++) {
-    // check if value over/under flow mod range compared to latest value
-    if ((pos - bufferVel_[i]) > modThreshold) {
-      sum = sum + bufferVel_[i] + modRange;
-    } else if ((pos - bufferVel_[i]) < -modThreshold) {
-      sum = sum + bufferVel_[i] - modRange;
-    } else {
-      sum = sum + bufferVel_[i];
-    }
-  }
-
-  lastOutput_ = sum / (static_cast<double>(filterSize_));
+  veloSumValid_ = false;
+  lastOutput_ = posSum_ / (static_cast<double>(filterSize_));
 
   // Ensure result is within modrange
   if (modRange > 0) {
@@ -102,8 +145,7 @@ double ecmcFilter::getFiltPos(double pos, double modRange) {
 }
 
 int ecmcFilter::reset() {
-  initVars();
-  return 0;
+  return initFilter(0);
 }
 
 int ecmcFilter::initFilter(double pos) {
@@ -111,6 +153,12 @@ int ecmcFilter::initFilter(double pos) {
     bufferVel_[i] = 0;
   }
 
+  my_ = 0;
+  posSum_ = 0;
+  posPrevWrapped_ = 0;
+  posUnwrapped_ = 0;
+  veloSumValid_ = true;
+  posStateValid_ = false;
   indexVel_ = 0;
   return 0;
 }
@@ -134,14 +182,60 @@ int ecmcFilter::setFilterSize(size_t size) {
       );
     return ERROR_AXIS_FILTER_ALLOC_FAIL;
   }
-  delete[] bufferVel_;
+  double *oldBuffer   = bufferVel_;
+  size_t  oldSize     = filterSize_;
+  size_t  oldIndex    = indexVel_;
+  bool    posWasValid = posStateValid_;
+  bool    velWasValid = veloSumValid_;
+
+  // Preserve output continuity on grow by padding with the current average
+  // (velocity and position use different internal sums/units).
+  double padValue = 0;
+  if (oldSize > 0) {
+    if (posWasValid) {
+      padValue = posSum_ / static_cast<double>(oldSize);
+    } else if (velWasValid) {
+      padValue = my_ / static_cast<double>(oldSize);
+    } else if (oldBuffer) {
+      size_t lastIndex = (oldIndex + oldSize - 1) % oldSize;
+      padValue = oldBuffer[lastIndex];
+    }
+  }
+
+  for (size_t i = 0; i < size; ++i) {
+    tempBuffer[i] = padValue;
+  }
+
+  if (oldBuffer && oldSize > 0 && size > 0) {
+    size_t keep = (oldSize < size) ? oldSize : size;
+    // Keep the most recent samples in chronological order.
+    size_t start = (oldIndex + oldSize - keep) % oldSize;
+    size_t dst   = size - keep;
+    for (size_t i = 0; i < keep; ++i) {
+      tempBuffer[dst + i] = oldBuffer[(start + i) % oldSize];
+    }
+  }
+
+  delete[] oldBuffer;
   bufferVel_  = tempBuffer;
   filterSize_ = size;
+  indexVel_   = 0;  // oldest sample position after linearized repack
 
-  for (int i = 0; i < (int)filterSize_; i++) {
-    bufferVel_[i] = 0;
+  my_ = 0;
+  posSum_ = 0;
+  for (size_t i = 0; i < filterSize_; ++i) {
+    my_ += bufferVel_[i];
+    posSum_ += bufferVel_[i];
   }
-  indexVel_ = 0;
+
+  veloSumValid_ = true;
+  posStateValid_ = posWasValid;
+  if (posStateValid_ && filterSize_ > 0) {
+    posUnwrapped_ = bufferVel_[filterSize_ - 1];
+    // Keep posPrevWrapped_ from last update to preserve unwrap continuity.
+  } else if (!posStateValid_) {
+    posUnwrapped_ = 0;
+  }
   return 0;
 }
 

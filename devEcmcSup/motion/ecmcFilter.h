@@ -46,9 +46,14 @@ private:
   double my_;
   double last_;
   double lastOutput_;
+  double posSum_;
+  double posPrevWrapped_;
+  double posUnwrapped_;
   double sampleTime_;
   size_t indexVel_;
   size_t filterSize_;
+  bool veloSumValid_;
+  bool posStateValid_;
 };
 
 #endif  /* ECMCFILTER_H_ */
