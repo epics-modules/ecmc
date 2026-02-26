@@ -74,6 +74,7 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
   slave_            = slave;
   dataType_         = dt;
   updateInRealTime_ = useInRealtime;
+  bindProcessImageHandlers();
   int errorCode = ecrt_slave_config_pdo_mapping_add(slave,
                                                     pdoIndex_,
                                                     entryIndex_,
@@ -125,6 +126,7 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
   adr_            = 0;
   dataType_       = dt;
   bitLength_      = getEcDataTypeBits(dt);
+  bindProcessImageHandlers();
   initAsyn();
 }
 
@@ -162,6 +164,8 @@ void ecmcEcEntry::initVars() {
   float32Ptr_       = (float *)&buffer_;
   float64Ptr_       = (double *)&buffer_;
   usedSizeBytes_    = 0;
+  processImageReadFunc_ = &ecmcEcEntry::readNone;
+  processImageWriteFunc_ = &ecmcEcEntry::writeNone;
 }
 
 ecmcEcEntry::~ecmcEcEntry() {
@@ -314,6 +318,166 @@ int ecmcEcEntry::readBit(int bitNumber, uint64_t *value) {
   return 0;
 }
 
+void ecmcEcEntry::bindProcessImageHandlers() {
+  processImageReadFunc_  = &ecmcEcEntry::readNone;
+  processImageWriteFunc_ = &ecmcEcEntry::writeNone;
+
+  switch (dataType_) {
+  case ECMC_EC_NONE:
+    break;
+  case ECMC_EC_B1:
+    processImageReadFunc_  = &ecmcEcEntry::readB1;
+    processImageWriteFunc_ = &ecmcEcEntry::writeB1;
+    break;
+  case ECMC_EC_B2:
+    processImageReadFunc_  = &ecmcEcEntry::readB2;
+    processImageWriteFunc_ = &ecmcEcEntry::writeB2;
+    break;
+  case ECMC_EC_B3:
+    processImageReadFunc_  = &ecmcEcEntry::readB3;
+    processImageWriteFunc_ = &ecmcEcEntry::writeB3;
+    break;
+  case ECMC_EC_B4:
+    processImageReadFunc_  = &ecmcEcEntry::readB4;
+    processImageWriteFunc_ = &ecmcEcEntry::writeB4;
+    break;
+  case ECMC_EC_U8:
+    processImageReadFunc_  = &ecmcEcEntry::readU8;
+    processImageWriteFunc_ = &ecmcEcEntry::writeU8;
+    break;
+  case ECMC_EC_S8:
+    processImageReadFunc_  = &ecmcEcEntry::readS8;
+    processImageWriteFunc_ = &ecmcEcEntry::writeS8;
+    break;
+  case ECMC_EC_S8_TO_U8:
+    processImageReadFunc_  = &ecmcEcEntry::readS8ToU8;
+    processImageWriteFunc_ = &ecmcEcEntry::writeS8ToU8;
+    break;
+  case ECMC_EC_U16:
+    processImageReadFunc_  = &ecmcEcEntry::readU16;
+    processImageWriteFunc_ = &ecmcEcEntry::writeU16;
+    break;
+  case ECMC_EC_S16:
+    processImageReadFunc_  = &ecmcEcEntry::readS16;
+    processImageWriteFunc_ = &ecmcEcEntry::writeS16;
+    break;
+  case ECMC_EC_S16_TO_U16:
+    processImageReadFunc_  = &ecmcEcEntry::readS16ToU16;
+    processImageWriteFunc_ = &ecmcEcEntry::writeS16ToU16;
+    break;
+  case ECMC_EC_U32:
+    processImageReadFunc_  = &ecmcEcEntry::readU32;
+    processImageWriteFunc_ = &ecmcEcEntry::writeU32;
+    break;
+  case ECMC_EC_S32:
+    processImageReadFunc_  = &ecmcEcEntry::readS32;
+    processImageWriteFunc_ = &ecmcEcEntry::writeS32;
+    break;
+  case ECMC_EC_S32_TO_U32:
+    processImageReadFunc_  = &ecmcEcEntry::readS32ToU32;
+    processImageWriteFunc_ = &ecmcEcEntry::writeS32ToU32;
+    break;
+  case ECMC_EC_U64:
+#ifdef EC_READ_U64
+    processImageReadFunc_  = &ecmcEcEntry::readU64;
+#endif
+#ifdef EC_WRITE_U64
+    processImageWriteFunc_ = &ecmcEcEntry::writeU64;
+#endif
+    break;
+  case ECMC_EC_S64:
+#ifdef EC_READ_S64
+    processImageReadFunc_  = &ecmcEcEntry::readS64;
+#endif
+#ifdef EC_WRITE_S64
+    processImageWriteFunc_ = &ecmcEcEntry::writeS64;
+#endif
+    break;
+  case ECMC_EC_S64_TO_U64:
+#ifdef EC_READ_S64
+    processImageReadFunc_  = &ecmcEcEntry::readS64ToU64;
+#endif
+#ifdef EC_WRITE_S64
+    processImageWriteFunc_ = &ecmcEcEntry::writeS64ToU64;
+#endif
+    break;
+  case ECMC_EC_F32:
+#ifdef EC_READ_REAL
+    processImageReadFunc_  = &ecmcEcEntry::readF32;
+#endif
+#ifdef EC_WRITE_REAL
+    processImageWriteFunc_ = &ecmcEcEntry::writeF32;
+#endif
+    break;
+  case ECMC_EC_F64:
+#ifdef EC_READ_LREAL
+    processImageReadFunc_  = &ecmcEcEntry::readF64;
+#endif
+#ifdef EC_WRITE_LREAL
+    processImageWriteFunc_ = &ecmcEcEntry::writeF64;
+#endif
+    break;
+  default:
+    break;
+  }
+}
+
+void ecmcEcEntry::readNone() { buffer_ = 0; }
+void ecmcEcEntry::readB1() { buffer_ = (uint64_t)EC_READ_BIT(adr_, bitOffset_); }
+void ecmcEcEntry::readB2() { buffer_ = (uint64_t)EC_READ_B2(adr_, bitOffset_); }
+void ecmcEcEntry::readB3() { buffer_ = (uint64_t)EC_READ_B3(adr_, bitOffset_); }
+void ecmcEcEntry::readB4() { buffer_ = (uint64_t)EC_READ_B4(adr_, bitOffset_); }
+void ecmcEcEntry::readU8() { buffer_ = (uint64_t)EC_READ_U8(adr_); }
+void ecmcEcEntry::readS8() { buffer_ = (uint64_t)EC_READ_S8(adr_); }
+void ecmcEcEntry::readS8ToU8() { buffer_ = (uint64_t)(EC_READ_S8(adr_) ^ 0x80u); }
+void ecmcEcEntry::readU16() { buffer_ = (uint64_t)EC_READ_U16(adr_); }
+void ecmcEcEntry::readS16() { buffer_ = (uint64_t)EC_READ_S16(adr_); }
+void ecmcEcEntry::readS16ToU16() { buffer_ = (uint64_t)(EC_READ_S16(adr_) ^ 0x8000u); }
+void ecmcEcEntry::readU32() { buffer_ = (uint64_t)EC_READ_U32(adr_); }
+void ecmcEcEntry::readS32() { buffer_ = (uint64_t)EC_READ_S32(adr_); }
+void ecmcEcEntry::readS32ToU32() { buffer_ = (uint64_t)(EC_READ_S32(adr_) ^ 0x80000000u); }
+#ifdef EC_READ_U64
+void ecmcEcEntry::readU64() { buffer_ = (uint64_t)EC_READ_U64(adr_); }
+#endif
+#ifdef EC_READ_S64
+void ecmcEcEntry::readS64() { buffer_ = (uint64_t)EC_READ_S64(adr_); }
+void ecmcEcEntry::readS64ToU64() { buffer_ = (uint64_t)(EC_READ_S64(adr_) ^ 0x8000000000000000ull); }
+#endif
+#ifdef EC_READ_REAL
+void ecmcEcEntry::readF32() { *float32Ptr_ = EC_READ_REAL(adr_); }
+#endif
+#ifdef EC_READ_LREAL
+void ecmcEcEntry::readF64() { *float64Ptr_ = EC_READ_LREAL(adr_); }
+#endif
+
+void ecmcEcEntry::writeNone() { buffer_ = 0; }
+void ecmcEcEntry::writeB1() { EC_WRITE_BIT(adr_, bitOffset_, buffer_); }
+void ecmcEcEntry::writeB2() { EC_WRITE_B2(adr_, buffer_); }
+void ecmcEcEntry::writeB3() { EC_WRITE_B3(adr_, buffer_); }
+void ecmcEcEntry::writeB4() { EC_WRITE_B4(adr_, buffer_); }
+void ecmcEcEntry::writeU8() { EC_WRITE_U8(adr_, buffer_); }
+void ecmcEcEntry::writeS8() { EC_WRITE_S8(adr_, buffer_); }
+void ecmcEcEntry::writeS8ToU8() { EC_WRITE_S8(adr_, buffer_ ^ 0x80u); }
+void ecmcEcEntry::writeU16() { EC_WRITE_U16(adr_, buffer_); }
+void ecmcEcEntry::writeS16() { EC_WRITE_S16(adr_, buffer_); }
+void ecmcEcEntry::writeS16ToU16() { EC_WRITE_S16(adr_, buffer_ ^ 0x8000u); }
+void ecmcEcEntry::writeU32() { EC_WRITE_U32(adr_, buffer_); }
+void ecmcEcEntry::writeS32() { EC_WRITE_S32(adr_, buffer_); }
+void ecmcEcEntry::writeS32ToU32() { EC_WRITE_S32(adr_, buffer_ ^ 0x80000000u); }
+#ifdef EC_WRITE_U64
+void ecmcEcEntry::writeU64() { EC_WRITE_U64(adr_, buffer_); }
+#endif
+#ifdef EC_WRITE_S64
+void ecmcEcEntry::writeS64() { EC_WRITE_S64(adr_, buffer_); }
+void ecmcEcEntry::writeS64ToU64() { EC_WRITE_S64(adr_, buffer_ ^ 0x8000000000000000ull); }
+#endif
+#ifdef EC_WRITE_REAL
+void ecmcEcEntry::writeF32() { EC_WRITE_REAL(adr_, *float32Ptr_); }
+#endif
+#ifdef EC_WRITE_LREAL
+void ecmcEcEntry::writeF64() { EC_WRITE_LREAL(adr_, *float64Ptr_); }
+#endif
+
 int ecmcEcEntry::updateInputProcessImage() {
   if (!updateInRealTime_) {
     return 0;
@@ -324,96 +488,7 @@ int ecmcEcEntry::updateInputProcessImage() {
   }
 
   buffer_ = 0;
-
-  switch (dataType_) {
-  case ECMC_EC_NONE:
-    buffer_ = 0;
-    break;
-
-  case ECMC_EC_B1:
-    buffer_ = (uint64_t)EC_READ_BIT(adr_, bitOffset_);
-    break;
-
-  case ECMC_EC_B2:
-    buffer_ = (uint64_t)EC_READ_B2(adr_, bitOffset_);
-    break;
-
-  case ECMC_EC_B3:
-    buffer_ = (uint64_t)EC_READ_B3(adr_, bitOffset_);
-    break;
-
-  case ECMC_EC_B4:
-    buffer_ = (uint64_t)EC_READ_B4(adr_, bitOffset_);
-    break;
-
-  case ECMC_EC_U8:
-    buffer_ = (uint64_t)EC_READ_U8(adr_);
-    break;
-
-  case ECMC_EC_S8:
-    buffer_ = (uint64_t)EC_READ_S8(adr_);
-    break;
-
-  case ECMC_EC_S8_TO_U8:
-    buffer_ = (uint64_t)(EC_READ_S8(adr_) ^ 0x80u); // XOR, flip sign bit
-    break;
-
-  case ECMC_EC_U16:
-    buffer_ = (uint64_t)EC_READ_U16(adr_);
-    break;
-
-  case ECMC_EC_S16:
-    buffer_ = (uint64_t)EC_READ_S16(adr_);
-    break;
-
-  case ECMC_EC_S16_TO_U16:
-    buffer_ = (uint64_t)(EC_READ_S16(adr_) ^ 0x8000u); // XOR, flip sign bit
-    break;
-
-  case ECMC_EC_U32:
-    buffer_ = (uint64_t)EC_READ_U32(adr_);
-    break;
-
-  case ECMC_EC_S32:
-    buffer_ = (uint64_t)EC_READ_S32(adr_);
-    break;
-
-  case ECMC_EC_S32_TO_U32:
-    buffer_ = (uint64_t)(EC_READ_S32(adr_) ^ 0x80000000u); // XOR, flip sign bit
-    break;
-
-#ifdef EC_READ_U64
-  case ECMC_EC_U64:
-    buffer_ = (uint64_t)EC_READ_U64(adr_);
-    break;
-#endif // ifdef EC_READ_U64
-
-#ifdef EC_READ_S64
-  case ECMC_EC_S64:
-    buffer_ = (uint64_t)EC_READ_S64(adr_);
-    break;
-
-  case ECMC_EC_S64_TO_U64:
-    buffer_ = (uint64_t)(EC_READ_S64(adr_) ^ 0x8000000000000000ull); // XOR, flip sign bit
-    break;
-#endif // ifdef EC_READ_S64
-
-#ifdef EC_READ_REAL
-  case ECMC_EC_F32:
-    *float32Ptr_ = EC_READ_REAL(adr_);
-    break;
-#endif // ifdef EC_READ_REAL
-
-#ifdef EC_READ_LREAL
-  case ECMC_EC_F64:
-    *float64Ptr_ = EC_READ_LREAL(adr_);
-    break;
-
-#endif // ifdef EC_READ_LREAL
-  default:
-    buffer_ = 0;
-    break;
-  }
+  (this->*processImageReadFunc_)();
 
   updateAsyn(0);
   return 0;
@@ -428,95 +503,7 @@ int ecmcEcEntry::updateOutProcessImage() {
     return 0;
   }
 
-  switch (dataType_) {
-  case ECMC_EC_NONE:
-    buffer_ = 0;
-    break;
-
-  case ECMC_EC_B1:
-    EC_WRITE_BIT(adr_, bitOffset_, buffer_);
-    break;
-
-  case ECMC_EC_B2:
-    EC_WRITE_B2(adr_, buffer_);
-    break;
-
-  case ECMC_EC_B3:
-    EC_WRITE_B3(adr_, buffer_);
-    break;
-
-  case ECMC_EC_B4:
-    EC_WRITE_B4(adr_, buffer_);
-    break;
-
-  case ECMC_EC_U8:
-    EC_WRITE_U8(adr_, buffer_);
-    break;
-
-  case ECMC_EC_S8:
-    EC_WRITE_S8(adr_, buffer_);
-    break;
-
-  case ECMC_EC_S8_TO_U8:
-    EC_WRITE_S8(adr_, buffer_^ 0x80u); // XOR, flip sign bit    
-    break;
-
-  case ECMC_EC_U16:
-    EC_WRITE_U16(adr_, buffer_);
-    break;
-
-  case ECMC_EC_S16:
-    EC_WRITE_S16(adr_, buffer_);
-    break;
-
-  case ECMC_EC_S16_TO_U16:
-    EC_WRITE_S16(adr_, buffer_^ 0x8000u); // XOR, flip sign bit    
-    break;
-
-  case ECMC_EC_U32:
-    EC_WRITE_U32(adr_, buffer_);
-    break;
-
-  case ECMC_EC_S32:
-    EC_WRITE_S32(adr_, buffer_);
-    break;
-
-  case ECMC_EC_S32_TO_U32:
-    EC_WRITE_S32(adr_, buffer_^ 0x80000000u); // XOR, flip sign bit    
-    break;
-
-#ifdef EC_WRITE_U64
-  case ECMC_EC_U64:
-    EC_WRITE_U64(adr_, buffer_);
-    break;
-#endif // ifdef EC_WRITE_U64
-
-#ifdef EC_WRITE_S64
-  case ECMC_EC_S64:
-    EC_WRITE_S64(adr_, buffer_);
-    break;
-
-  case ECMC_EC_S64_TO_U64:
-    EC_WRITE_S64(adr_, buffer_^ 0x8000000000000000ull); // XOR, flip sign bit    
-    break;
-#endif // ifdef EC_WRITE_S64
-
-#ifdef EC_WRITE_REAL
-  case ECMC_EC_F32:
-    EC_WRITE_REAL(adr_, *float32Ptr_);
-    break;
-#endif // ifdef EC_WRITE_REAL
-
-#ifdef EC_WRITE_LREAL
-  case ECMC_EC_F64:
-    EC_WRITE_LREAL(adr_, *float64Ptr_);
-    break;
-#endif // ifdef EC_WRITE_LREAL
-
-  default:
-    buffer_ = 0;
-    break;
-  }
+  (this->*processImageWriteFunc_)();
 
   updateAsyn(0);
   return 0;

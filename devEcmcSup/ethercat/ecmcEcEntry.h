@@ -126,8 +126,66 @@ public:
   ec_direction_t        getDirection();
 
 protected:
+  typedef void (ecmcEcEntry::*processImageReadFuncPtr)();
+  typedef void (ecmcEcEntry::*processImageWriteFuncPtr)();
+
   void                  setDomainAdr();
   int                   initAsyn();
+  void                  bindProcessImageHandlers();
+  void                  readNone();
+  void                  readB1();
+  void                  readB2();
+  void                  readB3();
+  void                  readB4();
+  void                  readU8();
+  void                  readS8();
+  void                  readS8ToU8();
+  void                  readU16();
+  void                  readS16();
+  void                  readS16ToU16();
+  void                  readU32();
+  void                  readS32();
+  void                  readS32ToU32();
+#ifdef EC_READ_U64
+  void                  readU64();
+#endif
+#ifdef EC_READ_S64
+  void                  readS64();
+  void                  readS64ToU64();
+#endif
+#ifdef EC_READ_REAL
+  void                  readF32();
+#endif
+#ifdef EC_READ_LREAL
+  void                  readF64();
+#endif
+  void                  writeNone();
+  void                  writeB1();
+  void                  writeB2();
+  void                  writeB3();
+  void                  writeB4();
+  void                  writeU8();
+  void                  writeS8();
+  void                  writeS8ToU8();
+  void                  writeU16();
+  void                  writeS16();
+  void                  writeS16ToU16();
+  void                  writeU32();
+  void                  writeS32();
+  void                  writeS32ToU32();
+#ifdef EC_WRITE_U64
+  void                  writeU64();
+#endif
+#ifdef EC_WRITE_S64
+  void                  writeS64();
+  void                  writeS64ToU64();
+#endif
+#ifdef EC_WRITE_REAL
+  void                  writeF32();
+#endif
+#ifdef EC_WRITE_LREAL
+  void                  writeF64();
+#endif
   uint8_t *domainAdr_;
   uint8_t *adr_;
   uint16_t entryIndex_;
@@ -160,5 +218,7 @@ protected:
   float *float32Ptr_;
   double *float64Ptr_;
   size_t usedSizeBytes_;
+  processImageReadFuncPtr processImageReadFunc_;
+  processImageWriteFuncPtr processImageWriteFunc_;
 };
 #endif  /* ECMCECENTRY_H_ */
