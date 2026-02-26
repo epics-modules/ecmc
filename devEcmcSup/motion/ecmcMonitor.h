@@ -43,6 +43,8 @@ public:
   bool               getEnableAtTargetMon();
   int                setCtrlDeadband(double tol);
   int                setCtrlDeadbandTime(int time);
+  double             getCtrlDeadband();
+  int                getCtrlDeadbandTime();
   bool               getCtrlInDeadband();
   int                setPosLagTol(double tol);
   double             getPosLagTol();
@@ -56,9 +58,13 @@ public:
   int                setEnableMaxVelMon(bool enable);
   bool               getEnableMaxVelMon();
   int                setMaxVelDriveTime(int time);
+  int                getMaxVelDriveTime();
   int                setMaxVelTrajTime(int time);
+  int                getMaxVelTrajTime();
   int                setLatchAtLimit(bool latchOnLimit);
   int                getLatchAtLimit();
+  int                setStopAtAnyLimit(bool stop);
+  bool               getStopAtAnyLimit();
   double             getCurrentPosSet();
   void               execute();
   void               readEntries();
@@ -84,8 +90,11 @@ public:
   int                setEnableVelocityDiffMon(bool enable);
   bool               getEnableVelocityDiffMon();
   int                setVelDiffTimeTraj(int time);
+  int                getVelDiffTimeTraj();
   int                setVelDiffTimeDrive(int time);
+  int                getVelDiffTimeDrive();
   int                setVelDiffMaxDifference(double velo);
+  double             getVelDiffMaxDifference();
   int                setEnableSoftLimitBwd(bool enable);
   int                setEnableSoftLimitFwd(bool enable);
   int                setEnableHardLimitBWDAlarm(bool enable);
@@ -108,8 +117,12 @@ public:
 
   // Analog interlock for temperature sensors
   int                setAnalogInterlockPolarity(ecmcSwitchPolarity pol);
+  ecmcSwitchPolarity getAnalogInterlockPolarity();
   int                setAnalogRawLimit(double analogLimit);
+  double             getAnalogRawLimit();
+  double             getAnalogRawValue();
   int                setEnableAnalogInterlock(bool enable);
+  bool               getEnableAnalogInterlock();
   int                getSumInterlock();
   
   /* Stall monitoring for ABS and REL moves by checking that axis has arrived atTarget 
@@ -118,6 +131,7 @@ public:
   */
   void               setEnableStallMon(bool enable);
   void               setStallMinTimeOut(double timeCycles);
+  double             getStallMinTimeOut();
   void               setStallTimeFactor(double timeFactor);
   bool               getEnableStallMon();
   double             getStallTimeFactor();
@@ -143,6 +157,7 @@ private:
   int                checkStall();
   int                filterSwitches();
   int                checkPolarity(ecmcSwitchPolarity pol);
+  int                setStopAtBothLimits(bool stop);
   bool enable_;
 
   // Tolnoerance for reached target. Example 0.1 deg
@@ -202,6 +217,7 @@ private:
   int ctrlDeadbandCounter_;
   int ctrlDeadbandTime_;
   double analogRawLimit_;
+  double analogRawValue_;
   int enableAnalogInterlock_;
   ecmcSwitchPolarity analogPolarity_;
   double stallTimeFactor_;
@@ -218,6 +234,7 @@ private:
   bool homeSwitchPLCOverrideValue_;
   bool enableHomeSensor_;
   bool axisIsWithinCtrlDBExtTraj_;
+  bool stopAtAnyLimit_;
 };
 
 #endif  // ifndef MOTIONMONITOR_H

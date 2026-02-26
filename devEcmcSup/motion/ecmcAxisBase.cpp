@@ -309,12 +309,21 @@ void ecmcAxisBase::initVars() {
   enableAutoEnable_             = 0;
   enableAutoDisable_            = 0;
   positionTargetAsyn_           = 0;
-  enableAutoResetError_         = 0;
+  blocked_                      = 0;
+  enableAutoResetError_         = 1;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
   hwReadyOld_ = hwReady_;
 
+  //if(data_.status_.statusWord_.localBusy != data_.statusOld_.statusWord_.localBusy) {
+  //  printf("ecmcAxisBase::preExecute(): localBusy changed state = %d\n",data_.status_.statusWord_.localBusy);
+  //}
+
+  //if(data_.status_.statusWord_.globalBusy != data_.statusOld_.statusWord_.globalBusy) {
+  //  printf("ecmcAxisBase::preExecute(): globalBusy changed state = %d\n",data_.status_.statusWord_.globalBusy);
+  //}
+  
   data_.interlocks_.etherCatMasterInterlock = !masterOK;
 
   if (!masterOK) {
@@ -384,7 +393,10 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     break;
 
   case ECMC_AXIS_STATE_DISABLED:
-    seq_.setGlobalBusy(false);
+    // Allow axes to be busy if auto enabling..
+    if (!autoEnableRequest_ ) {
+      seq_.setGlobalBusy(false); 
+    }   
     data_.status_.statusWord_.busy = false;
     data_.status_.distToStop = 0;
 
@@ -469,6 +481,7 @@ void ecmcAxisBase::postExecute(bool masterOK) {
    data_.status_.cycleCounter++;
 
   // Update asyn parameters
+  refreshStatusWd();
   data_.axAsynParams_[ECMC_ASYN_AX_SET_POS_ID]->refreshParamRT(0);
   data_.axAsynParams_[ECMC_ASYN_AX_ACT_POS_ID]->refreshParamRT(0);
   data_.axAsynParams_[ECMC_ASYN_AX_ACT_VEL_ID]->refreshParamRT(0);
@@ -642,7 +655,10 @@ int ecmcAxisBase::setEnableLocal(bool enable) {
       firstEnableDone_                      = true;
     }
   }
-
+  if(!enable) {
+    setMRStop(1);
+  }
+  //setMRCnen(enable);
   traj_->setEnable(enable);
 
   // reset axis error if ERROR_AXIS_NOT_ENABLED or ERROR_AXIS_SAFETY_IL_ACTIVE when try to enable
@@ -892,7 +908,8 @@ void ecmcAxisBase::printAxisStatus() {
 // Ignore busy so that PVT can run (PVT controller will check that traj is not busy)
 int ecmcAxisBase::setExecute(bool execute) {
   // Auto enable if needed  (except for homing seq 15)
-  if(!data_.status_.statusWord_.enabled and execute and autoEnableTimoutS_ > 0 and !((data_.control_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
+  //printf("ecmcAxisBase::setExecute(): 1 global busy %d, local busy %d\n", data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy);
+  if(!getEnable() && execute && autoEnableTimoutS_ > 0 && !((data_.control_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
           (data_.control_.command == ECMC_CMD_HOMING))) {
 
     getSeq()->setGlobalBusy(true);
@@ -901,7 +918,7 @@ int ecmcAxisBase::setExecute(bool execute) {
     // autoEnableSM will setExecute later when axis is enabled
     return 0;
   }
-  
+  //printf("ecmcAxisBase::setExecute(): 2 global busy %d, local busy %d\n", data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy);
   return setExecute(execute, false);
 }
 
@@ -925,8 +942,9 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
     }
 
     int error = seq_.setExecute(execute);
+    //printf("ecmcAxisBase::setExecute(): 3 global busy %d, local busy %d\n", data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy);
 
-    if (error) {
+    if (error) {      
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, error);
     }
   }
@@ -1579,6 +1597,14 @@ int ecmcAxisBase::setExtEncVeloFiltSize(size_t size) {
   return extEncVeloFilter_->setFilterSize(size);
 }
 
+int ecmcAxisBase::getExtTrajVeloFiltSize() {
+  return extTrajVeloFilter_ ? (int)extTrajVeloFilter_->getFilterSize() : 0;
+}
+
+int ecmcAxisBase::getExtEncVeloFiltSize() {
+  return extEncVeloFilter_ ? (int)extEncVeloFilter_->getFilterSize() : 0;
+}
+
 int ecmcAxisBase::setEncVeloFiltSize(size_t size) {
   return encArray_[data_.control_.primaryEncIndex]->setVeloFilterSize(size);
 }
@@ -1696,7 +1722,7 @@ int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
     return errorCode;
   }
 
-  errorCode = setExecute(0);
+  errorCode = setExecute(0,ignoreBusy);
 
   if (errorCode) {
     return errorCode;
@@ -1727,9 +1753,20 @@ int ecmcAxisBase::moveAbsolutePosition(
   double velocitySet,
   double accelerationSet,
   double decelerationSet) {
-
   if(data_.control_.controlWord_.enableDbgPrintout) {
     printf("INFO: Axis[%d]: ecmcAxisBase::moveAbsolutePosition()\n",data_.status_.axisId);
+  }
+
+  if(blocked_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.status_.axisId,
+      ERROR_AXIS_BLOCKED);
+
+    return ERROR_AXIS_BLOCKED;
   }
 
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
@@ -1760,7 +1797,6 @@ int ecmcAxisBase::moveAbsolutePosition(
   }
 
   errorCode = setExecute(0);
-
   if (errorCode) {
     return errorCode;
   }
@@ -1782,13 +1818,11 @@ int ecmcAxisBase::moveAbsolutePosition(
   setDec(decelerationSet);
   data_.control_.positionTarget = positionSet;
   setTargetPos(positionSet);
-
   errorCode = setExecute(1);
-
   if (errorCode) {
     return errorCode;
   }
-  
+
   return 0;
 }
 
@@ -1800,6 +1834,18 @@ int ecmcAxisBase::moveRelativePosition(
   
   if(data_.control_.controlWord_.enableDbgPrintout) {
     printf("INFO: Axis[%d]: ecmcAxisBase::moveRelativePosition()\n",data_.status_.axisId);
+  }
+
+  if(blocked_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.status_.axisId,
+      ERROR_AXIS_BLOCKED);
+
+    return ERROR_AXIS_BLOCKED;
   }
 
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
@@ -1864,6 +1910,19 @@ int ecmcAxisBase::moveVelocity(
   double velocitySet,
   double accelerationSet,
   double decelerationSet) {
+  
+  if(blocked_) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.status_.axisId,
+      ERROR_AXIS_BLOCKED);
+
+    return ERROR_AXIS_BLOCKED;
+  }
+
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis[%d]: Move to abs position failed since traj source is set to PLC (0x%x).\n",
@@ -2093,7 +2152,7 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
       return errorCode;
     }
   }
-
+  
   if (errorCode) {
     return errorCode;
   }
@@ -2102,7 +2161,7 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
 }
 
 /**
- * Function to link to ecmcDataItem. Execute function instead of copoy data.
+ * Function to link to ecmcDataItem. Execute function instead of copy data.
  * This function implements commands execution of commands from motor record
  * or other (binary) asyn source.
  *
@@ -2948,6 +3007,10 @@ int ecmcAxisBase::setAllowSourceChangeWhenEnabled(bool allow) {
   return 0;
 }
 
+int ecmcAxisBase::getAllowSourceChangeWhenEnabled() {
+  return data_.control_.allowSourceChangeWhenEnabled;
+}
+
 void ecmcAxisBase::setTargetPos(double posTarget) {
   getSeq()->setTargetPos(posTarget);
   refreshAsynTargetValue();  
@@ -2970,6 +3033,10 @@ void ecmcAxisBase::setTweakDist(double dist) {
   refreshAsynTargetValue();
 
   data_.axAsynParams_[ECMC_ASYN_AX_TWEAK_VALUE_ID]->refreshParamRT(1);
+}
+
+double ecmcAxisBase::getTweakDist() {
+  return data_.control_.tweakValue;
 }
 
 void ecmcAxisBase::setAcc(double acc) {
@@ -3126,7 +3193,7 @@ void ecmcAxisBase::autoEnableSM() {
     autoEnableRequest_= false;
     autoEnableTimeCounter_ = 0;
     getSeq()->setGlobalBusy(false);
-    setErrorID(ERROR_AUTO_ENABLE_TIMEOUT);
+    setErrorID(ERROR_AXIS_AUTO_ENABLE_TIMEOUT);
     return;
   } else {
     autoEnableTimeCounter_ += data_.status_.sampleTime;
@@ -3160,7 +3227,12 @@ void ecmcAxisBase::autoDisableSM() {
     autoDisbleTimeCounter_ = 0;
     return;
   }
-  
+
+  if(!data_.status_.statusWord_.attarget && getMon()->getEnableAtTargetMon()) {
+    autoDisbleTimeCounter_ = 0;
+    return;
+  }
+
   if(autoDisbleTimeCounter_ > autoDisableAfterS_ && data_.control_.controlWord_.enableCmd) {
     if(data_.control_.controlWord_.enableDbgPrintout) {
       printf("INFO: Axis[%d]: ecmcAxisBase::autoDisableSM(): Auto disable axis (axis idle for %lfs)\n",
@@ -3179,6 +3251,10 @@ int ecmcAxisBase::setAutoEnableTimeout(double timeS) {
   return 0;
 }
 
+double ecmcAxisBase::getAutoEnableTimeout() {
+  return autoEnableTimoutS_;
+}
+
 int ecmcAxisBase::setEnableAutoEnable(bool enable) {
   if(enableAutoEnable_ != enable) {
     autoDisbleTimeCounter_ = 0;
@@ -3191,6 +3267,10 @@ int ecmcAxisBase::setAutoDisableAfterTime(double timeS) {
   autoDisableAfterS_ = timeS;
   enableAutoDisable_ = timeS > 0;
   return 0;
+}
+
+double ecmcAxisBase::getAutoDisableAfterTime() {
+  return autoDisableAfterS_;
 }
 
 int ecmcAxisBase::setEnableAutoDisable(bool enable) {
@@ -3292,4 +3372,22 @@ ecmcAxisDataStatus* ecmcAxisBase::getAxisStatusStruct() {
 int ecmcAxisBase::setEnableAtStartup(bool enable) {
   data_.control_.enableAtStartup = enable;
   return 0;
+}
+
+bool ecmcAxisBase::getGlobalBusy() {
+  return data_.status_.statusWord_.globalBusy;
+}
+
+bool ecmcAxisBase::getLocalBusy() {
+  return data_.status_.statusWord_.localBusy;
+}
+
+// set Group blocked
+void ecmcAxisBase::setBlocked(bool blocked) {
+  data_.status_.statusWord_.blocked = blocked;
+}
+
+// get Group blocked
+bool ecmcAxisBase::getBlocked() {
+  return data_.status_.statusWord_.blocked;
 }

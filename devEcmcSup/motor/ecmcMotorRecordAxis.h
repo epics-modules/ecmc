@@ -64,7 +64,6 @@ public:
   void setEnablePVTFunc(int enable);
   void invalidatePVTBuild();
 
-
 private:
   typedef enum
   {
@@ -181,7 +180,6 @@ private:
   asynStatus setPGain(double pGain);
   asynStatus setIGain(double iGain);
   asynStatus setDGain(double dGain);
-  //virtual asynStatus initializeProfile(size_t maxPoints);§
   asynStatus defineProfile(double *positions, size_t numPoints);
   asynStatus buildProfile();
   asynStatus initializeProfile(size_t maxProfilePoints);
@@ -194,8 +192,9 @@ private:
   int getProfileBusy();
   int getProfileCurrentSegementID();
   size_t getProfilePointCount();
-  //virtual asynStatus readbackProfile();
-
+  void updateError();
+  void newCmd();
+  bool dataIsSampledAfterNewCmd();
   ecmcAxisPVTSequence *pvtRunning_;
   ecmcAxisPVTSequence *pvtPrepare_;
   size_t profileCurrentDefinedPoints_;
@@ -209,6 +208,7 @@ private:
   size_t profileMaxPoints_;  
   bool updateFirstPollDone_;
   friend class ecmcMotorRecordController;
+  int ecmcCycleCounterAtNewCmd_;
 };
 
 #endif // ifndef ECMC_MOTOR_RECORD_AXIS_H

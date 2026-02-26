@@ -49,7 +49,7 @@ void ecmcAxisSequencer::initVars() {
   data_                  = NULL;
   oldencRawAbsPosReg_    = 0;
   encRawAbsPosReg_       = 0;
-  homeLatchCountOffset_  = 0;
+  homeLatchCountOffset_  = 1;
   homeLatchCountAct_     = 0;
   overUnderFlowLatch_    = ECMC_ENC_NORMAL;
   enablePos_             = true;
@@ -187,7 +187,7 @@ void ecmcAxisSequencer::executeInternal() {
      // PVT 
      if(pvtmode_ && !pvtStopping_) {
         data_->status_.statusWord_.localBusy = (pvt_->getBusy() && data_->status_.statusWord_.enabled) ||
-                              !data_->status_.startupFinsished || data_->status_.statusWord_.globalBusy;
+                              !data_->status_.startupFinsished;// || data_->status_.statusWord_.globalBusy;
       } else {
       // Normal motion
         data_->status_.statusWord_.localBusy = (traj_->getBusy() && data_->status_.statusWord_.enabled) ||
@@ -2354,8 +2354,7 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
     if (!traj_->getBusy()) {
       traj_->setTargetVel(homeVelOffCam_);   // low speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setExecute(1);  // Trigg new movement
-      getPrimEnc()->setArmLatch(true);   // ensure latch is armed
+      traj_->setExecute(1);  // Trigg new movement      
       seqState_ = 3;
     } else {
       traj_->setExecute(0);
@@ -2372,6 +2371,7 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
     }
 
     if (hwLimitSwitchBwd_ != hwLimitSwitchBwdOld_) {
+      getPrimEnc()->setArmLatch(true);
       seqState_ = 4;
     }
     break;
@@ -2515,7 +2515,6 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
       traj_->setTargetVel(-homeVelOffCam_);  // Low speed
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
       traj_->setExecute(1);  // Trigg new movement
-      getPrimEnc()->setArmLatch(true);  // ensure latch is armed
       seqState_ = 3;
     } else {
       traj_->setExecute(0);
@@ -2532,6 +2531,7 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
     }
 
     if (hwLimitSwitchFwd_ != hwLimitSwitchFwdOld_) {
+      getPrimEnc()->setArmLatch(true);  // ensure latch is armed
       seqState_ = 4;
     }
     break;
@@ -3192,6 +3192,7 @@ void ecmcAxisSequencer::initHomingSeq() {
   traj_->setExecute(0);
   traj_->setAcc(homeAcc_);
   traj_->setDec(homeDec_);
+  homeLatchCountAct_ = 0;
 }
 
 void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
@@ -3623,5 +3624,5 @@ void  ecmcAxisSequencer::setHomeDec(double dec) {
 }
 
 void ecmcAxisSequencer::setGlobalBusy(bool busy) {
-  data_->status_.statusWord_.globalBusy = busy;
+  data_->status_.statusWord_.globalBusy = busy > 0;
 }

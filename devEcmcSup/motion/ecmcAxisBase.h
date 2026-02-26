@@ -124,6 +124,8 @@ public:
   int                        setEnableLocal(bool enable);
   int                        validateBase();
   bool                       getBusy();
+  bool                       getGlobalBusy();
+  bool                       getLocalBusy();
   bool                       getTrajBusy();
   int                        getBlockExtCom();
   int                        setBlockExtCom(int block);
@@ -143,7 +145,9 @@ public:
   bool                       getEnableExtEncVeloFilter();
   bool                       getEnableExtTrajVeloFilter();
   int                        setExtTrajVeloFiltSize(size_t size);
+  int                        getExtTrajVeloFiltSize();
   int                        setExtEncVeloFiltSize(size_t size);
+  int                        getExtEncVeloFiltSize();
   int                        setEncVeloFiltSize(size_t size);
   int                        setEncVeloFiltEnable(bool enable);
   int                        setEncPosFiltSize(size_t size);
@@ -173,7 +177,9 @@ public:
   int        setPosition(double homePositionSet);                  // Autosave
   int        stopMotion(int killAmplifier);
   int        setAutoEnableTimeout(double timeS);
+  double     getAutoEnableTimeout();
   int        setAutoDisableAfterTime(double timeS);
+  double     getAutoDisableAfterTime();
   int        setEnableAutoEnable(bool enable);
   int        setEnableAutoDisable(bool enable);
   asynStatus axisAsynWriteCmd(void         *data,
@@ -223,10 +229,13 @@ public:
   double     getExtSetPos();
   double     getExtActPos();
   int        setAllowSourceChangeWhenEnabled(bool allow);
+  int        getAllowSourceChangeWhenEnabled();
+  int        setAutoResetError(bool enable);
   void       setTargetVel(double velTarget);
   void       setTargetPos(double posTarget);
   void       setTargetPosToCurrSetPos();
   void       setTweakDist(double dist);
+  double     getTweakDist();
   void       setAcc(double acc);
   void       setDec(double dec);
   void       setEmergencyStopInterlock(int stop);
@@ -240,6 +249,8 @@ public:
   int        setCntrlKi(double ki);
   int        setCntrlKd(double kd);
   int        setCntrlKff(double kff);
+  void       setBlocked(bool blocked); // Block axes, for use in master slave systems
+  bool       getBlocked(); // get blocked
 
   /*
      Ignore status when motor record tries to disable.
@@ -316,6 +327,7 @@ protected:
   bool enableAutoEnable_;
   bool enableAutoDisable_;
   double positionTargetAsyn_;
+  bool blocked_;
   bool enableAutoResetError_;
 };
 

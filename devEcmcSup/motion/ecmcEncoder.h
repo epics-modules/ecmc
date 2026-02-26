@@ -82,9 +82,11 @@ public:
   double                readEntries(bool masterOK);
   int                   writeEntries();
   int                   setOffset(double offset);
+  double                getOffset();
   int                   validate();
   int                   setToZeroIfRelative();
   int                   setRawMask(uint64_t mask);
+  uint64_t              getRawMask();
   bool                  getLatchFuncEnabled();
   int                   setHomeLatchArmControlWord(uint64_t control, int bits);
   void                  setArmLatch(bool arm);
@@ -93,9 +95,13 @@ public:
   double                getLatchPosEng();
   ecmcOverUnderFlowType getOverUnderflow();
   int                   setVeloFilterSize(size_t size);
+  int                   getVeloFilterSize();
   int                   setVelFilterEnable(bool enable);
+  int                   getVelFilterEnable();
   int                   setPosFilterSize(size_t size);
+  int                   getPosFilterSize();
   int                   setPosFilterEnable(bool enable);
+  int                   getPosFilterEnable();
 
   // Ref this encoder to other encoder at startup (i.e ref relative encoder to abs at startup)
   int                   setRefToOtherEncAtStartup(int encIndex);
@@ -134,10 +140,28 @@ public:
   int                   loadLookupTable(const std::string& filename);
   // Enable use of lookup table
   int                   setLookupTableEnable(bool enable);
+  int                   getLookupTableEnable();
   int                   setLookupTableRange(double range);
+  double                getLookupTableRange();
   int                   setLookupTableScale(double scale);
+  double                getLookupTableScale();
   int                   setDelayCyclesAndEnable(double cycles, bool enable); 
-
+  double                getDelayCycles();
+  int                   getDelayCompEnable();
+  // Only propagate encoder errors from the primary encoder to the axis
+  int                   setErrorID(int errorID) override;
+  int                   setErrorID(int               errorID,
+                                   ecmcAlarmSeverity severity) override;
+  int                   setErrorID(const char *fileName,
+                                   const char *functionName,
+                                   int         lineNumber,
+                                   int         errorID) override;
+  int                   setErrorID(const char       *fileName,
+                                   const char       *functionName,
+                                   int               lineNumber,
+                                   int               errorID,
+                                   ecmcAlarmSeverity severity) override;
+  int                   setAllowOverUnderFlow(bool allow);
 protected:
   void                  initVars();
   int                   countTrailingZerosInMask(uint64_t mask);
@@ -148,6 +172,7 @@ protected:
                                             int64_t  rawTurns,
                                             uint64_t rawLimit,
                                             int      bits);
+  bool                  isPrimary() const;
   uint8_t* getActPosPtr();
   uint8_t* getActVelPtr();
   int      initAsyn();
@@ -156,8 +181,7 @@ protected:
   int      readHwWarningError(bool domainOK);
   int      readHwLatch(bool domainOK);
   int      readHwReady(bool domainOK);
-  bool     isPrimary();
-
+  
   encoderType encType_;
   ecmcFilter *velocityFilter_;
   ecmcFilter *positionFilter_;
@@ -259,6 +283,7 @@ protected:
   
   double delayTimeS_; // Compensate for delay between setpoint and actual value (should default to 2 cycles)
   bool enableDelayTime_;
+  bool allowOverUnderFlow_;
 };
 
 #endif  /* ECMCENCODER_H_ */

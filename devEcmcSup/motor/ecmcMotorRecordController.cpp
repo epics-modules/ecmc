@@ -803,6 +803,8 @@ asynStatus ecmcMotorRecordController::writeInt32(asynUser *pasynUser, epicsInt32
 
 asynStatus ecmcMotorRecordController::abortProfile()
 {
+  printf("ecmcMotorRecordAxis::abortProfile()\n");
+
   // static const char *functionName = "abortProfile";
   int axis;
   asynMotorAxis *pAxis;
@@ -877,7 +879,7 @@ asynStatus ecmcMotorRecordController::buildProfile() {
     if (!pAxis) continue;
     stat = stat || pAxis->buildProfile() != asynSuccess;
   }
-  
+
   if(stat) {
     printf("ecmcMotorRecordController: Error: axis::buildProfile() returned error.\n");
     sprintf(profileMessage_, "Error: axis::buildProfile() returned error.\n");
@@ -886,16 +888,7 @@ asynStatus ecmcMotorRecordController::buildProfile() {
     return asynError;
   }
 
-  // Check for errors in all axes since base class is not checking return value.. annoying..
-  bool buildStatusOK = true;
-  for (int axis = 0; axis < numAxes_; axis++) {
-    pAxis = getAxis(axis);
-    if (!pAxis) continue;
-    if(!pAxis->getPVTEnabled()) continue;
-    buildStatusOK = buildStatusOK;
-  }
-
-  profileBuilt_ = buildStatusOK; 
+  profileBuilt_ = stat  ? false : true; 
 
   setIntegerParam(ECMC_MR_CNTRL_ADDR,profileBuildState_, PROFILE_BUILD_DONE);
   
@@ -907,7 +900,7 @@ asynStatus ecmcMotorRecordController::buildProfile() {
   return asynSuccess;
 }
 
-// Overide in order to be able to handle status from pAxis->initializeProfile()
+// Override in order to be able to handle status from pAxis->initializeProfile()
 asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
 {  
   printf("ecmcMotorRecordController::initializeProfile(%lu)\n",maxProfilePoints);

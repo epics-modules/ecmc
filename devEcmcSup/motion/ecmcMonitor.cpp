@@ -22,9 +22,9 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
                                                                      status_.
                                                                      warningCode))
 {
-  initVars();
   data_ = axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
+  initVars();
   encArray_ = encArray;
 
   if (!data_) {
@@ -52,9 +52,11 @@ void ecmcMonitor::initVars() {
   maxStallCounter_    = 0;
   stallLastMotionCmdCycles_  = 0;
   stallCheckAtTargetAtCycle_ = 0;
-  stallMinTimeoutCycles_     = 0;
+  // Allow atleast 10 seconds before stall
+  stallMinTimeoutCycles_     = 15 / data_->status_.sampleTime;
+  // Allow stallMinTimeoutCycles_ + stallTimeFactor_*(last_move_time) befire stall
   stallTimeFactor_           = 10;
-  enableStallMon_            = 0;
+  enableStallMon_            = 1;
 
   // 200 cycles
   maxVelTrajILDelay_ = 200;
@@ -90,6 +92,7 @@ void ecmcMonitor::initVars() {
   ctrlDeadbandCounter_       = 0;
   ctrlDeadbandTime_          = -1;
   analogRawLimit_            = 0;
+  analogRawValue_            = 0;
   enableAnalogInterlock_     = 0;
   analogPolarity_            = ECMC_POLARITY_NC; // Higher value than analogRawLimit_ is bad
   limitSwitchFwdPLCOverride_ = false;
@@ -100,6 +103,7 @@ void ecmcMonitor::initVars() {
   homeSwitchPLCOverrideValue_     = false;
   enableHomeSensor_               = false;
   axisIsWithinCtrlDBExtTraj_      = false;
+  stopAtAnyLimit_                 = false;
 }
 
 ecmcMonitor::~ecmcMonitor() {}
@@ -247,6 +251,10 @@ int ecmcMonitor::setVelDiffTimeTraj(int time) {
   return 0;
 }
 
+int ecmcMonitor::getVelDiffTimeTraj() {
+  return velDiffTimeTraj_;
+}
+
 int ecmcMonitor::setVelDiffTimeDrive(int time) {
   if (time < 0) {
     LOGERR("%s/%s:%d: Velocity diff drive time invalid (time < 0) (0x%x).\n",
@@ -257,6 +265,10 @@ int ecmcMonitor::setVelDiffTimeDrive(int time) {
 
   velDiffTimeDrive_ = time;
   return 0;
+}
+
+int ecmcMonitor::getVelDiffTimeDrive() {
+  return velDiffTimeDrive_;
 }
 
 int ecmcMonitor::setPosLagTime(int time) {
@@ -405,6 +417,7 @@ void ecmcMonitor::readEntries() {
                  ECMC_SEVERITY_NORMAL);
       return;
     }
+    analogRawValue_ = tempDouble;
 
     switch (analogPolarity_) {
     case ECMC_POLARITY_NC:
@@ -516,6 +529,10 @@ int ecmcMonitor::setMaxVelDriveTime(int time) {
   return 0;
 }
 
+int ecmcMonitor::getMaxVelDriveTime() {
+  return maxVelDriveILDelay_;
+}
+
 int ecmcMonitor::setMaxVelTrajTime(int time) {
   if (time < 0) {
     LOGERR("%s/%s:%d: Max velocity traj time invalid (time < 0) (0x%x).\n",
@@ -526,6 +543,10 @@ int ecmcMonitor::setMaxVelTrajTime(int time) {
 
   maxVelTrajILDelay_ = time;
   return 0;
+}
+
+int ecmcMonitor::getMaxVelTrajTime() {
+  return maxVelTrajILDelay_;
 }
 
 int ecmcMonitor::reset() {
@@ -631,6 +652,10 @@ int ecmcMonitor::setEnableHardLimitFWDAlarm(bool enable) {
   return 0;
 }
 
+double ecmcMonitor::getVelDiffMaxDifference() {
+  return velDiffMaxDiff_;
+}
+
 int ecmcMonitor::setEnableSoftLimitBwd(bool enable) {  
   data_->control_.controlWord_.enableSoftLimitBwd = enable;
   data_->status_.statusWord_.softlimbwdena = enable;
@@ -662,9 +687,14 @@ int ecmcMonitor::checkLimits() {
   hardFwdOld_ = data_->status_.statusWord_.limitfwd;
 
   // Both limit switches
-
   data_->interlocks_.bothLimitsLowInterlock = !data_->status_.statusWord_.limitbwd &&
                                               !data_->status_.statusWord_.limitfwd;
+
+  // Stop at any limit (reuse same interlock as both limit)
+  if(stopAtAnyLimit_) {
+    data_->interlocks_.bothLimitsLowInterlock = !data_->status_.statusWord_.limitbwd ||
+                                              !data_->status_.statusWord_.limitfwd;
+  }
 
   if (data_->interlocks_.bothLimitsLowInterlock) {
     return setErrorID(__FILE__,
@@ -730,7 +760,8 @@ int ecmcMonitor::checkLimits() {
 
   // Bwd soft limit switch
   bool virtSoftlimitBwd =
-    (data_->status_.currentPositionSetpoint < data_->control_.softLimitBwd) &&
+    ((data_->status_.currentPositionSetpoint < data_->control_.softLimitBwd) ||
+     (data_->control_.positionTarget < data_->control_.softLimitBwd)) &&
     data_->status_.statusWord_.enabled && data_->statusOld_.statusWord_.enabled; /*&&
     (data_->status_.currentPositionSetpoint <
     data_->status_.currentPositionSetpointOld); */// data_->control_.execute;
@@ -756,7 +787,8 @@ int ecmcMonitor::checkLimits() {
   }
 
   bool virtSoftlimitFwd =
-    (data_->status_.currentPositionSetpoint > data_->control_.softLimitFwd) &&
+    ((data_->status_.currentPositionSetpoint > data_->control_.softLimitFwd) || 
+     (data_->control_.positionTarget > data_->control_.softLimitFwd)) &&
     data_->status_.statusWord_.enabled && data_->statusOld_.statusWord_.enabled; /*&&
     (data_->status_.currentPositionSetpoint >
       data_->status_.currentPositionSetpointOld);*/// && data_->control_.execute;
@@ -861,8 +893,8 @@ int  ecmcMonitor::checkStall() {
         stallCheckAtTargetAtCycle_ = stallMinTimeoutCycles_;
       }
       if(data_->control_.controlWord_.enableDbgPrintout) {
-        printf("Axis[%d]: Time to check stall after: %" PRIu64 "\n", data_->status_.axisId, stallCheckAtTargetAtCycle_);        
-      }
+        printf("Axis[%d]: Time to check stall after: %" PRIu64 ", factor %lf, min time %lf\n", data_->status_.axisId, stallCheckAtTargetAtCycle_,stallTimeFactor_,stallMinTimeoutCycles_);        
+      }      
     }
   }
 
@@ -872,9 +904,10 @@ int  ecmcMonitor::checkStall() {
     data_->interlocks_.stallInterlock = false;
     if(!data_->statusOld_.statusWord_.attarget) {
       if(data_->control_.controlWord_.enableDbgPrintout) {
-        printf("Axis[%d]: No stall.. Brilliant!!\n",data_->status_.axisId);
+        printf("Axis[%d]: No stall.. Brilliant!!\n",data_->status_.axisId);                
       }
     }
+    stallLastMotionCmdCycles_ = 0;
     maxStallCounter_ = 0;
     return 0;
   }
@@ -882,8 +915,9 @@ int  ecmcMonitor::checkStall() {
   if((maxStallCounter_ > stallCheckAtTargetAtCycle_) && 
      (stallCheckAtTargetAtCycle_ > 0)) {
     if(data_->control_.controlWord_.enableDbgPrintout) {
-      printf("Axis[%d]: Stall...\n",data_->status_.axisId);
+      printf("Axis[%d]: Stall...\n",data_->status_.axisId);      
     }
+    stallLastMotionCmdCycles_ = 0;  
     stallCheckAtTargetAtCycle_ = 0;
     data_->interlocks_.stallInterlock = true;    
     return setErrorID(__FILE__,
@@ -1273,6 +1307,22 @@ ecmcSwitchPolarity ecmcMonitor::getHardwareInterlockPolarity() {
   return hardwareInterlockPolarity_;
 }
 
+ecmcSwitchPolarity ecmcMonitor::getAnalogInterlockPolarity() {
+  return analogPolarity_;
+}
+
+double ecmcMonitor::getAnalogRawLimit() {
+  return analogRawLimit_;
+}
+
+double ecmcMonitor::getAnalogRawValue() {
+  return analogRawValue_;
+}
+
+bool ecmcMonitor::getEnableAnalogInterlock() {
+  return enableAnalogInterlock_;
+}
+
 int ecmcMonitor::checkPolarity(ecmcSwitchPolarity pol) {
   if ((pol <  ECMC_POLARITY_NC) || (pol >  ECMC_POLARITY_NO)) {
     return ERROR_MON_POLARITY_OUT_OF_RANGE;
@@ -1287,6 +1337,15 @@ int ecmcMonitor::setLatchAtLimit(bool latchOnLimit) {
 
 int ecmcMonitor::getLatchAtLimit() {
   return latchOnLimit_;
+}
+
+int ecmcMonitor::setStopAtAnyLimit(bool stop) {
+  stopAtAnyLimit_ = stop;
+  return 0;
+}
+
+bool ecmcMonitor::getStopAtAnyLimit() {
+  return stopAtAnyLimit_;
 }
 
 int ecmcMonitor::setEnableSoftLimitAlarm(bool enable) {
@@ -1307,6 +1366,14 @@ int ecmcMonitor::setCtrlDeadband(double tol) {
 int ecmcMonitor::setCtrlDeadbandTime(int cycles) {
   ctrlDeadbandTime_ = cycles;
   return 0;
+}
+
+double ecmcMonitor::getCtrlDeadband() {
+  return ctrlDeadbandTol_;
+}
+
+int ecmcMonitor::getCtrlDeadbandTime() {
+  return ctrlDeadbandTime_;
 }
 
 void ecmcMonitor::setSafetyInterlock(int interlock) {
@@ -1341,6 +1408,10 @@ bool ecmcMonitor::getEnableStallMon() {
 
 void  ecmcMonitor::setStallMinTimeOut(double timeCycles) {
   stallMinTimeoutCycles_ = timeCycles;
+}
+
+double ecmcMonitor::getStallMinTimeOut() {
+  return stallMinTimeoutCycles_;
 }
 
 int ecmcMonitor::setLimitSwitchFwdPLCOverride(bool overrideSwitch) {

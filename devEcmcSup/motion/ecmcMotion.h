@@ -602,6 +602,12 @@ int getAxisTargetPos(int     axisIndex,
  */
 int getAxisTargetVel(int     axisIndex,
                      double *value);
+int getAxisEmergDeceleration(int     axisIndex,
+                             double *value);
+int getAxisJerk(int     axisIndex,
+                double *value);
+int getAxisJogVel(int     axisIndex,
+                  double *value);
 
 /** \brief Get axis done bit.\n
  *
@@ -836,6 +842,48 @@ int getAxisEncScaleDenom(int     axisIndex,
  */
 int getAxisEncPosRaw(int      axisIndex,
                      int64_t *value);
+
+int getAxisCntrlKp(int     axisIndex,
+                   double *value);
+
+int getAxisCntrlKi(int     axisIndex,
+                   double *value);
+
+int getAxisCntrlKd(int     axisIndex,
+                   double *value);
+
+int getAxisCntrlKff(int     axisIndex,
+                    double *value);
+
+int getAxisCntrlDeadband(int     axisIndex,
+                         double *value);
+
+int getAxisCntrlDeadbandTime(int axisIndex,
+                             int *value);
+
+int getAxisCntrlIpartHL(int     axisIndex,
+                        double *value);
+
+int getAxisCntrlIpartLL(int     axisIndex,
+                        double *value);
+
+int getAxisCntrlOutHL(int     axisIndex,
+                      double *value);
+
+int getAxisCntrlOutLL(int     axisIndex,
+                      double *value);
+
+int getAxisCntrlInnerKp(int     axisIndex,
+                        double *value);
+
+int getAxisCntrlInnerKi(int     axisIndex,
+                        double *value);
+
+int getAxisCntrlInnerKd(int     axisIndex,
+                        double *value);
+
+int getAxisCntrlInnerTol(int     axisIndex,
+                         double *value);
 
 /** \brief Get PID-controller proportional output part.\n
  *
@@ -1241,6 +1289,26 @@ int setAxisEnableMotionFunctions(int axisIndex,
                                  int enablePos,
                                  int enableConstVel,
                                  int enableHome);
+int setAxisEnablePos(int axisIndex,
+                     int enablePos);
+int setAxisEnableConstVel(int axisIndex,
+                          int enableConstVel);
+int setAxisEnableHome(int axisIndex,
+                      int enableHome);
+int getAxisEnablePos(int axisIndex,
+                     int *value);
+int getAxisEnableConstVel(int axisIndex,
+                          int *value);
+int getAxisEnableHome(int axisIndex,
+                      int *value);
+int getAxisAllowSourceChangeWhenEnabled(int axisIndex,
+                                     int *value);
+int getAxisAutoEnableTimeout(int axisIndex,
+                             double *value);
+int getAxisAutoDisableAfterTime(int axisIndex,
+                                double *value);
+int getAxisTweakDist(int axisIndex,
+                     double *value);
 
 /** \brief Set axis amplifier enable at ioc startup.\n
  *
@@ -1582,6 +1650,18 @@ int setAxisEncInvHwReady(int axisIndex,
  */
 int setAxisHomePos(int    axisIndex,
                    double value);
+int getAxisHomePos(int    axisIndex,
+                   double *value);
+int getAxisHomeSeqId(int axisIndex,
+                     int *value);
+int getAxisHomeAcc(int    axisIndex,
+                   double *value);
+int getAxisHomeDec(int    axisIndex,
+                   double *value);
+int getAxisHomePostMoveEnable(int axisIndex,
+                              int *value);
+int getAxisHomePostMoveTargetPosition(int    axisIndex,
+                                      double *value);
 
 /** \brief Set axis error code.\n
  *
@@ -1615,6 +1695,22 @@ int setAxisErrorId(int axisIndex,
  */
 int setAxisEncHomeLatchCountOffset(int axisIndex,
                                    int count);
+/** \brief Set allow over/under flow of encoder raw counter
+ *
+ * Set flag to allow over- and under-flows of encoder raw counter (default over/underflow are allowed).\n
+ * Use case:
+ *  - rotatry encoders (and openloop counter): normally allow==true is preferred.\n
+ *  - linear encoders: normally allow==false is preferred (should not overflow).\n
+ * 
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] allow Number of latches before homing (default is true, allow).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Set home latch count to 1 for axis 10.\n
+ * "Cfg.SetAxisEncHomeLatchCountOffset(10,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setAxisEncAllowOverUnderFlow(int axisIndex, int allow);
 
 /** \brief Set Towards cam referencing/homing velocity setpoint.\n
  *
@@ -1713,6 +1809,8 @@ int axisErrorReset(int axisIndex,
  * \note Example: Enable velocity filter for external setpoint position for axis 5.
  * "Cfg.SetAxisPLCTrajVelFilterEnable(5,1) //Command string to ecmcCmdParser.c.\n
  */
+int getAxisPLCTrajVelFilterEnable(int axisIndex,
+                                  int *enable);
 int setAxisPLCTrajVelFilterEnable(int axisIndex,
                                   int enable);
 
@@ -1736,6 +1834,8 @@ int setAxisPLCTrajVelFilterEnable(int axisIndex,
  * \note Example: Set filter size to 10 for for axis 7.\n
  * "Cfg.SetAxisPLCTrajVelFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisPLCTrajVelFilterSize(int axisIndex,
+                                int *size);
 int setAxisPLCTrajVelFilterSize(int axisIndex,
                                 int size);
 
@@ -1751,6 +1851,8 @@ int setAxisPLCTrajVelFilterSize(int axisIndex,
  * \note Example: Enable velocity filter for external actual position for axis 5.
  * "Cfg.SetAxisPLCEncVelFilterEnable(5,1)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisPLCEncVelFilterEnable(int axisIndex,
+                                 int *enable);
 int setAxisPLCEncVelFilterEnable(int axisIndex,
                                  int enable);
 
@@ -1767,6 +1869,8 @@ int setAxisPLCEncVelFilterEnable(int axisIndex,
  * \note Example: Set filter size to 10 for for axis 7.\n
  * "Cfg.SetAxisPLCEncVelFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisPLCEncVelFilterSize(int axisIndex,
+                               int *size);
 int setAxisPLCEncVelFilterSize(int axisIndex,
                                int size);
 
@@ -1799,6 +1903,14 @@ int setAxisEncVelFilterSize(int axisIndex,
  */
 int setAxisEncVelFilterEnable(int axisIndex,
                               int enable);
+int getAxisEncVelFilterSize(int axisIndex,
+                            int *size);
+int getAxisEncVelFilterEnable(int axisIndex,
+                              int *enable);
+int getAxisEncPosFilterSize(int axisIndex,
+                            int *size);
+int getAxisEncPosFilterEnable(int axisIndex,
+                              int *enable);
 
 /** \brief Set size of encoder position filter.\n
  *
@@ -1949,6 +2061,12 @@ int setAxisEncBits(int axisIndex,
  */
 int setAxisEncAbsBits(int axisIndex,
                       int bits);
+int getAxisEncOffset(int    axisIndex,
+                     double *value);
+int getAxisEncBits(int axisIndex,
+                   int *bits);
+int getAxisEncAbsBits(int axisIndex,
+                      int *bits);
 
 /** \brief Set encoder raw data mask.\n
  *
@@ -1968,6 +2086,8 @@ int setAxisEncAbsBits(int axisIndex,
  */
 int setAxisEncRawMask(int      axisIndex,
                       uint64_t rawMask);
+int getAxisEncRawMask(int      axisIndex,
+                      uint64_t *rawMask);
 
 /** \brief Add encoder object to axis.\n
  *
@@ -2069,6 +2189,8 @@ int selectAxisEncConfig(int axisIndex,
  */
 int setAxisEncEnableRefAtHome(int axisIndex,
                               int enable);
+int getAxisEncEnableRefAtHome(int axisIndex,
+                              int *enable);
 
 /** \brief Get index of current encoder being used for control (PID).\n
  *
@@ -2144,6 +2266,14 @@ int setAxisEncMaxDiffToPrimEnc(int    axisIndex,
  * "Cfg.SetAxisEncDelayCyclesAndEnable(3,2.5,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncDelayCyclesAndEnable(int axisIndex, double timeMs, int enable);
+int setAxisEncDelayCompTime(int axisIndex,
+                           double cycles);
+int setAxisEncDelayCompEnable(int axisIndex,
+                             int enable);
+int getAxisEncDelayCompTime(int axisIndex,
+                           double *cycles);
+int getAxisEncDelayCompEnable(int axisIndex,
+                             int *enable);
 
 /** \brief Load encoder correction lookup table file.\n
  *
@@ -2191,6 +2321,7 @@ int loadAxisEncLookupTable(int axisIndex, const char* filename);
  * "Cfg.SetAxisEncLookupTableEnable(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncLookupTableEnable(int axisIndex, int enable);
+int getAxisEncLookupTableEnable(int axisIndex, int *enable);
 
 /** \brief Set encoder lookup table mask
  *
@@ -2209,6 +2340,7 @@ int setAxisEncLookupTableEnable(int axisIndex, int enable);
  * "Cfg.SetAxisEncLookupTableRange(3,360)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncLookupTableRange(int axisIndex, double range);
+int getAxisEncLookupTableRange(int axisIndex, double *range);
 
 /** \brief Set encoder lookup table scale factor\n
  *
@@ -2221,6 +2353,7 @@ int setAxisEncLookupTableRange(int axisIndex, double range);
  * "Cfg.SetAxisEncLookupTableScale(1,-1.0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncLookupTableScale(int axisIndex, double scale);
+int getAxisEncLookupTableScale(int axisIndex, double *scale);
 
 /** \brief Set PID-controller proportional gain.\n
  *
@@ -2321,6 +2454,18 @@ int setAxisCntrlInnerParams(int    axisIndex,
                             double kd,
                             double tol);
 
+int setAxisCntrlInnerKp(int    axisIndex,
+                        double value);
+
+int setAxisCntrlInnerKi(int    axisIndex,
+                        double value);
+
+int setAxisCntrlInnerKd(int    axisIndex,
+                        double value);
+
+int setAxisCntrlInnerTol(int    axisIndex,
+                         double value);
+
 /** \brief Set PID-controller maximum output value.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2382,6 +2527,9 @@ int setAxisCntrlIpartHL(int    axisIndex,
  */
 int getAxisDrvScaleNum(int     axisIndex,
                        double *value);
+
+int getAxisDrvScaleDenom(int     axisIndex,
+                         double *value);
 
 /** \brief Set drive output scale numerator.\n
  *
@@ -2523,6 +2671,15 @@ int setAxisDrvStateMachineTimeout(int    axisIndex,
  */
 int setAxisDrvReduceTorqueEnable(int axisIndex,
                                  int enable);
+
+int getAxisDrvBrakeEnable(int axisIndex,
+                        int *value);
+int getAxisDrvBrakeOpenDelayTime(int axisIndex,
+                              int *value);
+int getAxisDrvBrakeCloseAheadTime(int axisIndex,
+                               int *value);
+int getAxisDrvReduceTorqueEnable(int axisIndex,
+                               int *value);
 
 /** \brief Set drive type.\n
  *  OBSOLETE COMMAND. USE CREATEAXIS(id,type,drvtype).
@@ -2687,6 +2844,9 @@ int setAxisHomeSwitchEnable(int axisIndex,
 int setAxisMonEnableStallMon(int axisIndex,
                              int enable);
 
+int getAxisMonEnableStallMon(int  axisIndex,
+                             int *value);
+
 /** \brief Set stall monitong time factor.\n
  * 
  *  See setAxisMonEnableStallMon()\n
@@ -2706,6 +2866,9 @@ int setAxisMonEnableStallMon(int axisIndex,
 int setAxisMonStallTimeFactor(int axisIndex,
                          double timeFactor);
 
+int getAxisMonStallTimeFactor(int     axisIndex,
+                              double *value);
+
 /** \brief Set stall monitong minimum time out.\n
  * 
  *  See setAxisMonEnableStallMon()\n
@@ -2724,6 +2887,9 @@ int setAxisMonStallTimeFactor(int axisIndex,
  */
 int setAxisMonStallMinTimeOut(int axisIndex,
                               double timeCycles);
+
+int getAxisMonStallMinTimeOut(int     axisIndex,
+                              double *value);
 
 /** \brief Get "at target" monitoring time (cycles).\n
  * \param[in] axisIndex  Axis index.\n
@@ -2970,6 +3136,8 @@ int getAxisMonEnableMaxVel(int  axisIndex,
  * \note Example: Set drive over speed interlock delay to 10 cycles for axis 4.\n
  * "Cfg.SetAxisMonMaxVelDriveILDelay(4,10)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonMaxVelDriveILDelay(int  axisIndex,
+                                 int *value);
 int setAxisMonMaxVelDriveILDelay(int axisIndex,
                                  int value);
 
@@ -2993,6 +3161,8 @@ int setAxisMonMaxVelDriveILDelay(int axisIndex,
  * for axis 4.\n
  * "Cfg.SetAxisMonMaxVelTrajILDelay(4,10)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonMaxVelTrajILDelay(int  axisIndex,
+                                int *value);
 int setAxisMonMaxVelTrajILDelay(int axisIndex,
                                 int value);
 
@@ -3005,6 +3175,8 @@ int setAxisMonMaxVelTrajILDelay(int axisIndex,
  */
 int getAxisMonLatchLimit(int  axisIndex,
                          int *value);
+int getAxisMonStopAtAnyLimit(int  axisIndex,
+                             int *value);
 
 /** \brief Set latch control word to arm latch\n
  *  The start bit is defined when linking the entry.\n
@@ -3045,6 +3217,8 @@ int setAxisEncHomeLatchArmControlWord(int axisIndex, uint64_t control, int bits)
  */
 int setAxisMonLatchLimit(int axisIndex,
                          int value);
+int setAxisMonStopAtAnyLimit(int axisIndex,
+                             int value);
 
 /** \brief Set sequence timeout time in seconds.\n
  *
@@ -3193,6 +3367,8 @@ int setAxisMonCntrlOutHL(int    axisIndex,
  * \note Example: Enable monitoring for axis 2.\n
  * "Cfg.SetAxisMonEnableVelocityDiff(2,1)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonEnableVelocityDiff(int  axisIndex,
+                                 int *value);
 int setAxisMonEnableVelocityDiff(int axisIndex,
                                  int value);
 
@@ -3207,6 +3383,8 @@ int setAxisMonEnableVelocityDiff(int axisIndex,
  * \note Example: Set filter time to 100 cycles for axis 2.\n
  * "Cfg.SetAxisMonVelDiffTrajILDelay(2,100)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonVelDiffTrajILDelay(int  axisIndex,
+                                 int *value);
 int setAxisMonVelDiffTrajILDelay(int axisIndex,
                                  int value);
 
@@ -3221,6 +3399,8 @@ int setAxisMonVelDiffTrajILDelay(int axisIndex,
  * \note Example: Set filter time to 500 cycles for axis 2.\n
  * "Cfg.SetAxisMonVelDiffDriveILDelay(2,500)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonVelDiffDriveILDelay(int  axisIndex,
+                                  int *value);
 int setAxisMonVelDiffDriveILDelay(int axisIndex,
                                   int value);
 
@@ -3235,6 +3415,8 @@ int setAxisMonVelDiffDriveILDelay(int axisIndex,
  * \note Example: Set maximum difference 0.5 for axis 2.\n
  * "Cfg.SetAxisMonVelDiffTol(2,0.5)" //Command string to ecmcCmdParser.c.\n
  */
+int getAxisMonVelDiffTol(int     axisIndex,
+                         double *value);
 int setAxisMonVelDiffTol(int    axisIndex,
                          double value);
 
@@ -3278,6 +3460,8 @@ int setAxisMonEnableExternalInterlock(int axisIndex,
  */
 int setAxisMonEnableAnalogInterlock(int axisIndex,
                                     int value);
+int getAxisMonEnableAnalogInterlock(int  axisIndex,
+                                    int *value);
 
 /** \brief Set polarity of motion axis interlock from EtherCAT entry.\n
  *
@@ -3320,6 +3504,8 @@ int setAxisMonExtHWInterlockPolarity(int axisIndex,
  */
 int setAxisMonAnalogInterlockPolarity(int axisIndex,
                                       int value);
+int getAxisMonAnalogInterlockPolarity(int  axisIndex,
+                                      int *pol);
 
 /** \brief Set analog interlock raw value limit .\n
  *
@@ -3337,6 +3523,10 @@ int setAxisMonAnalogInterlockPolarity(int axisIndex,
  */
 int setAxisMonAnalogInterlockRawLimit(int    axisIndex,
                                       double value);
+int getAxisMonAnalogInterlockRawLimit(int     axisIndex,
+                                      double *value);
+int getAxisMonAnalogInterlockRawValue(int     axisIndex,
+                                      double *value);
 
 /** \brief Get polarity of motion axis interlock from EtherCAT entry.\n
  *
@@ -3605,6 +3795,15 @@ int addAxisToGroupByIndex(int axIndex, int grpIndex);
  *  "GetAxisGroupIndexByName('VirtAxes')" //Command string to ecmcCmdParser.c\n
  */
 int getAxisGroupIndexByName(const char* grpName, int *index);
+
+/** \brief Get total group count
+ *
+ * \param[out] count total group count.\n
+ *
+ * \note Example: Get total group count.\n
+ *  "GetAxisGroupCount()" //Command string to ecmcCmdParser.c\n
+ */
+int getAxisGroupCount(int *count);
 
 /** \brief Links an EtherCAT entry to the encoder object of the axis at axisIndex.
    *
@@ -3953,6 +4152,9 @@ int setAxisModType(int axisIndex,
  */
 int getAxisModType(int  axisIndex,
                    int *value);
+
+int setAxisAutoResetError(int axisIndex,
+                          int autoResetError);
 
 /** \brief Disable axis at error reset\n
  *

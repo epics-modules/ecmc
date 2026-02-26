@@ -392,6 +392,48 @@ int setAxisHomePostMoveTargetPosition(int axisIndex, double targetPosition) {
   return 0;
 }
 
+int getAxisHomePos(int axisIndex, double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getConfigEnc()->getHomePosition();
+  return 0;
+}
+
+int getAxisHomeSeqId(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getConfigEnc()->getHomeSeqId();
+  return 0;
+}
+
+int getAxisHomeAcc(int axisIndex, double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getConfigEnc()->getHomeAcc();
+  return 0;
+}
+
+int getAxisHomeDec(int axisIndex, double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getConfigEnc()->getHomeDec();
+  return 0;
+}
+
+int getAxisHomePostMoveEnable(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getConfigEnc()->getHomePostMoveEnable();
+  return 0;
+}
+
+int getAxisHomePostMoveTargetPosition(int axisIndex, double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getConfigEnc()->getHomePostMoveTargetPosition();
+  return 0;
+}
+
 int getAxisCommand(int axisIndex, int *value) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
@@ -485,6 +527,111 @@ int setAxisEnableMotionFunctions(int axisIndex,
   return axes[axisIndex]->setAllowMotionFunctions(enablePos,
                                                   enableConstVel,
                                                   enableHome);
+}
+
+int setAxisEnablePos(int axisIndex, int enablePos) {
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  int enableConstVel = axes[axisIndex]->getAllowConstVelo();
+  int enableHome     = axes[axisIndex]->getAllowHome();
+
+  if (enableConstVel < 0) {
+    return -enableConstVel;
+  }
+  if (enableHome < 0) {
+    return -enableHome;
+  }
+
+  return axes[axisIndex]->setAllowMotionFunctions(enablePos, enableConstVel, enableHome);
+}
+
+int setAxisEnableConstVel(int axisIndex, int enableConstVel) {
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  int enablePos  = axes[axisIndex]->getAllowPos();
+  int enableHome = axes[axisIndex]->getAllowHome();
+
+  if (enablePos < 0) {
+    return -enablePos;
+  }
+  if (enableHome < 0) {
+    return -enableHome;
+  }
+
+  return axes[axisIndex]->setAllowMotionFunctions(enablePos, enableConstVel, enableHome);
+}
+
+int setAxisEnableHome(int axisIndex, int enableHome) {
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+
+  int enablePos      = axes[axisIndex]->getAllowPos();
+  int enableConstVel = axes[axisIndex]->getAllowConstVelo();
+
+  if (enablePos < 0) {
+    return -enablePos;
+  }
+  if (enableConstVel < 0) {
+    return -enableConstVel;
+  }
+
+  return axes[axisIndex]->setAllowMotionFunctions(enablePos, enableConstVel, enableHome);
+}
+
+int getAxisEnablePos(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = 0;
+  int ret = axes[axisIndex]->getAllowPos();
+  if (ret < 0) {
+    return -ret;
+  }
+  *value = ret;
+  return 0;
+}
+
+int getAxisEnableConstVel(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = 0;
+  int ret = axes[axisIndex]->getAllowConstVelo();
+  if (ret < 0) {
+    return -ret;
+  }
+  *value = ret;
+  return 0;
+}
+
+int getAxisEnableHome(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = 0;
+  int ret = axes[axisIndex]->getAllowHome();
+  if (ret < 0) {
+    return -ret;
+  }
+  *value = ret;
+  return 0;
+}
+
+int getAxisAllowSourceChangeWhenEnabled(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getAllowSourceChangeWhenEnabled();
+  return 0;
+}
+
+int getAxisAutoEnableTimeout(int axisIndex, double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getAutoEnableTimeout();
+  return 0;
+}
+
+int getAxisAutoDisableAfterTime(int axisIndex, double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getAutoDisableAfterTime();
+  return 0;
+}
+
+int getAxisTweakDist(int axisIndex, double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getTweakDist();
+  return 0;
 }
 
 int setAxisEnableAlarmAtHardLimits(int axisIndex, int enable) {
@@ -1016,6 +1163,20 @@ int setAxisEncHomeLatchCountOffset(int axisIndex, int count) {
   return 0;
 }
 
+int setAxisEncAllowOverUnderFlow(int axisIndex, int allow) {
+  LOGINFO4("%s/%s:%d axisIndex=%d allow=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           allow);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+
+  return axes[axisIndex]->getConfigEnc()->setAllowOverUnderFlow(allow);;
+}
+
 int setAxisAllowCommandsFromPLC(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -1141,6 +1302,13 @@ int loadAxisEncLookupTable(int axisIndex, const char* filename) {
   return axes[axisIndex]->loadEncLookupTable(filename);
 }
 
+int getAxisEncLookupTableEnable(int axisIndex, int *enable) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *enable = axes[axisIndex]->getConfigEnc()->getLookupTableEnable();
+  return 0;
+}
+
 int setAxisEncLookupTableEnable(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,
@@ -1168,6 +1336,14 @@ int setAxisEncLookupTableRange(int axisIndex, double range) {
   return axes[axisIndex]->getConfigEnc()->setLookupTableRange(range);
 }
 
+int getAxisEncLookupTableRange(int axisIndex, double *range) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  *range = axes[axisIndex]->getConfigEnc()->getLookupTableRange();
+  return 0;
+}
+
 int setAxisEncLookupTableScale(int axisIndex, double scale) {
   LOGINFO4("%s/%s:%d axisIndex=%d scale=%lf\n",
            __FILE__,
@@ -1180,6 +1356,14 @@ int setAxisEncLookupTableScale(int axisIndex, double scale) {
   CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getConfigEnc()->setLookupTableScale(scale);
+}
+
+int getAxisEncLookupTableScale(int axisIndex, double *scale) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  *scale = axes[axisIndex]->getConfigEnc()->getLookupTableScale();
+  return 0;
 }
 
 int appendAxisPLCExpr(int axisIndex, char *expr) {
@@ -1201,6 +1385,12 @@ int compileAxisPLCExpr(int axisIndex) {
   return plcs->compileExpr(AXIS_PLC_ID_TO_PLC_ID(axisIndex));
 }
 
+int getAxisPLCTrajVelFilterEnable(int axisIndex, int *enable) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *enable = axes[axisIndex]->getEnableExtTrajVeloFilter();
+  return 0;
+}
+
 int setAxisPLCTrajVelFilterEnable(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,
@@ -1211,6 +1401,12 @@ int setAxisPLCTrajVelFilterEnable(int axisIndex, int enable) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
   return axes[axisIndex]->setEnableExtTrajVeloFilter(enable);
+}
+
+int getAxisPLCTrajVelFilterSize(int axisIndex, int *size) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *size = axes[axisIndex]->getExtTrajVeloFiltSize();
+  return 0;
 }
 
 int setAxisPLCTrajVelFilterSize(int axisIndex,
@@ -1230,6 +1426,12 @@ int setAxisPLCTrajVelFilterSize(int axisIndex,
   return axes[axisIndex]->setExtTrajVeloFiltSize(size);
 }
 
+int getAxisPLCEncVelFilterEnable(int axisIndex, int *enable) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *enable = axes[axisIndex]->getEnableExtEncVeloFilter();
+  return 0;
+}
+
 int setAxisPLCEncVelFilterEnable(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,
@@ -1241,6 +1443,12 @@ int setAxisPLCEncVelFilterEnable(int axisIndex, int enable) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
 
   return axes[axisIndex]->setEnableExtEncVeloFilter(enable);
+}
+
+int getAxisPLCEncVelFilterSize(int axisIndex, int *size) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *size = axes[axisIndex]->getExtEncVeloFiltSize();
+  return 0;
 }
 
 int setAxisPLCEncVelFilterSize(int axisIndex,
@@ -1310,6 +1518,34 @@ int setAxisEncPosFilterEnable(int axisIndex,
            enable);
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   return axes[axisIndex]->setEncPosFiltEnable(enable);
+}
+
+int getAxisEncVelFilterSize(int axisIndex, int *size) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *size = axes[axisIndex]->getConfigEnc()->getVeloFilterSize();
+  return 0;
+}
+
+int getAxisEncVelFilterEnable(int axisIndex, int *enable) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *enable = axes[axisIndex]->getConfigEnc()->getVelFilterEnable();
+  return 0;
+}
+
+int getAxisEncPosFilterSize(int axisIndex, int *size) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *size = axes[axisIndex]->getConfigEnc()->getPosFilterSize();
+  return 0;
+}
+
+int getAxisEncPosFilterEnable(int axisIndex, int *enable) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *enable = axes[axisIndex]->getConfigEnc()->getPosFilterEnable();
+  return 0;
 }
 
 const char* getAxisPLCExpr(int axisIndex, int *error) {
@@ -1442,6 +1678,33 @@ int getAxisTargetVel(int axisIndex, double *value) {
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
   * value = axes[axisIndex]->getSeq()->getTargetVel();
+  return 0;
+}
+
+int getAxisEmergDeceleration(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__, __FUNCTION__, __LINE__, axisIndex);
+
+  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getTraj()->getEmergDec();
+  return 0;
+}
+
+int getAxisJerk(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__, __FUNCTION__, __LINE__, axisIndex);
+
+  CHECK_AXIS_TRAJ_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getTraj()->getJerk();
+  return 0;
+}
+
+int getAxisJogVel(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%i\n",
+           __FILE__, __FUNCTION__, __LINE__, axisIndex);
+
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getSeq()->getJogVel();
   return 0;
 }
 
@@ -1586,7 +1849,7 @@ int getAxisEncPosAct(int axisIndex, double *value) {
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
   if (int iRet = axes[axisIndex]->getPosAct(value)) {
-    value = 0;
+    *value = 0;
     return iRet;
   }
   return 0;
@@ -1678,7 +1941,7 @@ int getAxisEncScaleNum(int axisIndex, double *value) {
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
   if (int iRet = axes[axisIndex]->getEncScaleNum(value)) {
-    value = 0;
+    *value = 0;
     return iRet;
   }
   return 0;
@@ -1825,6 +2088,82 @@ int setAxisCntrlInnerParams(int    axisIndex,
   return 0;
 }
 
+int setAxisCntrlInnerKp(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  ecmcPIDController *cntrl = axes[axisIndex]->getCntrl();
+  cntrl->setInnerCtrlParams(value,
+                            cntrl->getInnerKi(),
+                            cntrl->getInnerKd(),
+                            cntrl->getInnerTol());
+  return 0;
+}
+
+int setAxisCntrlInnerKi(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  ecmcPIDController *cntrl = axes[axisIndex]->getCntrl();
+  cntrl->setInnerCtrlParams(cntrl->getInnerKp(),
+                            value,
+                            cntrl->getInnerKd(),
+                            cntrl->getInnerTol());
+  return 0;
+}
+
+int setAxisCntrlInnerKd(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  ecmcPIDController *cntrl = axes[axisIndex]->getCntrl();
+  cntrl->setInnerCtrlParams(cntrl->getInnerKp(),
+                            cntrl->getInnerKi(),
+                            value,
+                            cntrl->getInnerTol());
+  return 0;
+}
+
+int setAxisCntrlInnerTol(int axisIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  ecmcPIDController *cntrl = axes[axisIndex]->getCntrl();
+  cntrl->setInnerCtrlParams(cntrl->getInnerKp(),
+                            cntrl->getInnerKi(),
+                            cntrl->getInnerKd(),
+                            value);
+  return 0;
+}
+
 int setAxisCntrlOutHL(int axisIndex, double value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
            __FILE__,
@@ -1882,6 +2221,188 @@ int setAxisCntrlIpartLL(int axisIndex, double value) {
   CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getCntrl()->setIOutMin(value);
+  return 0;
+}
+
+int getAxisCntrlKp(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getKp();
+  return 0;
+}
+
+int getAxisCntrlKi(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getKi();
+  return 0;
+}
+
+int getAxisCntrlKd(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getKd();
+  return 0;
+}
+
+int getAxisCntrlKff(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getKff();
+  return 0;
+}
+
+int getAxisCntrlDeadband(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getCtrlDeadband();
+  return 0;
+}
+
+int getAxisCntrlDeadbandTime(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getCtrlDeadbandTime();
+  return 0;
+}
+
+int getAxisCntrlIpartHL(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getIOutMax();
+  return 0;
+}
+
+int getAxisCntrlIpartLL(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getIOutMin();
+  return 0;
+}
+
+int getAxisCntrlOutHL(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getOutMax();
+  return 0;
+}
+
+int getAxisCntrlOutLL(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getOutMin();
+  return 0;
+}
+
+int getAxisCntrlInnerKp(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getInnerKp();
+  return 0;
+}
+
+int getAxisCntrlInnerKi(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getInnerKi();
+  return 0;
+}
+
+int getAxisCntrlInnerKd(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getInnerKd();
+  return 0;
+}
+
+int getAxisCntrlInnerTol(int axisIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_CONTROLLER_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getCntrl()->getInnerTol();
   return 0;
 }
 
@@ -1950,6 +2471,27 @@ int getAxisCntrlOutput(int axisIndex, double *value) {
   return 0;
 }
 
+int getAxisEncOffset(int axisIndex, double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getConfigEnc()->getOffset();
+  return 0;
+}
+
+int getAxisEncBits(int axisIndex, int *bits) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *bits = axes[axisIndex]->getConfigEnc()->getBits();
+  return 0;
+}
+
+int getAxisEncAbsBits(int axisIndex, int *bits) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *bits = axes[axisIndex]->getConfigEnc()->getAbsBits();
+  return 0;
+}
+
 int setAxisEncOffset(int axisIndex, double value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
            __FILE__,
@@ -1990,6 +2532,14 @@ int setAxisEncAbsBits(int axisIndex, int value) {
   CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getConfigEnc()->setAbsBits(value);
+}
+
+int getAxisEncRawMask(int axisIndex, uint64_t *rawMask) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  *rawMask = axes[axisIndex]->getConfigEnc()->getRawMask();
+  return 0;
 }
 
 int setAxisEncRawMask(int axisIndex, uint64_t rawMask) {
@@ -2083,6 +2633,13 @@ int selectAxisEncConfig(int axisIndex, int index) {
   return axes[axisIndex]->selectConfigEncoder(index);
 }
 
+int getAxisEncEnableRefAtHome(int axisIndex, int *enable) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex)
+  *enable = axes[axisIndex]->getConfigEnc()->getRefAtHoming();
+  return 0;
+}
+
 int setAxisEncEnableRefAtHome(int axisIndex, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
            __FILE__,
@@ -2125,6 +2682,44 @@ int setAxisEncHomeLatchArmControlWord(int axisIndex, uint64_t control, int bits)
   return axes[axisIndex]->getConfigEnc()->setHomeLatchArmControlWord(control, bits);
 }
 
+int setAxisEncDelayCompTime(int axisIndex, double cycles) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, cycles=%lf\n",
+           __FILE__, __FUNCTION__, __LINE__, axisIndex, cycles);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  int enable = axes[axisIndex]->getConfigEnc()->getDelayCompEnable();
+  return axes[axisIndex]->getConfigEnc()->setDelayCyclesAndEnable(cycles, enable);
+}
+
+int setAxisEncDelayCompEnable(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d, enable=%d\n",
+           __FILE__, __FUNCTION__, __LINE__, axisIndex, enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  double cycles = axes[axisIndex]->getConfigEnc()->getDelayCycles();
+  return axes[axisIndex]->getConfigEnc()->setDelayCyclesAndEnable(cycles, enable);
+}
+
+int getAxisEncDelayCompTime(int axisIndex, double *cycles) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  *cycles = axes[axisIndex]->getConfigEnc()->getDelayCycles();
+  return 0;
+}
+
+int getAxisEncDelayCompEnable(int axisIndex, int *enable) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_ENCODER_CFG_RETURN_IF_ERROR(axisIndex);
+
+  *enable = axes[axisIndex]->getConfigEnc()->getDelayCompEnable();
+  return 0;
+}
+
 int setAxisEncDelayCyclesAndEnable(int axisIndex, double cycles, int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d, timeMs=%lf, enable=%d\n",
            __FILE__,
@@ -2142,10 +2737,68 @@ int setAxisEncDelayCyclesAndEnable(int axisIndex, double cycles, int enable) {
 
 /****************************************************************************/
 
+int getAxisDrvBrakeEnable(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getDrv()->getEnableBrake();
+  return 0;
+}
+
+int getAxisDrvBrakeOpenDelayTime(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getDrv()->getBrakeOpenDelayTime();
+  return 0;
+}
+
+int getAxisDrvBrakeCloseAheadTime(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getDrv()->getBrakeCloseAheadTime();
+  return 0;
+}
+
+int getAxisDrvReduceTorqueEnable(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getDrv()->getEnableReduceTorque();
+  return 0;
+}
+
 // Drv GET
 int getAxisDrvScaleNum(int axisIndex, double *value) {
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
   *value = axes[axisIndex]->getDrv()->getScaleNum();
+  return 0;
+}
+
+int getAxisDrvScaleDenom(int axisIndex, double *value) {
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getDrv()->getScaleDenom();
   return 0;
 }
 
@@ -2432,6 +3085,15 @@ int setAxisMonEnableAtTargetMon(int axisIndex, int value) {
   return 0;
 }
 
+int getAxisMonEnableStallMon(int axisIndex,
+                             int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getEnableStallMon();
+  return 0;
+}
+
 int setAxisMonEnableStallMon(int axisIndex,
                              int enable) {
   LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
@@ -2448,6 +3110,15 @@ int setAxisMonEnableStallMon(int axisIndex,
   return 0;
 }
 
+int getAxisMonStallMinTimeOut(int axisIndex,
+                              double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getStallMinTimeOut();
+  return 0;
+}
+
 int setAxisMonStallMinTimeOut(int axisIndex,
                              double timeCycles) {
   LOGINFO4("%s/%s:%d axisIndex=%d cycles=%lf\n",
@@ -2461,6 +3132,15 @@ int setAxisMonStallMinTimeOut(int axisIndex,
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   axes[axisIndex]->getMon()->setStallMinTimeOut(timeCycles);
+  return 0;
+}
+
+int getAxisMonStallTimeFactor(int axisIndex,
+                              double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getStallTimeFactor();
   return 0;
 }
 
@@ -2508,6 +3188,18 @@ int setAxisMonAnalogInterlockPolarity(int axisIndex, int value) {
 
   return axes[axisIndex]->getMon()->setAnalogInterlockPolarity(
     (ecmcSwitchPolarity)value);
+}
+
+int getAxisMonAnalogInterlockPolarity(int axisIndex, int *pol) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *pol = (int)axes[axisIndex]->getMon()->getAnalogInterlockPolarity();
+  return 0;
 }
 
 int getAxisMonExtHWInterlockPolarity(int axisIndex, int *pol) {
@@ -2716,6 +3408,20 @@ int getAxisMonLatchLimit(int  axisIndex,
   return 0;
 }
 
+int getAxisMonStopAtAnyLimit(int  axisIndex,
+                             int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getStopAtAnyLimit();
+  return 0;
+}
+
+int getAxisMonMaxVelDriveILDelay(int axisIndex, int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getMaxVelDriveTime();
+  return 0;
+}
+
 int setAxisMonMaxVelDriveILDelay(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -2728,6 +3434,12 @@ int setAxisMonMaxVelDriveILDelay(int axisIndex, int value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setMaxVelDriveTime(value);
+}
+
+int getAxisMonMaxVelTrajILDelay(int axisIndex, int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getMaxVelTrajTime();
+  return 0;
 }
 
 int setAxisMonMaxVelTrajILDelay(int axisIndex, int value) {
@@ -2757,6 +3469,21 @@ int setAxisMonLatchLimit(int axisIndex,
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setLatchAtLimit(value);
+}
+
+int setAxisMonStopAtAnyLimit(int axisIndex,
+                             int value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  return axes[axisIndex]->getMon()->setStopAtAnyLimit(value);
 }
 
 int setAxisMonEnableExternalInterlock(int axisIndex, int value) {
@@ -2801,6 +3528,12 @@ int setAxisMonEnableAnalogInterlock(int axisIndex, int value) {
   return axes[axisIndex]->getMon()->setEnableAnalogInterlock(value);
 }
 
+int getAxisMonEnableAnalogInterlock(int axisIndex, int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getEnableAnalogInterlock();
+  return 0;
+}
+
 int setAxisMonAnalogInterlockRawLimit(int axisIndex, double value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
            __FILE__,
@@ -2813,6 +3546,18 @@ int setAxisMonAnalogInterlockRawLimit(int axisIndex, double value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setAnalogRawLimit(value);
+}
+
+int getAxisMonAnalogInterlockRawLimit(int axisIndex, double *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getAnalogRawLimit();
+  return 0;
+}
+
+int getAxisMonAnalogInterlockRawValue(int axisIndex, double *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getAnalogRawValue();
+  return 0;
 }
 
 int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value) {
@@ -2829,6 +3574,12 @@ int setAxisMonEnableCntrlOutHLMon(int axisIndex, int value) {
   return axes[axisIndex]->getMon()->setEnableCntrlHLMon(value);
 }
 
+int getAxisMonEnableVelocityDiff(int axisIndex, int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getEnableVelocityDiffMon();
+  return 0;
+}
+
 int setAxisMonEnableVelocityDiff(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -2841,6 +3592,12 @@ int setAxisMonEnableVelocityDiff(int axisIndex, int value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setEnableVelocityDiffMon(value);
+}
+
+int getAxisMonVelDiffTol(int axisIndex, double *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getVelDiffMaxDifference();
+  return 0;
 }
 
 int setAxisMonVelDiffTol(int axisIndex, double value) {
@@ -2857,6 +3614,12 @@ int setAxisMonVelDiffTol(int axisIndex, double value) {
   return axes[axisIndex]->getMon()->setVelDiffMaxDifference(value);
 }
 
+int getAxisMonVelDiffTrajILDelay(int axisIndex, int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getVelDiffTimeTraj();
+  return 0;
+}
+
 int setAxisMonVelDiffTrajILDelay(int axisIndex, int value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%d\n",
            __FILE__,
@@ -2869,6 +3632,12 @@ int setAxisMonVelDiffTrajILDelay(int axisIndex, int value) {
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
 
   return axes[axisIndex]->getMon()->setVelDiffTimeTraj(value);
+}
+
+int getAxisMonVelDiffDriveILDelay(int axisIndex, int *value) {
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getMon()->getVelDiffTimeDrive();
+  return 0;
 }
 
 int setAxisMonVelDiffDriveILDelay(int axisIndex, int value) {
@@ -3043,6 +3812,12 @@ int getAxisGroupIndexByName(const char* grpName, int *index) {
   return ERROR_AXISGRP_NOT_FOUND;
 }
 
+int getAxisGroupCount(int *count)
+{
+  *count = axisGroupCounter;
+  return 0;
+}
+
 int addAxisToGroupByName(int axIndex, const char *grpName) {
 
   int index = -1;
@@ -3083,7 +3858,7 @@ int addAxisToGroupByIndex(int axIndex, int grpIndex) {
   }
 
   try {
-    axisGroups[grpIndex]->addAxis(axes[axIndex]);
+    axisGroups[grpIndex]->addAxis(axes[axIndex]);    
   }
   catch (std::exception& e) {
     LOGERR("%s/%s:%d: EXCEPTION %s WHEN ADDING AXIS to GROUP.\n",

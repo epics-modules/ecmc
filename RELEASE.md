@@ -1,5 +1,19 @@
 Release Notes
 ===
+# 11.0.3_RC
+* Allow startup with faulty or not-ready encoder.
+* Fix busy state after PVT abort.
+* Also allow `plc<id>` in PLC variable declarations (see "Support for variable declarations in plc code" below).
+* Fix PVT trigger validation.
+* Add several getter commands in the command parser to allow runtime changes of values through asyn records with readback.
+* Add axis command that stops motion if any limit is engaged (useful for commissioning).
+* Auto-enable stall monitoring of motion. If the axis is not at target after 10 s or 15 times the duration of the last trajectory-busy motion, motion is stopped with an error.
+* Better synchronization of motor record polling and commands.
+* Remove `OK` printout after successful commands (saves rows in iocsh log).
+* Wait for at-target before auto-disable timer starts.
+* Minor tweaks to master/slave state machine.
+* Add command to disable automatic error reset. By default, some errors are reset when enabling.
+
 # 11.0.2
 ## Add datatypes 
 Add new data types for ethercat data that map ints as uints by xor of sign bit, useful for when using motion axes where normally encoder values are uints:

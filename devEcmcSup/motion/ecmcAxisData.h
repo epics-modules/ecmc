@@ -82,7 +82,8 @@ typedef struct {
   unsigned char softlimilockbwd : 1;
   unsigned char localBusy       : 1;   // traj busy
   unsigned char globalBusy      : 1;   // sequence busy, like PVT
-  unsigned char seqstate        : 4;
+  unsigned char blocked         : 1;   // Blocked by master/slave state machine
+  unsigned char seqstate        : 3;
   unsigned char lastilock       : 5;
 } ecmcAxisStatusWordType;
 

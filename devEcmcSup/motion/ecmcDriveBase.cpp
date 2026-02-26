@@ -154,6 +154,10 @@ double ecmcDriveBase::getScaleNum(void) {
   return scaleNum_;
 }
 
+double ecmcDriveBase::getScaleDenom(void) {
+  return scaleDenom_;
+}
+
 void ecmcDriveBase::setScaleNum(double scaleNum) {
   scaleNum_ = scaleNum;
 
@@ -238,9 +242,18 @@ int ecmcDriveBase::getEnableReduceTorque() {
   return enableReduceTorque_;
 }
 
+int ecmcDriveBase::getBrakeOpenDelayTime() {
+  return brakeOpenDelayTime_;
+}
+
+int ecmcDriveBase::getBrakeCloseAheadTime() {
+  return brakeCloseAheadTime_;
+}
+
 void ecmcDriveBase::writeEntries() {
   if (!driveInterlocksOK() && data_->status_.statusWord_.enable) {
     data_->status_.statusWord_.enable = false;
+    data_->control_.controlWord_.enableCmd = false;
     enableAmpCmd_          = false;
     // Remove since it is overwriting the "real error code"
     //setErrorID(__FILE__, __FUNCTION__, __LINE__,
@@ -934,5 +947,4 @@ void ecmcDriveBase::setCspEnc(ecmcEncoder * enc) {
 int ecmcDriveBase::hwReady() {
   return 1;
 }
-
 

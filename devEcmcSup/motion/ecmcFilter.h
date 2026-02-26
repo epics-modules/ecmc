@@ -29,6 +29,7 @@ public:
   ~ecmcFilter();
   void   setSampleTime(double sampleTime);
   int    setFilterSize(size_t size);
+  size_t getFilterSize();
   int    reset();
 
   // Init filter to certain position

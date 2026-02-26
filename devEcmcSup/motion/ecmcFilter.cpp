@@ -141,3 +141,8 @@ int ecmcFilter::setFilterSize(size_t size) {
   indexVel_ = 0;
   return 0;
 }
+
+size_t ecmcFilter::getFilterSize() {
+  return filterSize_;
+}
+

@@ -156,7 +156,7 @@ void ecmcPIDController::setOutMax(double outMax) {
 }
 
 void ecmcPIDController::setOutMin(double outMin) {
-  if (outMin != 0)if (outMin != 0)settingMade_ = true;
+  if (outMin != 0)settingMade_ = true;
   outputMin_ = outMin;
 }
 
@@ -273,6 +273,38 @@ double ecmcPIDController::getKd() {
 
 double ecmcPIDController::getKff() {
   return kff_;
+}
+
+double ecmcPIDController::getIOutMax() {
+  return outputIMax_;
+}
+
+double ecmcPIDController::getIOutMin() {
+  return outputIMin_;
+}
+
+double ecmcPIDController::getOutMax() {
+  return outputMax_;
+}
+
+double ecmcPIDController::getOutMin() {
+  return outputMin_;
+}
+
+double ecmcPIDController::getInnerKp() {
+  return kp_inner_;
+}
+
+double ecmcPIDController::getInnerKi() {
+  return ki_inner_;
+}
+
+double ecmcPIDController::getInnerKd() {
+  return kd_inner_;
+}
+
+double ecmcPIDController::getInnerTol() {
+  return innerTol_;
 }
 
 int ecmcPIDController::initAsyn() {

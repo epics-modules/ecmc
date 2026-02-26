@@ -44,6 +44,8 @@ class ecmcAxisGroup : public ecmcError {
     bool getAnyAtLimitBwd();
     // Check if any axes in group is interlocked
     bool getAnyIlocked();
+    // Check if all axes in group is attarget
+    bool getAtTarget();
     // Check if all axes in group are busy
     bool getBusy();
     // Check if at least one axis in group are busy
@@ -78,6 +80,10 @@ class ecmcAxisGroup : public ecmcError {
     void setMRCnen(bool cnen);
     // Ignore MR disabel status check
     void setMRIgnoreDisableStatusCheck(bool ignore);
+    // set Group blocked
+    void setBlocked(bool blocked);
+    // get Group blocked
+    bool getBlocked();
     // Stop motion
     void halt();
     // Check if axis is in group
@@ -99,6 +105,7 @@ class ecmcAxisGroup : public ecmcError {
     std::vector<ecmcAxisBase*>  axes_;
     size_t axesCounter_;
     std::vector<int> axesIds_;
+    bool blocked_;
 };
 
 #endif  /* ECMCAXISGROUP_H_ */

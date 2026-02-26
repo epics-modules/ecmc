@@ -58,6 +58,7 @@ public:
   bool         getEnable();
   bool         getEnabled();
   double       getScaleNum(void);
+  double       getScaleDenom(void);
   void         setScaleNum(double scaleNum);
   int          setScaleDenom(double scaleDenom);
   double       getScale();
@@ -69,6 +70,8 @@ public:
   int          setEnableReduceTorque(bool enable);
   int          getEnableBrake();
   int          getEnableReduceTorque();
+  int          getBrakeOpenDelayTime();
+  int          getBrakeCloseAheadTime();
   int          setAxisDataRef(ecmcAxisData *data);
   int          setBrakeOpenDelayTime(int delayTime);
   int          setBrakeCloseAheadTime(int aheadTime);

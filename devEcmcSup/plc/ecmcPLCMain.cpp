@@ -1408,12 +1408,19 @@ bool ecmcPLCMain::isExpandableBase(const std::string& rhs) {
     while (i < rhs.size() && std::isdigit(static_cast<unsigned char>(rhs[i]))) ++i;
     return i == rhs.size();
   }
+
+  // plc<id>
+  if (rhs.size() >= 4 && rhs[0]=='p' && rhs[1]=='l' && rhs[2]=='c' && std::isdigit(static_cast<unsigned char>(rhs[3]))) {
+    size_t i = 3;
+    while (i < rhs.size() && std::isdigit(static_cast<unsigned char>(rhs[i]))) ++i;
+    return i == rhs.size();
+  }
+
   return false;
 }
- 
+
 std::unordered_map<std::string,Alias>
 ecmcPLCMain::parseVarBlock(const std::string& src, std::string& src_without_var_block)
-
 {
   std::unordered_map<std::string,Alias> aliases;
   // Find "VAR" and "END_VAR" as whole words (simple scan)
@@ -1635,4 +1642,3 @@ std::string ecmcPLCMain::substituteWithSuffix(
   }
   return out;
 }
- 

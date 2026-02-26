@@ -910,7 +910,7 @@ asynStatus ecmcAsynDataItem::readFloat64(epicsFloat64 *value) {
       return asynSuccess;
     } else {
       LOGERR(
-        "%s/%s:%d: ERROR: %s read error. cmdUint64ToFloat64 fail. Size or type error (0x%x).\n",
+        "%s/%s:%d: ERROR: %s read error. cmdUint32ToFloat64 fail. Size or type error (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
@@ -1567,7 +1567,7 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char *drvInfo) {
     }
 
     if (!cmdOK) {
-      // Check UINT322FLOAT64
+      // Check UINT32FLOAT64
       isThere = strstr(buffer, ECMC_OPTION_CMD_UINT32_TO_FLOAT64);
 
       if (isThere) {
@@ -1577,8 +1577,8 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char *drvInfo) {
     }
 
     if (!cmdOK) {
-      // Check INT2FLOAT64
-      isThere = strstr(buffer, ECMC_OPTION_CMD_INT_TO_FLOAT64);
+      // Check INT64FLOAT64
+      isThere = strstr(buffer, ECMC_OPTION_CMD_INT64_TO_FLOAT64);
 
       if (isThere) {
         paramInfo_.cmdInt64ToFloat64 = true;
@@ -1587,8 +1587,8 @@ asynStatus ecmcAsynDataItem::parseInfofromDrvInfo(const char *drvInfo) {
     }
 
     if (!cmdOK) {
-      // Check FLOAT64TOINT
-      isThere = strstr(buffer, ECMC_OPTION_CMD_FLOAT64_INT);
+      // Check FLOAT64TOINT32
+      isThere = strstr(buffer, ECMC_OPTION_CMD_FLOAT64_TO_INT32);
 
       if (isThere) {
         paramInfo_.cmdFloat64ToInt32 = true;

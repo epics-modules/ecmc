@@ -22,15 +22,15 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_ = asynPortDriver;
   data_           = axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
+  // Clear error state after external pointers are valid to avoid null deref in reset
+  errorReset();
   sampleTimeMs_ = sampleTime * 1000;
   delayTimeS_ = 2 * sampleTime;  // 2 cycles delay as default
   
 
   // Encoder index start from 1 here, to get asyn param naming correct
   index_ = index;
-  
   initAsyn();
-
   if (!data_) {
     LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     exit(EXIT_FAILURE);
@@ -61,7 +61,6 @@ ecmcEncoder::~ecmcEncoder() {
 }
 
 void ecmcEncoder::initVars() {
-  errorReset();
   index_                  = 0;
   encType_                = ECMC_ENCODER_TYPE_INCREMENTAL;
   rawPosMultiTurn_        = 0;
@@ -150,6 +149,48 @@ void ecmcEncoder::initVars() {
   encLatchControlWordArm_ = 0;
   encLatchControlWordIdle_= 0;
   encLatchControlBits_    = 1;  // default to write 1 bit to arm latch
+  allowOverUnderFlow_     = true;  // Allow as default
+}
+
+bool ecmcEncoder::isPrimary() const {
+  return data_ && (data_->control_.primaryEncIndex == index_);
+}
+
+int ecmcEncoder::setErrorID(int errorID) {
+  if (!isPrimary()) {
+    // Keep local error but do not propagate to axis-level error storage.
+    return errorID;
+  }
+  return ecmcError::setErrorID(errorID);
+}
+
+int ecmcEncoder::setErrorID(int               errorID,
+                            ecmcAlarmSeverity severity) {
+  if (!isPrimary()) {
+    return errorID;
+  }
+  return ecmcError::setErrorID(errorID, severity);
+}
+
+int ecmcEncoder::setErrorID(const char *fileName,
+                            const char *functionName,
+                            int         lineNumber,
+                            int         errorID) {
+  if (!isPrimary()) {
+    return errorID;
+  }
+  return ecmcError::setErrorID(fileName, functionName, lineNumber, errorID);
+}
+
+int ecmcEncoder::setErrorID(const char       *fileName,
+                            const char       *functionName,
+                            int               lineNumber,
+                            int               errorID,
+                            ecmcAlarmSeverity severity) {
+  if (!isPrimary()) {
+    return errorID;
+  }
+  return ecmcError::setErrorID(fileName, functionName, lineNumber, errorID, severity);
 }
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
@@ -219,6 +260,10 @@ int ecmcEncoder::setOffset(double offset) {
   return 0;
 }
 
+double ecmcEncoder::getOffset() {
+  return engOffset_;
+}
+
 double ecmcEncoder::getSampleTime() {
   return sampleTimeMs_;
 }
@@ -270,6 +315,10 @@ int64_t ecmcEncoder::handleOverUnderFlow(uint64_t rawPosOld,
                                          int64_t  rawTurns,
                                          uint64_t rawLimit,
                                          int      bits) {
+  if(!allowOverUnderFlow_) {
+    return 0;
+  }
+
   int64_t turns = rawTurns;
 
   // Only support for over/under flow of datatypes less than 64 bit
@@ -367,6 +416,10 @@ int ecmcEncoder::setRawMask(uint64_t mask) {
   totalRawRegShift_ = pow(2, trailingZeros) - 1;
   totalRawMask_     = mask;
   return 0;
+}
+
+uint64_t ecmcEncoder::getRawMask() {
+  return totalRawMask_;
 }
 
 double ecmcEncoder::getScaleNum() {
@@ -551,7 +604,7 @@ int ecmcEncoder::readHwLatch(bool domainOK) {
   }
   encLatchStatusOld_ = encLatchStatus_;
   encLatchStatus_    = tempRaw > 0;
-
+  
   if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE, &tempRaw)) {
     return ERROR_ENC_ENTRY_READ_FAIL;
   }
@@ -614,7 +667,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
   }
 
   // check alarm 0
-  if (hwErrorAlarm0Defined_) {
+  if (hwErrorAlarm0Defined_ ) {
     if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ALARM_0, &hwErrorAlarm0_)) {
       hwErrorAlarm0_    = 0;
       hwErrorAlarm0Old_ = 0;
@@ -622,7 +675,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
     }
 
     // Set Alarm
-    if (hwErrorAlarm0_) {
+    if (hwErrorAlarm0_ && isPrimary()) {
       data_->control_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_0;
     }
@@ -638,7 +691,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
     }
 
     // Set Alarm
-    if (hwErrorAlarm1_) {
+    if (hwErrorAlarm1_ && isPrimary()) {
       data_->control_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_1;
     }
@@ -654,13 +707,13 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
     }
 
     // Set Alarm
-    if (hwErrorAlarm2_) {
+    if (hwErrorAlarm2_ && isPrimary()) {
       data_->control_.controlWord_.enableCmd = 0;
       errorLocal             = ERROR_ENC_HW_ALARM_2;
     }
     hwErrorAlarm2Old_ = hwErrorAlarm2_;
   }
-  if(index_ == data_->control_.primaryEncIndex) {
+  if(isPrimary()) {
     return errorLocal;
   } else {
     setWarningID(errorLocal);
@@ -1100,6 +1153,10 @@ int ecmcEncoder::setVeloFilterSize(size_t size) {
   return velocityFilter_->setFilterSize(size);
 }
 
+int ecmcEncoder::getVeloFilterSize() {
+  return (int)velocityFilter_->getFilterSize();
+}
+
 /*
 * Set position filter size (to get stable position
   if resolution is poor compared to sample rate)
@@ -1114,6 +1171,10 @@ int ecmcEncoder::setPosFilterSize(size_t size) {
   return positionFilter_->setFilterSize(size);
 }
 
+int ecmcEncoder::getPosFilterSize() {
+  return (int)positionFilter_->getFilterSize();
+}
+
 /*
 * Set position filter enable (to get stable position
   if resolution is poor compared to sample rate)
@@ -1123,9 +1184,17 @@ int ecmcEncoder::setPosFilterEnable(bool enable) {
   return 0;
 }
 
+int ecmcEncoder::getPosFilterEnable() {
+  return enablePositionFilter_;
+}
+
 int ecmcEncoder::setVelFilterEnable(bool enable) {
   enableVelocityFilter_ = enable;
   return 0;
+}
+
+int ecmcEncoder::getVelFilterEnable() {
+  return enableVelocityFilter_;
 }
 
 void ecmcEncoder::errorReset() {
@@ -1451,10 +1520,6 @@ int ecmcEncoder::getHomeExtTriggEnabled() {
   return hwTriggedHomingEnabled_;
 }
 
-bool ecmcEncoder::isPrimary() {
- return index_ == data_->control_.primaryEncIndex;
-}
-
 int ecmcEncoder::loadLookupTable(const std::string& filename) {
   try {
     // First cleanup
@@ -1515,9 +1580,17 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
   return 0;
 }
 
+int ecmcEncoder::getLookupTableEnable() {
+  return lookupTableEnable_;
+}
+
 int ecmcEncoder::setLookupTableRange(double range) {
   lookupTableRange_ = range;
   return 0;
+}
+
+double ecmcEncoder::getLookupTableRange() {
+  return lookupTableRange_;
 }
 
 int ecmcEncoder::setDelayCyclesAndEnable(double cycles, bool enable) {
@@ -1526,13 +1599,33 @@ int ecmcEncoder::setDelayCyclesAndEnable(double cycles, bool enable) {
   return 0;
 }
 
+double ecmcEncoder::getDelayCycles() {
+  if (sampleTimeMs_ <= 0) {
+    return 0;
+  }
+  return delayTimeS_ * 1000.0 / sampleTimeMs_;
+}
+
+int ecmcEncoder::getDelayCompEnable() {
+  return enableDelayTime_;
+}
+
 int ecmcEncoder::setLookupTableScale(double scale) {
   lookupTableScale_ = scale;
   return 0;
 }
 
+double ecmcEncoder::getLookupTableScale() {
+  return lookupTableScale_;
+}
+
 int ecmcEncoder::setHomeLatchArmControlWord(uint64_t control, int bits) {
   encLatchControlBits_ = bits;
   encLatchControlWordArm_ = control;
+  return 0;
+}
+
+int ecmcEncoder::setAllowOverUnderFlow(bool allow) {
+  allowOverUnderFlow_ = allow;
   return 0;
 }
