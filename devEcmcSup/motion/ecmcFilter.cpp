@@ -35,7 +35,10 @@ ecmcFilter::ecmcFilter(double sampleTime, size_t size) {
   }
 }
 
-ecmcFilter::~ecmcFilter() {}
+ecmcFilter::~ecmcFilter() {
+  delete[] bufferVel_;
+  bufferVel_ = NULL;
+}
 
 void ecmcFilter::initVars() {
   errorReset();
@@ -131,7 +134,7 @@ int ecmcFilter::setFilterSize(size_t size) {
       );
     return ERROR_AXIS_FILTER_ALLOC_FAIL;
   }
-  delete bufferVel_;
+  delete[] bufferVel_;
   bufferVel_  = tempBuffer;
   filterSize_ = size;
 
@@ -145,4 +148,3 @@ int ecmcFilter::setFilterSize(size_t size) {
 size_t ecmcFilter::getFilterSize() {
   return filterSize_;
 }
-

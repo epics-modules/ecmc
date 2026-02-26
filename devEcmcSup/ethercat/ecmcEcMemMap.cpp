@@ -73,7 +73,7 @@ void ecmcEcMemMap::initVars() {
 }
 
 ecmcEcMemMap::~ecmcEcMemMap() {
-  delete buffer_;
+  delete[] buffer_;
   buffer_ = NULL;
   free(idStringChar_);
   idStringChar_ = NULL;

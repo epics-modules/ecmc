@@ -4737,7 +4737,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
       return 0;
     }
 
-    strcpy(retBuf, expr);
+    memcpy(retBuf, expr, strlen(expr) + 1);
 
     // Change all | to ; (since ; is used as command
     // delimiter in communication)

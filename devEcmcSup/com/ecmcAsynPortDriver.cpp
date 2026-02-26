@@ -240,9 +240,9 @@ ecmcAsynPortDriver::ecmcAsynPortDriver(
 }
 
 ecmcAsynPortDriver::~ecmcAsynPortDriver() {
-  delete pEcmcParamInUseArray_;
+  delete[] pEcmcParamInUseArray_;
   pEcmcParamInUseArray_ = NULL;
-  delete pEcmcParamAvailArray_;
+  delete[] pEcmcParamAvailArray_;
   pEcmcParamAvailArray_ = NULL;
 
   // ecmcCleanup(1);

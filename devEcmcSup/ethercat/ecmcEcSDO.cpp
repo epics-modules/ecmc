@@ -39,8 +39,11 @@ int ecmcEcSDO::write(ec_master_t *master,
     return ERROR_EC_SDO_SIZE_TO_LARGE;
   }
   uint8_t buffer[4];
-  memset(&buffer[0], 0, 4);
-  memcpy(&buffer[0], &value, 4);  // TODO ENDIANS
+  memset(&buffer[0], 0, sizeof(buffer));
+  // EtherCAT SDO payloads are little-endian; pack explicitly to avoid host-endian dependence.
+  for (size_t i = 0; i < byteSize; ++i) {
+    buffer[i] = static_cast<uint8_t>((value >> (8 * i)) & 0xFFU);
+  }
 
   int errorCode = ecrt_master_sdo_download(master,
                                            slavePosition,
@@ -62,8 +65,9 @@ int ecmcEcSDO::write(ec_master_t *master,
       errorCode,
       abortCode,
       ERROR_EC_SDO_WRITE_FAILED);
+    return ERROR_EC_SDO_WRITE_FAILED;
   }
-  return errorCode;
+  return 0;
 }
 
 int ecmcEcSDO::addWriteComplete(ec_slave_config_t *sc,
@@ -589,9 +593,13 @@ int ecmcEcSDO::read(ec_master_t *master,
       errorCode,
       abortCode,
       ERROR_EC_SDO_WRITE_FAILED);
+    return ERROR_EC_SDO_READ_FAILED;
   }
 
-  memcpy(readValue, buffer, 4);
+  *readValue = 0;
+  for (size_t i = 0; i < *readBytes && i < sizeof(buffer); ++i) {
+    *readValue |= (static_cast<uint32_t>(buffer[i]) << (8 * i));
+  }
   return 0;
 }
 
@@ -643,7 +651,12 @@ int ecmcEcSDO::writeAndVerify(ec_master_t *master,
     return ERROR_EC_SDO_READ_FAILED;
   }
 
-  if (value != readValue) {
+  uint32_t verifyMask = 0xFFFFFFFFU;
+  if (byteSize < sizeof(uint32_t)) {
+    verifyMask = (1U << (byteSize * 8)) - 1U;
+  }
+
+  if ((value & verifyMask) != (readValue & verifyMask)) {
     LOGERR(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Verification failed (0x%x).\n",
       __FILE__,
