@@ -156,7 +156,7 @@ void ecmcPIDController::setOutMax(double outMax) {
 }
 
 void ecmcPIDController::setOutMin(double outMin) {
-  if (outMin != 0)if (outMin != 0)settingMade_ = true;
+  if (outMin != 0)settingMade_ = true;
   outputMin_ = outMin;
 }
 

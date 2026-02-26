@@ -1849,7 +1849,7 @@ int getAxisEncPosAct(int axisIndex, double *value) {
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
   if (int iRet = axes[axisIndex]->getPosAct(value)) {
-    value = 0;
+    *value = 0;
     return iRet;
   }
   return 0;
@@ -1941,7 +1941,7 @@ int getAxisEncScaleNum(int axisIndex, double *value) {
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
 
   if (int iRet = axes[axisIndex]->getEncScaleNum(value)) {
-    value = 0;
+    *value = 0;
     return iRet;
   }
   return 0;
