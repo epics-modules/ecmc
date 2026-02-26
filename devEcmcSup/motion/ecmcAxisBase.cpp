@@ -909,7 +909,7 @@ void ecmcAxisBase::printAxisStatus() {
 int ecmcAxisBase::setExecute(bool execute) {
   // Auto enable if needed  (except for homing seq 15)
   //printf("ecmcAxisBase::setExecute(): 1 global busy %d, local busy %d\n", data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy);
-  if(!data_.status_.statusWord_.enabled and execute and autoEnableTimoutS_ > 0 and !((data_.control_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
+  if(!getEnable() && execute && autoEnableTimoutS_ > 0 && !((data_.control_.cmdData == ECMC_SEQ_HOME_SET_POS) &&
           (data_.control_.command == ECMC_CMD_HOMING))) {
 
     getSeq()->setGlobalBusy(true);
