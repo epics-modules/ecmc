@@ -3580,7 +3580,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   }
 
   if ((appModeStat == ECMC_MODE_RUNTIME) &&
-      (strncmp(rawCmd, "Set", 3) == 0)) {
+      (strncmp(rawCmd, "Cfg.", 4) == 0)) {
     printf("ecmcCmdParser: %s\n", rawCmd);
     fflush(stdout);
   }
