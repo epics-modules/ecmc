@@ -346,7 +346,7 @@ asynStatus ecmcMotorRecordAxis::updateCfgValue(int         function,
 asynStatus ecmcMotorRecordAxis::updateCfgValue(int         function,
                                                int         newValue,
                                                const char *name) {
-  int oldValue;
+  int oldValue=0;
   asynStatus status = pC_->getIntegerParam(axisNo_, function, &oldValue);
 
   if (status) {
@@ -917,7 +917,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
     }
   }
 
-  if(useHVELOk && !useHVELOk) {
+  if(useHVEL && !useHVELOk) {
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
             "%s/%s:%d: Axis[%d]: Warning Homing with HVEL: Could not derive drive scale revert to velocity defined in ecmcMotorRecordVelToHom_.\n",
             __FILE__, __FUNCTION__, __LINE__,

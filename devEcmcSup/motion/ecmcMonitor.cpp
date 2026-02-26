@@ -22,15 +22,14 @@ ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
                                                                      status_.
                                                                      warningCode))
 {
+  if (!axisData) {
+    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
   data_ = axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   initVars();
   encArray_ = encArray;
-
-  if (!data_) {
-    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
-    exit(EXIT_FAILURE);
-  }
   errorReset();
 }
 
@@ -823,8 +822,8 @@ int ecmcMonitor::checkAtTarget() {
   if (enableAtTargetMon_) {
     /*if (std::abs(data_->status_.currentTargetPosition -
                  data_->status_.currentPositionActual) < atTargetTol_) {*/
-    if (data_->status_.currentTargetPositionModulo -
-        data_->status_.currentPositionSetpoint < atTargetTol_ && !data_->status_.statusWord_.localBusy) {
+    if (std::abs(data_->status_.currentTargetPositionModulo -
+        data_->status_.currentPositionSetpoint) < atTargetTol_ && !data_->status_.statusWord_.localBusy) {
       if (std::abs(data_->status_.cntrlError) < atTargetTol_) {
         if (atTargetCounter_ <= atTargetTime_) {
           atTargetCounter_++;
@@ -849,9 +848,14 @@ int ecmcMonitor::checkAtTarget() {
       } else {
         ctrlDeadbandCounter_ = 0;
       }
+    } else {
+      atTargetCounter_ = 0;
+      ctrlDeadbandCounter_ = 0;
     }
   } else {
-    atTarget = false; 
+    atTarget = false;
+    atTargetCounter_ = 0;
+    ctrlDeadbandCounter_ = 0;
   }
 
   data_->status_.statusWord_.attarget = atTarget;
@@ -1026,6 +1030,7 @@ int ecmcMonitor::checkVelocityDiff() {
   if (!enableVelocityDiffMon_ || !data_->status_.statusWord_.enabled||
       !data_->statusOld_.statusWord_.enabled) {
     velocityDiffCounter_ = 0;
+    return 0;
   }
 
   if (std::abs(currentSetVelocityToDrive -
@@ -1033,6 +1038,7 @@ int ecmcMonitor::checkVelocityDiff() {
     velocityDiffCounter_++;
   } else {
     velocityDiffCounter_ = 0;
+    return 0;
   }
 
   if (velocityDiffCounter_ > velDiffTimeTraj_) {
