@@ -187,27 +187,33 @@ int ecmcPLCMain::execute(bool ecOK) {
 
   // ONLY EXECUTE NORMAL PLCS (AXIS PLCs are executed from main thread)
   for (int plcIndex = 0; plcIndex < ECMC_MAX_PLCS; plcIndex++) {
-    if (plcs_[plcIndex] != NULL) {
-      if (plcEnable_[plcIndex]) {
-        if (plcEnable_[plcIndex]->getData()) {
-          plcs_[plcIndex]->execute(ecOK);
+    ecmcPLCTask * const plc = plcs_[plcIndex];
+    if (plc == NULL) {
+      continue;
+    }
 
-          if (ecOK) {
-            if (plcFirstScan_[plcIndex]) {
-              plcFirstScan_[plcIndex]->setData(
-                plcs_[plcIndex]->getFirstScanDone() == 0);                              // First scan
-            }
-          }
-        }
+    ecmcPLCDataIF * const plcEnable = plcEnable_[plcIndex];
+    if (!plcEnable || !plcEnable->getData()) {
+      continue;
+    }
+
+    plc->execute(ecOK);
+
+    if (ecOK) {
+      ecmcPLCDataIF * const plcFirstScan = plcFirstScan_[plcIndex];
+      if (plcFirstScan) {
+        plcFirstScan->setData(plc->getFirstScanDone() == 0);  // First scan
       }
     }
   }
 
   /** update asyn params here for all globals to get sample rate correct
       (if globals are used in many plcs) */
-  for (int i = 0; i < globalVariableCount_; ++i) {
-    if (globalDataArray_[i]) {
-      globalDataArray_[i]->updateAsyn(0);
+  const int globalCount = globalVariableCount_;
+  for (int i = 0; i < globalCount; ++i) {
+    ecmcPLCDataIF * const globalData = globalDataArray_[i];
+    if (globalData) {
+      globalData->updateAsyn(0);
     }
   }
 
@@ -215,18 +221,22 @@ int ecmcPLCMain::execute(bool ecOK) {
 }
 
 int ecmcPLCMain::execute(int plcIndex, bool ecOK) {
-  if (plcs_[plcIndex] != NULL) {
-    if (plcEnable_[plcIndex]) {
-      if (plcEnable_[plcIndex]->getData()) {
-        plcs_[plcIndex]->execute(ecOK);
+  ecmcPLCTask * const plc = plcs_[plcIndex];
+  if (plc == NULL) {
+    return 0;
+  }
 
-        if (ecOK) {
-          if (plcFirstScan_[plcIndex]) {
-            plcFirstScan_[plcIndex]->setData(
-              plcs_[plcIndex]->getFirstScanDone() == 0);                              // First scan
-          }
-        }
-      }
+  ecmcPLCDataIF * const plcEnable = plcEnable_[plcIndex];
+  if (!plcEnable || !plcEnable->getData()) {
+    return 0;
+  }
+
+  plc->execute(ecOK);
+
+  if (ecOK) {
+    ecmcPLCDataIF * const plcFirstScan = plcFirstScan_[plcIndex];
+    if (plcFirstScan) {
+      plcFirstScan->setData(plc->getFirstScanDone() == 0);  // First scan
     }
   }
   return 0;
@@ -1136,9 +1146,11 @@ int ecmcPLCMain::addPLCDefaultVariables(int plcIndex, int skipCycles) {
 
 int ecmcPLCMain::getPLCErrorID() {
   for (int i = 0; i < ECMC_MAX_PLCS; i++) {
-    if (plcError_[i]) {
-      if (plcError_[i]->getData()) {
-        return static_cast<int>(plcError_[i]->getData());
+    ecmcPLCDataIF * const plcError = plcError_[i];
+    if (plcError) {
+      const double plcErrorValue = plcError->getData();
+      if (plcErrorValue) {
+        return static_cast<int>(plcErrorValue);
       }
     }
   }
@@ -1150,8 +1162,9 @@ bool ecmcPLCMain::getError() {
 }
 
 int ecmcPLCMain::getErrorID() {
-  if (getPLCErrorID()) {
-    return getPLCErrorID();
+  const int plcErrorId = getPLCErrorID();
+  if (plcErrorId) {
+    return plcErrorId;
   }
   return ecmcError::getErrorID();
 }
@@ -1159,10 +1172,9 @@ int ecmcPLCMain::getErrorID() {
 void ecmcPLCMain::errorReset() {
   // reset all plc error
   for (int i = 0; i < ECMC_MAX_PLCS; i++) {
-    if (plcError_[i]) {
-      if (plcError_[i]->getData()) {
-        plcError_[i]->setData(0);
-      }
+    ecmcPLCDataIF * const plcError = plcError_[i];
+    if (plcError && plcError->getData()) {
+      plcError->setData(0);
     }
   }
   ecmcError::errorReset();

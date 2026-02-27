@@ -266,7 +266,8 @@ int ecmcEc::activate() {
            __LINE__);
 
   for (int slaveIndex = 0; slaveIndex < slaveCounter_; slaveIndex++) {
-    if (slaveArray_[slaveIndex] == NULL) {
+    ecmcEcSlave * const slave = slaveArray_[slaveIndex];
+    if (slave == NULL) {
       LOGERR("%s/%s:%d: ERROR: Slave NULL (0x%x).\n",
              __FILE__,
              __FUNCTION__,
@@ -279,7 +280,7 @@ int ecmcEc::activate() {
     }
 
     // Activate all slaves and entries
-    slaveArray_[slaveIndex]->activate();
+    slave->activate();
   }
 
   return validate();
@@ -291,7 +292,8 @@ int ecmcEc::compileRegInfo() {
 
   // Write offstes to entries
   for (int slaveIndex = 0; slaveIndex < slaveCounter_; slaveIndex++) {
-    if (slaveArray_[slaveIndex] == NULL) {
+    ecmcEcSlave * const slave = slaveArray_[slaveIndex];
+    if (slave == NULL) {
       LOGERR("%s/%s:%d: ERROR: Slave NULL (0x%x).\n",
              __FILE__,
              __FUNCTION__,
@@ -303,7 +305,7 @@ int ecmcEc::compileRegInfo() {
                         ERROR_EC_MAIN_SLAVE_NULL);
     }
 
-    ret = slaveArray_[slaveIndex]->compileRegInfo();
+    ret = slave->compileRegInfo();
 
     if (ret) {
       return ret;
@@ -320,18 +322,14 @@ int ecmcEc::compileRegInfo() {
 }
 
 void ecmcEc::checkDomainsState() {
-  if (!diag_) {
-    domainsOK_ = true;
-  }
-
+  // Default to OK and clear on first failing non-offline domain.
   domainsOK_ = true;
+  const int domainCount = domainCounter_;
+  for (int i = 0; i < domainCount; i++) {
+    ecmcEcDomain *domain = domains_[i];
+    const int tempStateOk = domain->checkState();
 
-  int tempStateOk = 0;
-
-  for (int i = 0; i < domainCounter_; i++) {
-    tempStateOk = domains_[i]->checkState();
-
-    if (domains_[i]->getAllowOffline()) {
+    if (domain->getAllowOffline()) {
       // ignore state if allowed offline
       continue;
     }
@@ -394,7 +392,8 @@ int ecmcEc::checkSlaveConfState(int slaveIndex) {
                       ERROR_EC_MAIN_INVALID_SLAVE_INDEX);
   }
 
-  if (slaveArray_[slaveIndex] == NULL) {
+  ecmcEcSlave * const slave = slaveArray_[slaveIndex];
+  if (slave == NULL) {
     LOGERR("%s/%s:%d: ERROR: Slave NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
@@ -406,10 +405,10 @@ int ecmcEc::checkSlaveConfState(int slaveIndex) {
                       ERROR_EC_MAIN_SLAVE_NULL);
   }
 
-  int error = slaveArray_[slaveIndex]->checkConfigState();
+  int error = slave->checkConfigState();
 
   // If domain is allowed to be offline then slave also
-  if (slaveArray_[slaveIndex]->getAllowOffline()) {
+  if (slave->getAllowOffline()) {
     return 0;
   }
 
@@ -527,7 +526,8 @@ bool ecmcEc::checkState(void) {
 void ecmcEc::receive() {
   ecrt_master_receive(master_);
 
-  for (int i = 0; i < domainCounter_; i++) {
+  const int domainCount = domainCounter_;
+  for (int i = 0; i < domainCount; i++) {
     domains_[i]->process();
   }
 
@@ -544,7 +544,8 @@ void ecmcEc::send(timespec timeOffset) {
 
   updateOutProcessImage();
 
-  for (int i = 0; i < domainCounter_; i++) {
+  const int domainCount = domainCounter_;
+  for (int i = 0; i < domainCount; i++) {
     domains_[i]->queue();
   }
 
@@ -771,13 +772,15 @@ int ecmcEc::writeSoE(uint16_t slavePosition,  /**< Slave position. */
 }
 
 int ecmcEc::updateInputProcessImage() {
-  for (int i = 0; i < slaveCounter_; i++) {
+  const int slaveCount = slaveCounter_;
+  for (int i = 0; i < slaveCount; i++) {
     if (slaveArray_[i] != NULL) {
       slaveArray_[i]->updateInputProcessImage();
     }
   }
 
-  for (int i = 0; i < ecMemMapArrayCounter_; i++) {
+  const int memMapCount = ecMemMapArrayCounter_;
+  for (int i = 0; i < memMapCount; i++) {
     if (ecMemMapArray_[i] != NULL) {
       ecMemMapArray_[i]->updateInputProcessImage();
     }
@@ -787,13 +790,15 @@ int ecmcEc::updateInputProcessImage() {
 }
 
 int ecmcEc::updateOutProcessImage() {
-  for (int i = 0; i < slaveCounter_; i++) {
+  const int slaveCount = slaveCounter_;
+  for (int i = 0; i < slaveCount; i++) {
     if (slaveArray_[i] != NULL) {
       slaveArray_[i]->updateOutProcessImage();
     }
   }
 
-  for (int i = 0; i < ecMemMapArrayCounter_; i++) {
+  const int memMapCount = ecMemMapArrayCounter_;
+  for (int i = 0; i < memMapCount; i++) {
     if (ecMemMapArray_[i] != NULL) {
       ecMemMapArray_[i]->updateOutProcessImage();
     }
@@ -806,7 +811,8 @@ int ecmcEc::updateOutProcessImage() {
     // Always update ec ok param
     ecAsynParams_[ECMC_ASYN_EC_STAT_OK_ID]->refreshParamRT(1);
 
-    for (int i = 0; i < domainCounter_; i++) {
+    const int domainCount = domainCounter_;
+    for (int i = 0; i < domainCount; i++) {
       domains_[i]->updateAsyn();
     }
   }
@@ -1007,9 +1013,10 @@ ecmcEcSlave * ecmcEc::findSlave(int busPosition) {
   }
 
   for (int i = 0; i < slaveCounter_; i++) {
-    if (slaveArray_[i] != NULL) {
-      if (slaveArray_[i]->getSlaveBusPosition() == busPosition) {
-        return slaveArray_[i];
+    ecmcEcSlave * const slave = slaveArray_[i];
+    if (slave != NULL) {
+      if (slave->getSlaveBusPosition() == busPosition) {
+        return slave;
       }
     }
   }
@@ -1023,8 +1030,9 @@ int ecmcEc::findSlaveIndex(int busPosition, int *slaveIndex) {
   }
 
   for (int i = 0; i < slaveCounter_; i++) {
-    if (slaveArray_[i] != NULL) {
-      if (slaveArray_[i]->getSlaveBusPosition() == busPosition) {
+    ecmcEcSlave * const slave = slaveArray_[i];
+    if (slave != NULL) {
+      if (slave->getSlaveBusPosition() == busPosition) {
         *slaveIndex = i;
         return 0;
       }
@@ -1044,15 +1052,17 @@ int ecmcEc::statusOK() {
     return 1;
   }
 
+  const bool ecReady = slavesOK_ && domainsOK_ && masterOK_;
+
   // Auto reset error at startup
-  if (inStartupPhase_ && slavesOK_ && domainsOK_ && masterOK_ &&
+  if (inStartupPhase_ && ecReady &&
       (startupCounter_ > delayEcOKCycles_)) {
     inStartupPhase_ = false;
     errorReset();
   }
 
   // printf("slavesOK_ %d domainsOK_ %d masterOK_ %d inStartupPhase_%d\n",slavesOK_,domainsOK_,masterOK_,inStartupPhase_);
-  return slavesOK_ && domainsOK_ && masterOK_ && !inStartupPhase_;
+  return ecReady && !inStartupPhase_;
 }
 
 int ecmcEc::setDomainFailedCyclesLimitInterlock(int cycles) {
@@ -1062,7 +1072,8 @@ int ecmcEc::setDomainFailedCyclesLimitInterlock(int cycles) {
     return 0;
   }
 
-  for (int i = 0; i < domainCounter_; i++) {
+  const int domainCount = domainCounter_;
+  for (int i = 0; i < domainCount; i++) {
     domains_[i]->setFailedCyclesLimitInterlock(cycles);
   }
   return 0;
@@ -1081,7 +1092,8 @@ void ecmcEc::slowExecute() {
 
   checkState();
 
-  for (int i = 0; i < domainCounter_; i++ ) {
+  const int domainCount = domainCounter_;
+  for (int i = 0; i < domainCount; i++ ) {
     domains_[i]->slowExecute();
   }
 }

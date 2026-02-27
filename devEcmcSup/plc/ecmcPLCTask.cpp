@@ -189,31 +189,37 @@ int ecmcPLCTask::execute(bool ecOK) {
     return 0;
   }
 
-  for (int i = 0; i < localVariableCount_; i++) {
-    if (localArray_[i]) {
-      localArray_[i]->read();
+  const int localCount = localVariableCount_;
+  for (int i = 0; i < localCount; i++) {
+    ecmcPLCDataIF * const localData = localArray_[i];
+    if (localData) {
+      localData->read();
     }
   }
 
-  for (int i = 0; i < globalVariableCount_; i++) {
-    if (globalArray_[i]) {
-      globalArray_[i]->read();
+  const int globalCount = globalVariableCount_;
+  for (int i = 0; i < globalCount; i++) {
+    ecmcPLCDataIF * const globalData = globalArray_[i];
+    if (globalData) {
+      globalData->read();
     }
   }
 
   // Run equation
   exprtk_->refresh();
 
-  for (int i = 0; i < localVariableCount_; i++) {
-    if (localArray_[i]) {
-      localArray_[i]->write();
-      localArray_[i]->updateAsyn(0);
+  for (int i = 0; i < localCount; i++) {
+    ecmcPLCDataIF * const localData = localArray_[i];
+    if (localData) {
+      localData->write();
+      localData->updateAsyn(0);
     }
   }
 
-  for (int i = 0; i < globalVariableCount_; i++) {
-    if (globalArray_[i]) {
-      globalArray_[i]->write();
+  for (int i = 0; i < globalCount; i++) {
+    ecmcPLCDataIF * const globalData = globalArray_[i];
+    if (globalData) {
+      globalData->write();
 
       // Update globals "centrally2 in ecmcPLCMain
       // to get asyn sample rate correct.

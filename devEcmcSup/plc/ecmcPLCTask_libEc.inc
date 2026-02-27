@@ -273,7 +273,9 @@ inline double ec_mm_cp(double srcId, double destId) {
   }
 
   //Write data from src to dest 
-  memcpy(dest->getBufferPointer(),src->getBufferPointer(),sizeToCp);
+  uint8_t * const destBuffer = dest->getBufferPointer();
+  uint8_t * const srcBuffer  = src->getBufferPointer();
+  memcpy(destBuffer, srcBuffer, sizeToCp);
   return ec_errorCode;
 }
 
@@ -375,8 +377,9 @@ inline double ec_mm_append_to_ds(double mmId,double dsId) {
   
   int index = (int)dsId;
   CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(index);
+  auto * const ds = dataStorages[index];
   
-  int mmSize = src->getElementCount();
+  const int mmSize = src->getElementCount();
   double dataTemp = 0;
   //TODO: This is slow... Better solution needed. Better to make a plugin
   for(int i=0;i<mmSize;i++) {
@@ -385,7 +388,7 @@ inline double ec_mm_append_to_ds(double mmId,double dsId) {
     if(ec_errorCode) {
       return (double)ec_errorCode;
     }
-    ec_errorCode = dataStorages[index]->appendData(dataTemp, i==mmSize-1);
+    ec_errorCode = ds->appendData(dataTemp, i==mmSize-1);
 
   }
 
@@ -409,8 +412,9 @@ inline double ec_mm_append_to_ds_scale_offset(double mmId,double dsId,double dSc
   
   int index = (int)dsId;
   CHECK_PLC_DATA_STORAGE_RETURN_IF_ERROR(index);
+  auto * const ds = dataStorages[index];
   
-  int mmSize = src->getElementCount();
+  const int mmSize = src->getElementCount();
   double dataTemp = 0;
   //TODO: This is slow... Better solution needed. Better to make a plugin
   for(int i=0;i<mmSize;i++) {
@@ -420,7 +424,7 @@ inline double ec_mm_append_to_ds_scale_offset(double mmId,double dsId,double dSc
       return (double)ec_errorCode;
     }
     // update asyn only on last element
-    ec_errorCode = dataStorages[index]->appendData(dataTemp * dScale + dOffset, i==mmSize-1);
+    ec_errorCode = ds->appendData(dataTemp * dScale + dOffset, i==mmSize-1);
   }
 
   return (double)ec_errorCode;

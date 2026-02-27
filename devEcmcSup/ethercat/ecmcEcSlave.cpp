@@ -518,14 +518,17 @@ ecmcEcEntry * ecmcEcSlave::getEntry(int entryIndex) {
 }
 
 int ecmcEcSlave::updateInputProcessImage() {
-  for (uint i = 0; i < entryCounterInUse_; i++) {
-    if (entryListInUse_[i] != NULL) {
-      entryListInUse_[i]->updateInputProcessImage();
+  const uint entryCountInUse = entryCounterInUse_;
+  for (uint i = 0; i < entryCountInUse; i++) {
+    ecmcEcEntry *entry = entryListInUse_[i];
+    if (entry != NULL) {
+      entry->updateInputProcessImage();
     }
   }
 
   // Execute async SDOs
-  for (int i = 0; i < asyncSDOCounter_; i++) {
+  const int asyncSdoCount = asyncSDOCounter_;
+  for (int i = 0; i < asyncSdoCount; i++) {
     asyncSDOvector_[i]->execute();
   }
 
@@ -533,9 +536,11 @@ int ecmcEcSlave::updateInputProcessImage() {
 }
 
 int ecmcEcSlave::updateOutProcessImage() {
-  for (uint i = 0; i < entryCounterInUse_; i++) {
-    if (entryListInUse_[i] != NULL) {
-      entryListInUse_[i]->updateOutProcessImage();
+  const uint entryCountInUse = entryCounterInUse_;
+  for (uint i = 0; i < entryCountInUse; i++) {
+    ecmcEcEntry *entry = entryListInUse_[i];
+    if (entry != NULL) {
+      entry->updateOutProcessImage();
     }
   }
 
@@ -724,7 +729,8 @@ ecmcEcEntry * ecmcEcSlave::findEntry(std::string id) {
 
 int ecmcEcSlave::findEntryIndex(std::string id) {
   // Real entries
-  for (int i = 0; i < EC_MAX_ENTRIES; i++) {
+  const int realEntryCount = entryCounter_;
+  for (int i = 0; i < realEntryCount; i++) {
     if (entryList_[i] != NULL) {
       if (entryList_[i]->getIdentificationName().compare(id) == 0) {
         return i;

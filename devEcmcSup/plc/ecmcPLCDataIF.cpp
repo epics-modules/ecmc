@@ -350,15 +350,21 @@ int ecmcPLCDataIF::writeDs() {
 }
 
 int ecmcPLCDataIF::readAxis() {
-  if (axis_ == NULL) {
+  ecmcAxisBase * const axis = axis_;
+  if (axis == NULL) {
     return ERROR_PLC_AXIS_NULL;
   }
 
-  if (axis_->getTraj() == NULL) {
+  if (axis->getTraj() == NULL) {
     return ERROR_PLC_TRAJ_NULL;
   }
 
-  ecmcAxisDataStatus *axisData = axis_->getAxisStatusDataPtr();
+  ecmcAxisDataStatus * const axisData = axis->getAxisStatusDataPtr();
+  // Cache commonly used sub-objects once per PLC cycle call.
+  auto * const mon  = axis->getMon();
+  auto * const seq  = axis->getSeq();
+  auto * const traj = axis->getTraj();
+  auto * const cntrl = axisHasController_ ? axis->getCntrl() : NULL;
 
   switch (dataSourceAxis_) {
   case ECMC_AXIS_DATA_NONE:
@@ -435,7 +441,7 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_TYPE:
-    data_ = static_cast<double>( axis_->getSumInterlock() == 0);
+    data_ = static_cast<double>(axis->getSumInterlock() == 0);
     break;
 
   case ECMC_AXIS_DATA_TRAJ_SOURCE:
@@ -488,36 +494,36 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_VEL_TARGET_SET:
-    data_ = axis_->getSeq()->getTargetVel();
+    data_ = seq->getTargetVel();
     break;
 
   case ECMC_AXIS_DATA_ACC_TARGET_SET:
-    data_ = axis_->getTraj()->getAcc();
+    data_ = traj->getAcc();
     break;
 
   case ECMC_AXIS_DATA_DEC_TARGET_SET:
-    data_ = axis_->getTraj()->getDec();
+    data_ = traj->getDec();
     break;
 
   case ECMC_AXIS_DATA_SOFT_LIMIT_BWD:
-    data_ = axis_->getMon()->getSoftLimitBwd();
+    data_ = mon->getSoftLimitBwd();
     break;
 
   case ECMC_AXIS_DATA_SOFT_LIMIT_FWD:
-    data_ = axis_->getMon()->getSoftLimitFwd();
+    data_ = mon->getSoftLimitFwd();
     break;
 
   case ECMC_AXIS_DATA_SOFT_LIMIT_BWD_ENABLE:
-    data_ = static_cast<double>(axis_->getMon()->getEnableSoftLimitBwd());
+    data_ = static_cast<double>(mon->getEnableSoftLimitBwd());
     break;
 
   case ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE:
-    data_ = static_cast<double>(axis_->getMon()->getEnableSoftLimitFwd());
+    data_ = static_cast<double>(mon->getEnableSoftLimitFwd());
     break;
 
   case ECMC_AXIS_DATA_TRAJ_DIRECTION:
 
-    switch (axis_->getAxisSetDirection()) {
+    switch (axis->getAxisSetDirection()) {
     case ECMC_DIR_BACKWARD:
       data_ = -1;
       break;
@@ -533,11 +539,11 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_ENC_HOMEPOS:
-    data_ = axis_->getSeq()->getHomePosition();
+    data_ = seq->getHomePosition();
     break;
 
   case ECMC_AXIS_DATA_BLOCK_COM:
-    data_ = axis_->getBlockExtCom();
+    data_ = axis->getBlockExtCom();
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
@@ -551,21 +557,21 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_ALLOW_PLC_WRITE:
-    data_ = static_cast<double>(axis_->getAllowCmdFromPLC());
+    data_ = static_cast<double>(axis->getAllowCmdFromPLC());
     break;
 
   case ECMC_AXIS_DATA_POS_SET_EXTERNAL:
-    data_ = axis_->getExtSetPos();
+    data_ = axis->getExtSetPos();
     break;
 
   case ECMC_AXIS_DATA_POS_ACT_EXTERNAL:
-    data_ = axis_->getExtActPos();
+    data_ = axis->getExtActPos();
     break;
 
   case ECMC_AXIS_DATA_CTRL_KP:
 
     if (axisHasController_) {
-      data_ = axis_->getCntrl()->getKp();
+      data_ = cntrl->getKp();
     } else {
       data_ = 0;
     }
@@ -574,7 +580,7 @@ int ecmcPLCDataIF::readAxis() {
   case ECMC_AXIS_DATA_CTRL_KI:
 
     if (axisHasController_) {
-      data_ = axis_->getCntrl()->getKi();
+      data_ = cntrl->getKi();
     } else {
       data_ = 0;
     }
@@ -583,7 +589,7 @@ int ecmcPLCDataIF::readAxis() {
   case ECMC_AXIS_DATA_CTRL_KD:
 
     if (axisHasController_) {
-      data_ = axis_->getCntrl()->getKd();
+      data_ = cntrl->getKd();
     } else {
       data_ = 0;
     }
@@ -592,7 +598,7 @@ int ecmcPLCDataIF::readAxis() {
   case ECMC_AXIS_DATA_CTRL_KFF:
 
     if (axisHasController_) {
-      data_ = axis_->getCntrl()->getKff();
+      data_ = cntrl->getKff();
     } else {
       data_ = 0;
     }
@@ -611,23 +617,27 @@ int ecmcPLCDataIF::readAxis() {
 }
 
 int ecmcPLCDataIF::writeAxis() {
-  if (axis_ == NULL) {
+  ecmcAxisBase * const axis = axis_;
+  if (axis == NULL) {
     return ERROR_PLC_AXIS_NULL;
   }
 
   // Write from PLC to Axis allowed?
-  if (!axis_->getAllowCmdFromPLC() &&
+  if (!axis->getAllowCmdFromPLC() &&
       (dataSourceAxis_ != ECMC_AXIS_DATA_ALLOW_PLC_WRITE)) {
     return 0;
   }
 
-  if (axis_->getTraj() == NULL) {
+  if (axis->getTraj() == NULL) {
     return ERROR_PLC_TRAJ_NULL;
   }
 
-  if (axis_->getMon() == NULL) {
+  if (axis->getMon() == NULL) {
     return ERROR_PLC_MON_NULL;
   }
+  // Cache commonly used sub-objects once per PLC cycle call.
+  auto * const mon = axis->getMon();
+  auto * const seq = axis->getSeq();
 
   // Only write commands if changed
   switch (dataSourceAxis_) {
@@ -642,12 +652,12 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_POS_SET:
-    return axis_->setExtSetPos(data_);
+    return axis->setExtSetPos(data_);
 
     break;
 
   case ECMC_AXIS_DATA_POS_ACT:
-    return axis_->setExtActPos(data_);
+    return axis->setExtActPos(data_);
 
     break;
 
@@ -657,7 +667,7 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_POS_TARGET:
-    axis_->setTargetPos(data_);
+    axis->setTargetPos(data_);
     return 0;
 
     break;
@@ -708,12 +718,12 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_COMMAND:
-    return axis_->setCommand((motionCommandTypes)data_);
+    return axis->setCommand((motionCommandTypes)data_);
 
     break;
 
   case ECMC_AXIS_DATA_CMD_DATA:
-    return axis_->setCmdData(static_cast<int>(data_));
+    return axis->setCmdData(static_cast<int>(data_));
 
     break;
 
@@ -723,17 +733,17 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_TYPE:
-    return axis_->getMon()->setPLCInterlock(data_ == 0,
-                                            ECMC_PLC_INTERLOCK_DIR_BOTH);
+    return mon->setPLCInterlock(data_ == 0,
+                                ECMC_PLC_INTERLOCK_DIR_BOTH);
 
     break;
 
   case ECMC_AXIS_DATA_TRAJ_SOURCE:
 
     if (data_ >= 1) {
-      return axis_->getSeq()->setTrajDataSourceType(ECMC_DATA_SOURCE_EXTERNAL);
+      return seq->setTrajDataSourceType(ECMC_DATA_SOURCE_EXTERNAL);
     } else {
-      return axis_->getSeq()->setTrajDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
+      return seq->setTrajDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
     }
 
     break;
@@ -741,15 +751,15 @@ int ecmcPLCDataIF::writeAxis() {
   case ECMC_AXIS_DATA_ENC_SOURCE:
 
     if (data_ >= 1) {
-      return axis_->setEncDataSourceType(ECMC_DATA_SOURCE_EXTERNAL);
+      return axis->setEncDataSourceType(ECMC_DATA_SOURCE_EXTERNAL);
     } else {
-      return axis_->setEncDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
+      return axis->setEncDataSourceType(ECMC_DATA_SOURCE_INTERNAL);
     }
 
     break;
 
   case ECMC_AXIS_DATA_ENABLE:
-    return axis_->setEnable(static_cast<bool>(data_));
+    return axis->setEnable(static_cast<bool>(data_));
 
     break;
 
@@ -759,7 +769,7 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_EXECUTE:
-    return axis_->setExecute(static_cast<bool>(data_));
+    return axis->setExecute(static_cast<bool>(data_));
 
     break;
 
@@ -774,25 +784,25 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_HOMED:
-    axis_->setAxisHomed(static_cast<bool>(data_));
+    axis->setAxisHomed(static_cast<bool>(data_));
     return 0;
 
     break;
 
   case ECMC_AXIS_DATA_LIMIT_BWD:
-    axis_->getMon()->setLimitSwitchBwdPLCOverrideValue(data_>0);
+    mon->setLimitSwitchBwdPLCOverrideValue(data_>0);
     return 0;
 
     break;
 
   case ECMC_AXIS_DATA_LIMIT_FWD:
-    axis_->getMon()->setLimitSwitchFwdPLCOverrideValue(data_>0);
+    mon->setLimitSwitchFwdPLCOverrideValue(data_>0);
   return 0;
 
     break;
 
   case ECMC_AXIS_DATA_HOME_SWITCH:
-    axis_->getMon()->setHomeSwitchPLCOverrideValue(data_>0);
+    mon->setHomeSwitchPLCOverrideValue(data_>0);
     return 0;
 
     break;
@@ -800,38 +810,38 @@ int ecmcPLCDataIF::writeAxis() {
   case ECMC_AXIS_DATA_RESET:
 
     if (data_) {
-      axis_->errorReset();
+      axis->errorReset();
     }
     return 0;
 
     break;
 
   case ECMC_AXIS_DATA_VEL_TARGET_SET:
-    axis_->setTargetVel(data_);
+    axis->setTargetVel(data_);
     break;
 
   case ECMC_AXIS_DATA_ACC_TARGET_SET:
-    axis_->setAcc(data_);
+    axis->setAcc(data_);
     break;
 
   case ECMC_AXIS_DATA_DEC_TARGET_SET:
-    axis_->setDec(data_);
+    axis->setDec(data_);
     break;
 
   case ECMC_AXIS_DATA_SOFT_LIMIT_BWD:
-    axis_->getMon()->setSoftLimitBwd(data_);
+    mon->setSoftLimitBwd(data_);
     break;
 
   case ECMC_AXIS_DATA_SOFT_LIMIT_FWD:
-    axis_->getMon()->setSoftLimitFwd(data_);
+    mon->setSoftLimitFwd(data_);
     break;
 
   case ECMC_AXIS_DATA_SOFT_LIMIT_BWD_ENABLE:
-    axis_->getMon()->setEnableSoftLimitBwd(static_cast<bool>(data_));
+    mon->setEnableSoftLimitBwd(static_cast<bool>(data_));
     break;
 
   case ECMC_AXIS_DATA_SOFT_LIMIT_FWD_ENABLE:
-    axis_->getMon()->setEnableSoftLimitFwd(static_cast<bool>(data_));
+    mon->setEnableSoftLimitFwd(static_cast<bool>(data_));
     break;
 
   case ECMC_AXIS_DATA_TRAJ_DIRECTION:
@@ -840,32 +850,32 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_ENC_HOMEPOS:
-    axis_->getSeq()->setHomePosition(data_);
+    seq->setHomePosition(data_);
     break;
 
   case ECMC_AXIS_DATA_BLOCK_COM:
-    axis_->setBlockExtCom(data_ >= 1);
+    axis->setBlockExtCom(data_ >= 1);
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
-    return axis_->getMon()->setPLCInterlock(data_ == 0,
-                                            ECMC_PLC_INTERLOCK_DIR_BWD);
+    return mon->setPLCInterlock(data_ == 0,
+                                ECMC_PLC_INTERLOCK_DIR_BWD);
 
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_FWD_TYPE:
-    return axis_->getMon()->setPLCInterlock(data_ == 0,
-                                            ECMC_PLC_INTERLOCK_DIR_FWD);
+    return mon->setPLCInterlock(data_ == 0,
+                                ECMC_PLC_INTERLOCK_DIR_FWD);
 
     break;
 
   case ECMC_AXIS_DATA_ALLOW_PLC_WRITE:
-    return axis_->setAllowCmdFromPLC(data_ >= 1);
+    return axis->setAllowCmdFromPLC(data_ >= 1);
 
     break;
 
   case ECMC_AXIS_DATA_POS_SET_EXTERNAL:
-    return axis_->setExtSetPos(data_);
+    return axis->setExtSetPos(data_);
 
     break;
 
@@ -877,7 +887,7 @@ int ecmcPLCDataIF::writeAxis() {
   case ECMC_AXIS_DATA_CTRL_KP:
 
     if (axisHasController_) {
-      axis_->setCntrlKp(data_);
+      axis->setCntrlKp(data_);
     }
     return 0;
 
@@ -886,7 +896,7 @@ int ecmcPLCDataIF::writeAxis() {
   case ECMC_AXIS_DATA_CTRL_KI:
 
     if (axisHasController_) {
-      axis_->setCntrlKi(data_);
+      axis->setCntrlKi(data_);
     }
     return 0;
 
@@ -895,7 +905,7 @@ int ecmcPLCDataIF::writeAxis() {
   case ECMC_AXIS_DATA_CTRL_KD:
 
     if (axisHasController_) {
-      axis_->setCntrlKd(data_);
+      axis->setCntrlKd(data_);
     }
     return 0;
 
@@ -904,7 +914,7 @@ int ecmcPLCDataIF::writeAxis() {
   case ECMC_AXIS_DATA_CTRL_KFF:
 
     if (axisHasController_) {
-      axis_->setCntrlKff(data_);
+      axis->setCntrlKff(data_);
     }
     return 0;
 

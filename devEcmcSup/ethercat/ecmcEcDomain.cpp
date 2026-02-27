@@ -102,21 +102,11 @@ int ecmcEcDomain::checkState() {
 
   // Build domain status word
   statusWord_ = 0;
-
-  // bit 0
-  statusWord_ = statusWord_ + (state_.redundancy_active > 0);
-
-  // bit 1
-  statusWord_ = statusWord_ + ((state_.wc_state ==  EC_WC_ZERO) << 1);
-
-  // bit 2
-  statusWord_ = statusWord_ + ((state_.wc_state ==  EC_WC_INCOMPLETE) << 2);
-
-  // bit 3
-  statusWord_ = statusWord_ + ((state_.wc_state ==  EC_WC_COMPLETE) << 3);
-
-  // bit 16..31
-  statusWord_ = statusWord_ + ((uint16_t)(state_.working_counter) << 16);
+  statusWord_ |= (state_.redundancy_active > 0);
+  statusWord_ |= ((state_.wc_state == EC_WC_ZERO) << 1);
+  statusWord_ |= ((state_.wc_state == EC_WC_INCOMPLETE) << 2);
+  statusWord_ |= ((state_.wc_state == EC_WC_COMPLETE) << 3);
+  statusWord_ |= (static_cast<uint32_t>(state_.working_counter) << 16);
 
   // Set summary alarm for ethercat
   // statusOk_= state_.wc_state ==  EC_WC_COMPLETE;

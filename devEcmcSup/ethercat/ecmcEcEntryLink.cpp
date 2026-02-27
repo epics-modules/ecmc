@@ -120,6 +120,9 @@ int ecmcEcEntryLink::validateEntryBit(int index) {
 }
 
 int ecmcEcEntryLink::readEcEntryValue(int entryIndex, uint64_t *value) {
+  ecmcEcEntry * const entry = entryInfoArray_[entryIndex].entry;
+  const int bitNumber       = entryInfoArray_[entryIndex].bitNumber;
+
   if (!checkDomainOK(entryIndex)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -129,16 +132,15 @@ int ecmcEcEntryLink::readEcEntryValue(int entryIndex, uint64_t *value) {
 
   uint64_t tempRaw = 0;
 
-  if (entryInfoArray_[entryIndex].bitNumber < 0) {
-    if (entryInfoArray_[entryIndex].entry->readValue(&tempRaw)) {
+  if (bitNumber < 0) {
+    if (entry->readValue(&tempRaw)) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
                         ERROR_EC_ENTRY_READ_FAIL);
     }
   } else {
-    if (entryInfoArray_[entryIndex].entry->readBit(entryInfoArray_[entryIndex].
-                                                   bitNumber, &tempRaw)) {
+    if (entry->readBit(bitNumber, &tempRaw)) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
@@ -150,6 +152,8 @@ int ecmcEcEntryLink::readEcEntryValue(int entryIndex, uint64_t *value) {
 }
 
 int ecmcEcEntryLink::readEcEntryValueDouble(int entryIndex, double *value) {
+  ecmcEcEntry * const entry = entryInfoArray_[entryIndex].entry;
+
   if (!checkDomainOK(entryIndex)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -159,7 +163,7 @@ int ecmcEcEntryLink::readEcEntryValueDouble(int entryIndex, double *value) {
 
   double tempDouble = 0;
 
-  if (entryInfoArray_[entryIndex].entry->readDouble(&tempDouble)) {
+  if (entry->readDouble(&tempDouble)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -170,8 +174,10 @@ int ecmcEcEntryLink::readEcEntryValueDouble(int entryIndex, double *value) {
 }
 
 int ecmcEcEntryLink::writeEcEntryBits(int entryIndex, int bits, uint64_t value) {
-  if (entryInfoArray_[entryIndex].entry->writeBits(
-                      entryInfoArray_[entryIndex].bitNumber,bits,value)) {
+  ecmcEcEntry * const entry = entryInfoArray_[entryIndex].entry;
+  const int bitNumber       = entryInfoArray_[entryIndex].bitNumber;
+
+  if (entry->writeBits(bitNumber, bits, value)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -190,6 +196,9 @@ int ecmcEcEntryLink::writeEcEntryBits(int entryIndex, int bits, uint64_t value) 
 
 
 int ecmcEcEntryLink::readEcEntryBits(int entryIndex, int bits, uint64_t *value) {
+  ecmcEcEntry * const entry = entryInfoArray_[entryIndex].entry;
+  const int bitNumber       = entryInfoArray_[entryIndex].bitNumber;
+
   if (!checkDomainOK(entryIndex)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -199,8 +208,7 @@ int ecmcEcEntryLink::readEcEntryBits(int entryIndex, int bits, uint64_t *value) 
 
   uint64_t tempRaw = 0;
 
- if (entryInfoArray_[entryIndex].entry->readBits(
-                      entryInfoArray_[entryIndex].bitNumber,bits,&tempRaw)) {
+ if (entry->readBits(bitNumber, bits, &tempRaw)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -212,16 +220,18 @@ int ecmcEcEntryLink::readEcEntryBits(int entryIndex, int bits, uint64_t *value) 
 }
 
 int ecmcEcEntryLink::writeEcEntryValue(int entryIndex, uint64_t value) {
-  if (entryInfoArray_[entryIndex].bitNumber < 0) {
-    if (entryInfoArray_[entryIndex].entry->writeValue(value)) {
+  ecmcEcEntry * const entry = entryInfoArray_[entryIndex].entry;
+  const int bitNumber       = entryInfoArray_[entryIndex].bitNumber;
+
+  if (bitNumber < 0) {
+    if (entry->writeValue(value)) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
                         ERROR_EC_ENTRY_WRITE_FAIL);
     }
   } else {
-    if (entryInfoArray_[entryIndex].entry->writeBit(entryInfoArray_[entryIndex]
-                                                    .bitNumber, value)) {
+    if (entry->writeBit(bitNumber, value)) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
@@ -241,7 +251,9 @@ int ecmcEcEntryLink::writeEcEntryValue(int entryIndex, uint64_t value) {
 }
 
 int ecmcEcEntryLink::writeEcEntryValueDouble(int entryIndex, double value) {
-  if (entryInfoArray_[entryIndex].entry->writeDouble(value)) {
+  ecmcEcEntry * const entry = entryInfoArray_[entryIndex].entry;
+
+  if (entry->writeDouble(value)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -305,15 +317,15 @@ bool ecmcEcEntryLink::checkDomainOK(int entryIndex) {
 }
 
 bool ecmcEcEntryLink::checkDomainOKAllEntries() {
-  bool ok = true;
-
   for (int i = 0; i < ECMC_EC_ENTRY_LINKS_MAX; i++) {
-    if (entryInfoArray_[i].entry) {
-      ok = ok && entryInfoArray_[i].entry->getDomainOK();
+    ecmcEcEntry * const entry = entryInfoArray_[i].entry;
+    if (entry) {
+      if (!entry->getDomainOK()) {
+        return false;
+      }
     } else {  // no more entries
       break;
     }
   }
-
-  return ok;
+  return true;
 }

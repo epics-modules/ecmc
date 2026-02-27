@@ -448,9 +448,10 @@ inline double mc_get_act_pos(double axIndex, double encIndex)
   int encIndexInt=(int)encIndex - 1;
 
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  auto * const axis = axes[axIndexInt];
   int error = 0;
   // Index starts at 0.. messy.. thats why -1 above
-  ecmcEncoder *enc=axes[axIndexInt]->getEnc(encIndexInt,&error);
+  ecmcEncoder *enc=axis->getEnc(encIndexInt,&error);
   if(error){
      mc_errorCode = error;
      return 0.0;
@@ -515,9 +516,10 @@ inline double mc_set_enc_homed(double axIndex, double encIndex, double homed)
   int encIndexInt=(int)encIndex -1;
   // getEnc() index starts at 0.. messy.. thats why -1 above
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  auto * const axis = axes[axIndexInt];
 
   int error = 0;
-  ecmcEncoder *enc=axes[axIndexInt]->getEnc(encIndexInt,&error);
+  ecmcEncoder *enc=axis->getEnc(encIndexInt,&error);
   if(error){
      mc_errorCode = error;
      return error;
@@ -534,9 +536,10 @@ inline double mc_get_enc_homed(double axIndex, double encIndex)
   int encIndexInt=(int)encIndex -1;
   // getEnc() index starts at 0.. messy.. thats why -1 above
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  auto * const axis = axes[axIndexInt];
 
   int error = 0;
-  ecmcEncoder *enc=axes[axIndexInt]->getEnc(encIndexInt,&error);
+  ecmcEncoder *enc=axis->getEnc(encIndexInt,&error);
   if(error){
      mc_errorCode = error;
      return -error;
@@ -582,9 +585,10 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
   CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+  auto * const axis = axes[index];
 
   // check traj source, must be internal
-  if(axes[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
+  if(axis->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
     mc_errorCode=ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
     return ERROR_MAIN_TRAJ_SOURCE_NOT_INTERNAL;
   }
@@ -593,30 +597,30 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
   statLastAxesExecuteAbs_[index]=execute;
 
   if (!(bool)execute){
-    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axis->setExecute((bool)execute);
     return mc_errorCode;
   }
   
   if(trigg){    
-    mc_errorCode=(double)axes[index]->setExecute(0);
+    mc_errorCode=(double)axis->setExecute(0);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    double pos = axes[index]->getExtSetPos();
-    axes[index]->setTargetPos(pos);
-    axes[index]->setTargetVel(vel);
-    axes[index]->setDec(dec);
-    axes[index]->setAcc(acc);
+    double pos = axis->getExtSetPos();
+    axis->setTargetPos(pos);
+    axis->setTargetVel(vel);
+    axis->setDec(dec);
+    axis->setAcc(acc);
 
-    mc_errorCode=(double)axes[index]->setCommand(ECMC_CMD_MOVEABS);    
+    mc_errorCode=(double)axis->setCommand(ECMC_CMD_MOVEABS);    
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)axes[index]->setCmdData(1);
+    mc_errorCode=(double)axis->setCmdData(1);
     if(mc_errorCode){
       return mc_errorCode;
     }
-    mc_errorCode=(double)axes[index]->setExecute((bool)execute);
+    mc_errorCode=(double)axis->setExecute((bool)execute);
     if(mc_errorCode){
       return mc_errorCode;
     }
@@ -628,120 +632,139 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
 inline double mc_grp_get_enable(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->getEnable();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->getEnable();
 }
 
 inline double mc_grp_get_any_enable(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->getAnyEnable();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->getAnyEnable();
 }
 
 inline double mc_grp_get_enabled(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->getEnabled();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->getEnabled();
 }
 
 inline double mc_grp_get_any_enabled(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->getAnyEnabled();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->getAnyEnabled();
 }
 
 inline double mc_grp_get_busy(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->getBusy();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->getBusy();
 }
 
 inline double mc_grp_get_any_busy(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->getAnyBusy();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->getAnyBusy();
 }
 
 inline double mc_grp_get_any_error_id(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->getAnyErrorId();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->getAnyErrorId();
 }
 
 inline double mc_grp_set_enable(double grpIndex, double enable){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->setEnable((int)enable);
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->setEnable((int)enable);
 }
 
 inline double mc_grp_set_traj_src(double grpIndex, double source){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->setTrajSrc((dataSource)(int)source);
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->setTrajSrc((dataSource)(int)source);
 }
 
 inline double mc_grp_set_enc_src(double grpIndex, double source){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->setEncSrc((dataSource)(int)source);
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->setEncSrc((dataSource)(int)source);
 }
 
 inline double mc_grp_reset_error(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setErrorReset();
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setErrorReset();
   return 0;
 }
 
 inline double mc_grp_set_error(double grpIndex, double errorId){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setError((int)errorId);
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setError((int)errorId);
   return 0;
 }
 
 inline double mc_grp_set_slaved_axis_in_error(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setSlavedAxisInError();
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setSlavedAxisInError();
   return 0;
 }
 
 inline double mc_grp_halt(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->halt();
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->halt();
   return 0;
 }
 
 inline double mc_grp_axis_in_grp(double grpIndex, double axisId){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->inGroup(axisId);
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->inGroup(axisId);
 }
 
 inline double mc_grp_size(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->size();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->size();
 }
 
 inline double mc_grp_get_traj_src_ext(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->getTrajSrcExt();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->getTrajSrcExt();
 }
 
 inline double mc_grp_get_any_traj_src_ext(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->getTrajSrcAnyExt();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->getTrajSrcAnyExt();
 }
 
 inline double mc_grp_set_allow_src_change_when_enabled(double grpIndex, double allow){
   int intGrpIndex=(int)grpIndex;
   int allow_int=(int)allow;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setAllowSrcChangeWhenEnabled(allow_int);
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setAllowSrcChangeWhenEnabled(allow_int);
   return 0;
 }
 
@@ -749,7 +772,8 @@ inline double mc_grp_mr_set_sync(double grpIndex, double sync){
   int intGrpIndex=(int)grpIndex;
   int intSync=(int)sync;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setMRSync(intSync);
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setMRSync(intSync);
   return 0;
 }
 
@@ -757,7 +781,8 @@ inline double mc_grp_mr_set_stop(double grpIndex, double stop){
   int intGrpIndex=(int)grpIndex;
   int intStop=(int)stop;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setMRStop(intStop);
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setMRStop(intStop);
   return 0;
 }
 
@@ -765,7 +790,8 @@ inline double mc_grp_mr_set_cnen(double grpIndex, double enable){
   int intGrpIndex=(int)grpIndex;
   int intEnable=(int)enable;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setMRCnen(intEnable);
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setMRCnen(intEnable);
   return 0;
 }
 
@@ -773,7 +799,8 @@ inline double mc_grp_set_autoenable_enable(double grpIndex, double enable){
   int intGrpIndex=(int)grpIndex;
   int intEnable=(int)enable;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setEnableAutoEnable(intEnable);
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setEnableAutoEnable(intEnable);
   return 0;
 }
 
@@ -781,7 +808,8 @@ inline double mc_grp_set_autodisable_enable(double grpIndex, double enable){
   int intGrpIndex=(int)grpIndex;
   int intEnable=(int)enable;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setEnableAutoDisable(intEnable);
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setEnableAutoDisable(intEnable);
   return 0;
 }
 
@@ -789,7 +817,8 @@ inline double mc_grp_set_ctrl_within_db(double grpIndex, double within){
   int intGrpIndex=(int)grpIndex;
   int intWithin=(int)within;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setAxisIsWithinCtrlDBExtTraj(intWithin);
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setAxisIsWithinCtrlDBExtTraj(intWithin);
   return 0;
 }
 
@@ -850,9 +879,10 @@ inline double mc_set_act_pos(double axIndex, double encIndex, double actpos)
   int encIndexInt=(int)encIndex - 1;
 
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  auto * const axis = axes[axIndexInt];
   int error = 0;
   // getEnc() index starts at 0.. messy.. thats why -1 above
-  ecmcEncoder *enc=axes[axIndexInt]->getEnc(encIndexInt,&error);
+  ecmcEncoder *enc=axis->getEnc(encIndexInt,&error);
   if(error){
      mc_errorCode = error;
      return error;
@@ -869,9 +899,10 @@ inline double mc_get_enc_ready(double axIndex, double encIndex)
   int encIndexInt=(int)encIndex - 1;
 
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
+  auto * const axis = axes[axIndexInt];
   // getEnc() index starts at 0.. messy.. thats why -1 above
   int error = 0;
-  ecmcEncoder *enc=axes[axIndexInt]->getEnc(encIndexInt,&error);
+  ecmcEncoder *enc=axis->getEnc(encIndexInt,&error);
   if(error){
      mc_errorCode = error;
      return 0.0;
@@ -884,7 +915,8 @@ inline double mc_set_traj_vel(double axIndex, double vel)
 {
   int axIndexInt=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
-  axes[axIndexInt]->getTraj()->setTargetVel(vel);
+  auto * const axis = axes[axIndexInt];
+  axis->getTraj()->setTargetVel(vel);
   return 0.0;
 }
 
@@ -892,7 +924,8 @@ inline double mc_set_traj_acc(double axIndex, double acc)
 {
   int axIndexInt=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
-  axes[axIndexInt]->getTraj()->setAcc(acc);
+  auto * const axis = axes[axIndexInt];
+  axis->getTraj()->setAcc(acc);
   return 0.0;
 }
 
@@ -900,7 +933,8 @@ inline double mc_set_traj_dec(double axIndex, double dec)
 {
   int axIndexInt=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
-  axes[axIndexInt]->getTraj()->setDec(dec);
+  auto * const axis = axes[axIndexInt];
+  axis->getTraj()->setDec(dec);
   return 0.0;
 }
 
@@ -908,7 +942,8 @@ inline double mc_set_traj_jerk(double axIndex, double jerk)
 {
   int axIndexInt=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(axIndexInt);
-  axes[axIndexInt]->getTraj()->setJerk(jerk);
+  auto * const axis = axes[axIndexInt];
+  axis->getTraj()->setJerk(jerk);
   return 0.0;
 }
 
@@ -916,38 +951,44 @@ inline double mc_grp_set_ignore_mr_status_check_at_disable(double grpIndex, doub
   int intGrpIndex=(int)grpIndex;
   int ignore_int=(int)ignore;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setMRIgnoreDisableStatusCheck(ignore_int);
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setMRIgnoreDisableStatusCheck(ignore_int);
   return 0;
 }
 
 inline double mc_grp_get_any_at_fwd_limit(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double) axisGroups[intGrpIndex]->getAnyAtLimitFwd();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double) grp->getAnyAtLimitFwd();
 }
 
 inline double mc_grp_get_any_at_bwd_limit(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double) axisGroups[intGrpIndex]->getAnyAtLimitBwd();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double) grp->getAnyAtLimitBwd();
 }
 
 inline double mc_grp_get_any_at_limit(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double) axisGroups[intGrpIndex]->getAnyAtLimit();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double) grp->getAnyAtLimit();
 }
 
 inline double mc_grp_get_any_ilocked(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double) axisGroups[intGrpIndex]->getAnyIlocked();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double) grp->getAnyIlocked();
 }
 
 inline double mc_grp_set_slaved_axis_ilocked(double grpIndex){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  axisGroups[intGrpIndex]->setSlavedAxisIlocked();
+  auto * const grp = axisGroups[intGrpIndex];
+  grp->setSlavedAxisIlocked();
   return 0.0;
 }
 
@@ -955,7 +996,8 @@ inline double mc_grp_get_ctrl_within_db(double grpIndex)
 {
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_0_IF_ERROR(intGrpIndex);
-  return (double)axisGroups[intGrpIndex]->getAxisIsWithinCtrlDB();
+  auto * const grp = axisGroups[intGrpIndex];
+  return (double)grp->getAxisIsWithinCtrlDB();
 }
 
 #endif /* ecmcPLC_libMc_inc_ */
