@@ -2802,6 +2802,12 @@ int getAxisDrvScaleDenom(int axisIndex, double *value) {
   return 0;
 }
 
+int getAxisDrvVelSetRaw(int axisIndex, int *value) {
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+  *value = axes[axisIndex]->getDrv()->getVelSetRaw();
+  return 0;
+}
+
 // Drv SET
 int setAxisDrvScaleNum(int axisIndex, double value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
@@ -2941,6 +2947,19 @@ int getAxisDrvEnable(int axisIndex, int *value) {
   CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
   *value = 0;
   *value = axes[axisIndex]->getDrv()->getEnable() > 0;
+  return 0;
+}
+
+int getAxisDrvEnabled(int axisIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
+
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+  *value = 0;
+  *value = axes[axisIndex]->getDrv()->getEnabled() > 0;
   return 0;
 }
 

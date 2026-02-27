@@ -975,6 +975,8 @@ int getAxisDrvScale(int     axisIndex,
  */
 int getAxisDrvEnable(int  axisIndex,
                      int *value);
+int getAxisDrvEnabled(int  axisIndex,
+                      int *value);
 
 /** \brief Get at target.\n
  *
@@ -2530,6 +2532,9 @@ int getAxisDrvScaleNum(int     axisIndex,
 
 int getAxisDrvScaleDenom(int     axisIndex,
                          double *value);
+
+int getAxisDrvVelSetRaw(int  axisIndex,
+                        int *value);
 
 /** \brief Set drive output scale numerator.\n
  *
