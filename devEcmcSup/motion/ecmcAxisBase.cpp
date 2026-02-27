@@ -438,28 +438,28 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   mon_->readEntries();
 
   // Filter velocities from PLC source
+  const double extTrajDelta =
+    data_.status_.externalTrajectoryPosition -
+    data_.statusOld_.externalTrajectoryPosition;
+  const double extEncDelta =
+    data_.status_.externalEncoderPosition -
+    data_.statusOld_.externalEncoderPosition;
+  const double invSampleTime = 1.0 / data_.status_.sampleTime;
+
   // Traj
   if (enableExtTrajVeloFilter_ && extTrajVeloFilter_) {
-    data_.status_.externalTrajectoryVelocity = extTrajVeloFilter_->getFiltVelo(
-      data_.status_.externalTrajectoryPosition -
-      data_.statusOld_.externalTrajectoryPosition);
-  } else {
     data_.status_.externalTrajectoryVelocity =
-      (data_.status_.externalTrajectoryPosition -
-       data_.statusOld_.
-       externalTrajectoryPosition) / data_.status_.sampleTime;
+      extTrajVeloFilter_->getFiltVelo(extTrajDelta);
+  } else {
+    data_.status_.externalTrajectoryVelocity = extTrajDelta * invSampleTime;
   }
 
   // Enc
   if (enableExtEncVeloFilter_ && extEncVeloFilter_) {
-    data_.status_.externalEncoderVelocity = extEncVeloFilter_->getFiltVelo(
-      data_.status_.externalEncoderPosition -
-      data_.statusOld_.externalEncoderPosition);
-  } else {
     data_.status_.externalEncoderVelocity =
-      (data_.status_.externalEncoderPosition -
-       data_.statusOld_.
-       externalEncoderPosition) / data_.status_.sampleTime;
+      extEncVeloFilter_->getFiltVelo(extEncDelta);
+  } else {
+    data_.status_.externalEncoderVelocity = extEncDelta * invSampleTime;
   }
 }
 

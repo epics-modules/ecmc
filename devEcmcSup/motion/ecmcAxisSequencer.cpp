@@ -82,15 +82,21 @@ void ecmcAxisSequencer::init(double sampleTime) {
 
 // Cyclic execution
 void ecmcAxisSequencer::execute() {
+  const bool internalTrajSource =
+    data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL;
+  const bool internalEncSource =
+    data_->status_.statusWord_.encsource == ECMC_DATA_SOURCE_INTERNAL;
 
   pvtmode_ = pvtOk_ && 
       (/*data_->status_.command == ECMC_CMD_MOVEPVTREL ||*/
        data_->status_.command == ECMC_CMD_MOVEPVTABS);
+  const bool pvtExecute = pvt_ && pvt_->getExecute();
+  const bool pvtActive = pvtmode_ && !pvtStopping_ && pvtExecute;
 
   // Trajectory (External or internal)
-  if (data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (internalTrajSource) {
 
-    if(pvtmode_ && !pvtStopping_ && pvt_->getExecute()) {
+    if (pvtActive) {
       data_->status_.currentPositionSetpoint = pvt_->getCurrPosition();
       data_->status_.currentVelocitySetpoint = pvt_->getCurrVelocity();      
     } else {
@@ -105,7 +111,7 @@ void ecmcAxisSequencer::execute() {
       data_->status_.externalTrajectoryVelocity;
   }
 
-  if (data_->status_.statusWord_.encsource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (internalEncSource) {
     data_->status_.currentPositionActual =
       encArray_[data_->control_.primaryEncIndex]->getActPos();
     data_->status_.currentVelocityActual =
@@ -133,7 +139,7 @@ void ecmcAxisSequencer::execute() {
   
   // If internal source and not PVT-mode then interlocks are handled in trajectory generator
   // TODO Would be nice to change this design..
-  trajLock_ = trajLock_ && (data_->status_.statusWord_.trajsource != ECMC_DATA_SOURCE_INTERNAL || pvtmode_);
+  trajLock_ = trajLock_ && (!internalTrajSource || pvtmode_);
   
   // Init stop ramp on positive edge of interlock and external traj source
   if(trajLock_ && !trajLockOld_) {
@@ -143,21 +149,23 @@ void ecmcAxisSequencer::execute() {
   pvtStopping_ = traj_->getBusy() && pvtStopping_;
 
   // PVT
-  if(pvtOk_ && !pvtStopping_ && data_->status_.statusWord_.execute) {
+  if (pvtOk_ && !pvtStopping_ && data_->status_.statusWord_.execute && pvt_) {
     // Go to next pvt time step
-    if(pvt_->nextSampleStep() && pvt_->getExecute()) {
+    if (pvt_->nextSampleStep() && pvtExecute) {
       traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
     }
   }
   traj_->setStartPos(data_->status_.currentPositionSetpoint);
 
 
-  if(data_->control_.command == ECMC_CMD_MOVEVEL || pvtmode_ || (data_->status_.statusWord_.trajsource != ECMC_DATA_SOURCE_INTERNAL)) {
+  if (data_->control_.command == ECMC_CMD_MOVEVEL || pvtmode_ || !internalTrajSource) {
     data_->status_.currentTargetPosition = data_->status_.currentPositionSetpoint;
   }
 }
 
 void ecmcAxisSequencer::executeInternal() {
+  auto &status = data_->status_;
+  auto &statusWord = status.statusWord_;
   // read mode if entry is linked
   uint64_t tempRaw = 0;
 
@@ -166,7 +174,7 @@ void ecmcAxisSequencer::executeInternal() {
     modeAct_ = (int)tempRaw;
   }
 
-  data_->status_.statusWord_.seqstate = seqState_;
+  statusWord.seqstate = seqState_;
 
   if (traj_ == NULL) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_TRAJ_NULL);
@@ -178,32 +186,36 @@ void ecmcAxisSequencer::executeInternal() {
     return;
   }
 
+  const bool internalTrajSource = statusWord.trajsource == ECMC_DATA_SOURCE_INTERNAL;
+  const bool axisEnabled = statusWord.enabled;
+  const bool startupFinished = status.startupFinsished;
+  const bool isHoming = status.command == ECMC_CMD_HOMING;
+  const bool pvtRun = pvtmode_ && !pvtStopping_ && pvt_;
+
   // Reset busy (set in setExecute)
-  if (data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL) {
+  if (internalTrajSource) {
     // HOMING 
-    if (data_->status_.command == ECMC_CMD_HOMING) {
-      data_->status_.statusWord_.localBusy = traj_->getBusy();
+    if (isHoming) {
+      statusWord.localBusy = traj_->getBusy();
     } else {
      // PVT 
-     if(pvtmode_ && !pvtStopping_) {
-        data_->status_.statusWord_.localBusy = (pvt_->getBusy() && data_->status_.statusWord_.enabled) ||
-                              !data_->status_.startupFinsished;// || data_->status_.statusWord_.globalBusy;
+      if (pvtRun) {
+        statusWord.localBusy = (pvt_->getBusy() && axisEnabled) || !startupFinished;
       } else {
       // Normal motion
-        data_->status_.statusWord_.localBusy = (traj_->getBusy() && data_->status_.statusWord_.enabled) ||
-                              !data_->status_.startupFinsished;
+        statusWord.localBusy = (traj_->getBusy() && axisEnabled) || !startupFinished;
       }
     }
   } else { // Sync to other axis
-    data_->status_.statusWord_.localBusy = true;
+    statusWord.localBusy = true;
   }
 
   // Set target position for different scenarios
-  if(pvtmode_ && !data_->status_.statusWord_.localBusy) {
-    data_->status_.currentTargetPosition = data_->status_.currentPositionSetpoint;
-    data_->status_.currentTargetPositionModulo = data_->status_.currentPositionSetpoint;
+  if (pvtmode_ && !statusWord.localBusy) {
+    status.currentTargetPosition = status.currentPositionSetpoint;
+    status.currentTargetPositionModulo = status.currentPositionSetpoint;
   } else {
-    data_->status_.currentTargetPositionModulo = traj_->getTargetPosMod();
+    status.currentTargetPositionModulo = traj_->getTargetPosMod();
   }
   
   /*else {
@@ -220,10 +232,10 @@ void ecmcAxisSequencer::executeInternal() {
 
   hwLimitSwitchBwdOld_ = hwLimitSwitchBwd_;
   hwLimitSwitchFwdOld_ = hwLimitSwitchFwd_;
-  hwLimitSwitchBwd_    = data_->status_.statusWord_.limitbwd;
-  hwLimitSwitchFwd_    = data_->status_.statusWord_.limitfwd;
+  hwLimitSwitchBwd_    = statusWord.limitbwd;
+  hwLimitSwitchFwd_    = statusWord.limitfwd;
   homeSensorOld_       = homeSensor_;
-  homeSensor_          = data_->status_.statusWord_.homeswitch;
+  homeSensor_          = statusWord.homeswitch;
   seqInProgressOld_    = seqInProgress_;
 
   if (!seqInProgress_) {

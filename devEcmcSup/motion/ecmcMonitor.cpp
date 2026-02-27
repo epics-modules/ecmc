@@ -682,17 +682,23 @@ int ecmcMonitor::setSoftLimitFwd(double limit) {
 }
 
 int ecmcMonitor::checkLimits() {
-  hardBwdOld_ = data_->status_.statusWord_.limitbwd;
-  hardFwdOld_ = data_->status_.statusWord_.limitfwd;
+  const auto &statusWord = data_->status_.statusWord_;
+  const auto &statusOldWord = data_->statusOld_.statusWord_;
+  const bool limitBwdOk = statusWord.limitbwd;
+  const bool limitFwdOk = statusWord.limitfwd;
+  const bool moving = statusWord.moving;
+  const bool axisEnabled = statusWord.enabled && statusOldWord.enabled;
+  const bool isHomingCmd = data_->status_.command == ECMC_CMD_HOMING;
+
+  hardBwdOld_ = limitBwdOk;
+  hardFwdOld_ = limitFwdOk;
 
   // Both limit switches
-  data_->interlocks_.bothLimitsLowInterlock = !data_->status_.statusWord_.limitbwd &&
-                                              !data_->status_.statusWord_.limitfwd;
+  data_->interlocks_.bothLimitsLowInterlock = !limitBwdOk && !limitFwdOk;
 
   // Stop at any limit (reuse same interlock as both limit)
-  if(stopAtAnyLimit_) {
-    data_->interlocks_.bothLimitsLowInterlock = !data_->status_.statusWord_.limitbwd ||
-                                              !data_->status_.statusWord_.limitfwd;
+  if (stopAtAnyLimit_) {
+    data_->interlocks_.bothLimitsLowInterlock = !limitBwdOk || !limitFwdOk;
   }
 
   if (data_->interlocks_.bothLimitsLowInterlock) {
@@ -704,7 +710,7 @@ int ecmcMonitor::checkLimits() {
   }
 
   // Bwd limit switch
-  if (!data_->status_.statusWord_.limitbwd) {
+  if (!limitBwdOk) {
     data_->interlocks_.bwdLimitInterlock = true;
 
     if (enableAlarmAtHardlimitBwd_) {
@@ -717,8 +723,7 @@ int ecmcMonitor::checkLimits() {
     setWarningID(WARNING_MON_HARD_LIMIT_BWD_INTERLOCK);
   } else {
     if (latchOnLimit_) {
-      if (!data_->status_.statusWord_.moving||
-          (data_->status_.currentVelocityActual > 0)) {
+      if (!moving || (data_->status_.currentVelocityActual > 0)) {
         data_->interlocks_.bwdLimitInterlock = false;
       }
     } else {
@@ -731,7 +736,7 @@ int ecmcMonitor::checkLimits() {
   }
 
   // Fwd limit switch
-  if (!data_->status_.statusWord_.limitfwd) {
+  if (!limitFwdOk) {
     data_->interlocks_.fwdLimitInterlock = true;
 
     if (enableAlarmAtHardlimitFwd_) {
@@ -744,8 +749,7 @@ int ecmcMonitor::checkLimits() {
     setWarningID(WARNING_MON_HARD_LIMIT_FWD_INTERLOCK);
   } else {
     if (latchOnLimit_) {
-      if (!data_->status_.statusWord_.moving||
-          (data_->status_.currentVelocityActual < 0)) {
+      if (!moving || (data_->status_.currentVelocityActual < 0)) {
         data_->interlocks_.fwdLimitInterlock = false;
       }
     } else {
@@ -761,13 +765,12 @@ int ecmcMonitor::checkLimits() {
   bool virtSoftlimitBwd =
     ((data_->status_.currentPositionSetpoint < data_->control_.softLimitBwd) ||
      (data_->control_.positionTarget < data_->control_.softLimitBwd)) &&
-    data_->status_.statusWord_.enabled && data_->statusOld_.statusWord_.enabled; /*&&
+    axisEnabled; /*&&
     (data_->status_.currentPositionSetpoint <
     data_->status_.currentPositionSetpointOld); */// data_->control_.execute;
 
   if (virtSoftlimitBwd /*&& data_->status_.busy*/ &&
-      data_->status_.statusWord_.softlimbwdena &&
-      (data_->status_.command != ECMC_CMD_HOMING)) {
+      statusWord.softlimbwdena && !isHomingCmd) {
     data_->interlocks_.bwdSoftLimitInterlock = true;
     setWarningID(WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK);
 
@@ -788,14 +791,13 @@ int ecmcMonitor::checkLimits() {
   bool virtSoftlimitFwd =
     ((data_->status_.currentPositionSetpoint > data_->control_.softLimitFwd) || 
      (data_->control_.positionTarget > data_->control_.softLimitFwd)) &&
-    data_->status_.statusWord_.enabled && data_->statusOld_.statusWord_.enabled; /*&&
+    axisEnabled; /*&&
     (data_->status_.currentPositionSetpoint >
       data_->status_.currentPositionSetpointOld);*/// && data_->control_.execute;
 
   // Fwd soft limit switch
   if (virtSoftlimitFwd /*&& data_->status_.busy*/ &&
-      data_->status_.statusWord_.softlimfwdena &&
-      (data_->status_.command != ECMC_CMD_HOMING)) {
+      statusWord.softlimfwdena && !isHomingCmd) {
     data_->interlocks_.fwdSoftLimitInterlock = true;
     setWarningID(WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK);
 
@@ -818,13 +820,16 @@ int ecmcMonitor::checkLimits() {
 int ecmcMonitor::checkAtTarget() {
   bool atTarget      = false;
   bool ctrlWithinTol = false;
+  const double targetSetDiffAbs = std::abs(data_->status_.currentTargetPositionModulo -
+                                           data_->status_.currentPositionSetpoint);
+  const double cntrlErrAbs      = std::abs(data_->status_.cntrlError);
+  const bool internalTrajSource = data_->status_.statusWord_.trajsource == 0;
 
   if (enableAtTargetMon_) {
     /*if (std::abs(data_->status_.currentTargetPosition -
                  data_->status_.currentPositionActual) < atTargetTol_) {*/
-    if (std::abs(data_->status_.currentTargetPositionModulo -
-        data_->status_.currentPositionSetpoint) < atTargetTol_ && !data_->status_.statusWord_.localBusy) {
-      if (std::abs(data_->status_.cntrlError) < atTargetTol_) {
+    if (targetSetDiffAbs < atTargetTol_ && !data_->status_.statusWord_.localBusy) {
+      if (cntrlErrAbs < atTargetTol_) {
         if (atTargetCounter_ <= atTargetTime_) {
           atTargetCounter_++;
         }
@@ -837,7 +842,7 @@ int ecmcMonitor::checkAtTarget() {
       }
 
       // controller deadband
-      if (std::abs(data_->status_.cntrlError) < ctrlDeadbandTol_) {
+      if (cntrlErrAbs < ctrlDeadbandTol_) {
         if (ctrlDeadbandCounter_ <= ctrlDeadbandTime_) {
           ctrlDeadbandCounter_++;
         }
@@ -860,7 +865,7 @@ int ecmcMonitor::checkAtTarget() {
 
   data_->status_.statusWord_.attarget = atTarget;
   
-  if(data_->status_.statusWord_.trajsource == 0) {
+  if (internalTrajSource) {
     data_->status_.ctrlWithinDeadband = ctrlWithinTol;
   } else {
     // external source used. No way for axis to know when atTarget/reduce torque. Make possible to write from PLC
@@ -872,31 +877,33 @@ int ecmcMonitor::checkAtTarget() {
 
 // Only enabled when also atTarget monitoring is enabled
 int  ecmcMonitor::checkStall() {
+  const auto &statusWord = data_->status_.statusWord_;
+  const auto &statusOldWord = data_->statusOld_.statusWord_;
+  const bool dbgPrint = data_->control_.controlWord_.enableDbgPrintout;
 
   // Do only check for stall when not busy (traj finished)
-  if(!enableAtTargetMon_ || !enableStallMon_ ||
-    !data_->status_.statusWord_.enabled || 
-    (data_->status_.statusWord_.trajsource != 0) || (data_->status_.command == ECMC_CMD_MOVEPVTABS)) {
+  if (!enableAtTargetMon_ || !enableStallMon_ || !statusWord.enabled ||
+      (statusWord.trajsource != 0) || (data_->status_.command == ECMC_CMD_MOVEPVTABS)) {
     data_->interlocks_.stallInterlock = false;
     maxStallCounter_ = 0;
     return 0;
   }
   
   // Measure time of last move, busy high to busy low.
-  if(data_->status_.statusWord_.busy ) {
+  if (statusWord.busy) {
     stallLastMotionCmdCycles_++;
-    if(!data_->statusOld_.statusWord_.busy) {
+    if (!statusOldWord.busy) {
       stallLastMotionCmdCycles_ = 0;
     }
     return 0;
   } else {
-    if(data_->statusOld_.statusWord_.busy) {
+    if (statusOldWord.busy) {
       stallCheckAtTargetAtCycle_ = stallLastMotionCmdCycles_ * stallTimeFactor_;
       // Ensure a minimum time window 
-      if(stallCheckAtTargetAtCycle_ < stallMinTimeoutCycles_) {
+      if (stallCheckAtTargetAtCycle_ < stallMinTimeoutCycles_) {
         stallCheckAtTargetAtCycle_ = stallMinTimeoutCycles_;
       }
-      if(data_->control_.controlWord_.enableDbgPrintout) {
+      if (dbgPrint) {
         printf("Axis[%d]: Time to check stall after: %" PRIu64 ", factor %lf, min time %lf\n", data_->status_.axisId, stallCheckAtTargetAtCycle_,stallTimeFactor_,stallMinTimeoutCycles_);        
       }      
     }
@@ -904,10 +911,10 @@ int  ecmcMonitor::checkStall() {
 
   maxStallCounter_++;
 
-  if(data_->status_.statusWord_.attarget) {
+  if (statusWord.attarget) {
     data_->interlocks_.stallInterlock = false;
-    if(!data_->statusOld_.statusWord_.attarget) {
-      if(data_->control_.controlWord_.enableDbgPrintout) {
+    if (!statusOldWord.attarget) {
+      if (dbgPrint) {
         printf("Axis[%d]: No stall.. Brilliant!!\n",data_->status_.axisId);                
       }
     }
@@ -916,9 +923,9 @@ int  ecmcMonitor::checkStall() {
     return 0;
   }
 
-  if((maxStallCounter_ > stallCheckAtTargetAtCycle_) && 
+  if ((maxStallCounter_ > stallCheckAtTargetAtCycle_) && 
      (stallCheckAtTargetAtCycle_ > 0)) {
-    if(data_->control_.controlWord_.enableDbgPrintout) {
+    if (dbgPrint) {
       printf("Axis[%d]: Stall...\n",data_->status_.axisId);      
     }
     stallLastMotionCmdCycles_ = 0;  
@@ -936,12 +943,14 @@ int  ecmcMonitor::checkStall() {
 int ecmcMonitor::checkPositionLag() {
   bool lagErrorTraj  = false;
   bool lagErrorDrive = false;
+  const int posLagDriveTime = posLagTime_ * 2;
+  const bool axisEnabled = data_->status_.statusWord_.enabled &&
+                           data_->statusOld_.statusWord_.enabled;
+  const double cntrlErrAbs = std::abs(data_->status_.cntrlError);
 
   if (enableLagMon_ && !lagErrorDrive && data_->control_.controlWord_.enableCmd) {
-    if ((std::abs(data_->status_.cntrlError) > posLagTol_) &&
-        data_->status_.statusWord_.enabled&&
-        data_->statusOld_.statusWord_.enabled) {
-      if (lagMonCounter_ <= posLagTime_ * 2) {
+    if ((cntrlErrAbs > posLagTol_) && axisEnabled) {
+      if (lagMonCounter_ <= posLagDriveTime) {
         lagMonCounter_++;
       }
 
@@ -950,7 +959,7 @@ int ecmcMonitor::checkPositionLag() {
       }
 
       // interlock the drive in twice the time..
-      if (lagMonCounter_ >= posLagTime_ * 2) {
+      if (lagMonCounter_ >= posLagDriveTime) {
         lagErrorDrive = true;
       }
     } else {
@@ -985,20 +994,22 @@ int ecmcMonitor::checkEncoderDiff() {
     return 0;
   }
 
+  const int primaryEncIndex = data_->control_.primaryEncIndex;
+  ecmcEncoder *primaryEnc = encArray_[primaryEncIndex];
+
   // Do not check if prim enc not homed
-  if (!encArray_[data_->control_.primaryEncIndex]->getHomed()) {
+  if (!primaryEnc->getHomed()) {
     return 0;
   }
 
   // Multiple encoders configured so check pos diff vs primary
   double maxDiff       = 0;
   bool   encDiffILock  = false;
-  double primEncActPos =
-    encArray_[data_->control_.primaryEncIndex]->getActPos();
+  double primEncActPos = primaryEnc->getActPos();
 
   for (int i = 0; i < data_->status_.encoderCount; i++) {
     // Do not check prim encoder vs itself or if this encoder is not homed
-    if ((i == data_->control_.primaryEncIndex) || !encArray_[i]->getHomed()) {
+    if ((i == primaryEncIndex) || !encArray_[i]->getHomed()) {
       continue;
     }
 
@@ -1033,8 +1044,9 @@ int ecmcMonitor::checkVelocityDiff() {
     return 0;
   }
 
-  if (std::abs(currentSetVelocityToDrive -
-               data_->status_.currentVelocityActual) > velDiffMaxDiff_) {
+  const double velocityDiffAbs = std::abs(currentSetVelocityToDrive -
+                                          data_->status_.currentVelocityActual);
+  if (velocityDiffAbs > velDiffMaxDiff_) {
     velocityDiffCounter_++;
   } else {
     velocityDiffCounter_ = 0;
@@ -1064,7 +1076,7 @@ int ecmcMonitor::checkVelocityDiff() {
 }
 
 int ecmcMonitor::checkMaxVelocity() {
-  if (!data_->control_.controlWord_.enableCmd || !data_->status_.statusWord_.enabled||
+  if (!data_->control_.controlWord_.enableCmd || !data_->status_.statusWord_.enabled ||
       !data_->statusOld_.statusWord_.enabled) {
     data_->interlocks_.maxVelocityTrajInterlock  = false;
     data_->interlocks_.maxVelocityDriveInterlock = false;
@@ -1073,8 +1085,9 @@ int ecmcMonitor::checkMaxVelocity() {
     return 0;
   }
 
-  if (((std::abs(data_->status_.currentVelocityActual) > maxVel_) ||
-       (std::abs(data_->status_.currentVelocitySetpoint) > maxVel_)) &&
+  const double currentVelocityActualAbs = std::abs(data_->status_.currentVelocityActual);
+  const double currentVelocitySetAbs    = std::abs(data_->status_.currentVelocitySetpoint);
+  if (((currentVelocityActualAbs > maxVel_) || (currentVelocitySetAbs > maxVel_)) &&
       enableMaxVelMon_) {
     if (maxVelCounterTraj_ <= maxVelTrajILDelay_) {
       maxVelCounterTraj_++;
@@ -1111,14 +1124,14 @@ int ecmcMonitor::checkMaxVelocity() {
 }
 
 int ecmcMonitor::checkCntrlMaxOutput() {
-  if (!data_->status_.statusWord_.enabled|| !data_->statusOld_.statusWord_.enabled) {
+  if (!data_->status_.statusWord_.enabled || !data_->statusOld_.statusWord_.enabled) {
     data_->interlocks_.cntrlOutputHLDriveInterlock = false;
     data_->interlocks_.cntrlOutputHLTrajInterlock  = false;
     return 0;
   }
 
-  if (enableCntrlHLMon_ &&
-      (std::abs(data_->status_.cntrlOutput) > cntrlOutputHL_)) {
+  const double cntrlOutputAbs = std::abs(data_->status_.cntrlOutput);
+  if (enableCntrlHLMon_ && (cntrlOutputAbs > cntrlOutputHL_)) {
     data_->interlocks_.cntrlOutputHLDriveInterlock = true;
     data_->interlocks_.cntrlOutputHLTrajInterlock  = true;
     return setErrorID(__FILE__,

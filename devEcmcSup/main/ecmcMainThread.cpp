@@ -277,6 +277,8 @@ void cyclic_task(void *usr) {
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
 
   while (appModeCmd == ECMC_MODE_RUNTIME) {
+    const bool ecInitDone = ec->getInitDone();
+
     wakeupTime = timespec_add(wakeupTime, cycletime);
 
     /* Only lock asyn port when ec is started
@@ -342,11 +344,11 @@ void cyclic_task(void *usr) {
       threadDiag.send_min_ns = threadDiag.sendperiod_ns;
     }
 
-    if (ec->getInitDone()) {
+    if (ecInitDone) {
       ec->receive();
       ec->checkDomainsState();
     }
-    ecStat = ec->statusOK() || !ec->getInitDone();
+    ecStat = ec->statusOK() || !ecInitDone;
 
     // Master to master coms
     if (writeToShm) {
@@ -393,9 +395,13 @@ void cyclic_task(void *usr) {
       counter--;
     } else {    // Lower freq
       if (axisDiagFreq > 0) {
-        counter = mcuFrequency / axisDiagFreq;
+        int slowCycleInterval = mcuFrequency / axisDiagFreq;
+        if (slowCycleInterval < 1) {
+          slowCycleInterval = 1;
+        }
+        counter = slowCycleInterval;
 
-        if (ec->getInitDone()) {
+        if (ecInitDone) {
           ec->checkState();
           ec->checkSlavesConfState();
         }
@@ -407,7 +413,7 @@ void cyclic_task(void *usr) {
           }
         }
 
-        if (ec->getInitDone()) {
+        if (ecInitDone) {
           ec->slowExecute();
         }
       }
@@ -418,13 +424,13 @@ void cyclic_task(void *usr) {
       safetypluginError = safetyplugin->exeRTFunc(controllerError);
     }
 
-    if (asynPort->getEpicsState() >= 14) {
+    if (asynPort && asynPort->getEpicsState() >= 14) {
       updateAsynParams(0);
     }
 
     clock_gettime(CLOCK_MONOTONIC, &sendTime);
 
-    if (ec->getInitDone()) {
+    if (ecInitDone) {
       ec->send(masterActivationTimeOffset);
     } else if(masterId<0) {
       // just set offset to make sense of plc timing functions when running without master
