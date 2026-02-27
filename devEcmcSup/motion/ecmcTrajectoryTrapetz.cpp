@@ -63,6 +63,8 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity,
                                            bool   *trajBusy) {
   double posSetTemp = localCurrentPositionSetpoint_;
   bool   stopped    = false;
+  const auto &statusWord = data_->status_.statusWord_;
+  const auto &interlocks = data_->interlocks_;
 
   switch (motionMode_) {
   case ECMC_MOVE_MODE_POS:
@@ -103,16 +105,16 @@ double ecmcTrajectoryTrapetz::internalTraj(double *actVelocity,
                                            posSetTemp);
 
   // Stop ramp when running external
-  bool externalSourceStopTraj = data_->status_.statusWord_.trajsource !=
-                                ECMC_DATA_SOURCE_INTERNAL;
+  const bool externalSourceStopTraj =
+    statusWord.trajsource != ECMC_DATA_SOURCE_INTERNAL;
 
   if (externalSourceStopTraj ||
       ((nextDir == ECMC_DIR_BACKWARD) &&
-       data_->interlocks_.trajSummaryInterlockBWD) ||
+       interlocks.trajSummaryInterlockBWD) ||
       ((nextDir == ECMC_DIR_FORWARD) &&
-       data_->interlocks_.trajSummaryInterlockFWD)) {
+       interlocks.trajSummaryInterlockFWD)) {
 
-    posSetTemp = moveStop(data_->interlocks_.currStopMode,
+    posSetTemp = moveStop(interlocks.currStopMode,
                           localCurrentPositionSetpoint_,
                           prevStepSize_,
                           &stopped,
@@ -221,6 +223,8 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                                       double stepNom,
                                       bool  *trajBusy) {
   double posSetTemp = 0;
+  const double absStepDec = std::abs(stepDEC_);
+  const double absStepNom = std::abs(stepNom);
 
   *trajBusy = true;
 
@@ -245,9 +249,9 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
   if (std::abs(distToInitStop) <= std::abs(2 * prevStepSize_)) {
     stepNomTemp = 0;  // targetVelo = 0
   } else if (distToInitStop > 0) {
-    stepNomTemp = std::abs(stepNom);
+    stepNomTemp = absStepNom;
   } else {
-    stepNomTemp = -std::abs(stepNom);
+    stepNomTemp = -absStepNom;
   }
 
   posSetTemp = moveVel(currSetpoint,
@@ -255,9 +259,9 @@ double ecmcTrajectoryTrapetz::movePos(double currSetpoint,
                        stepNomTemp,
                        trajBusy);
 
-  if ((std::abs(prevStepSize) <= 2 * std::abs(stepDEC_)) &&   // The most important!
-      (std::abs(stopDistance) <= 3 * std::abs(stepDEC_)) &&
-      (std::abs(distToTargetOld) <= 3 * std::abs(stepDEC_))) {
+  if ((std::abs(prevStepSize) <= 2 * absStepDec) &&   // The most important!
+      (std::abs(stopDistance) <= 3 * absStepDec) &&
+      (std::abs(distToTargetOld) <= 3 * absStepDec)) {
     posSetTemp           = targetSetpoint;
     targetPositionLocal_ = posSetTemp;
     targetPosition_      = posSetTemp;

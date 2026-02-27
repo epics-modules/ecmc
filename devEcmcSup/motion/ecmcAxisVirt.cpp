@@ -35,6 +35,7 @@ void ecmcAxisVirt::initVars() {
 
 void ecmcAxisVirt::execute(bool masterOK) {
   ecmcAxisBase::preExecute(masterOK);
+  const bool axisEnabled = getEnabled();
   data_.status_.cntrlOutput = 0;
 
   // update setpoinmt and actual values
@@ -46,7 +47,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
     data_.status_.currentPositionActual,
     data_.control_.moduloRange);
 
-  if (getEnabled() && masterOK && !getError()) {
+  if (axisEnabled && masterOK && !getError()) {
     mon_->setEnable(true);
   } else { 
     if (getExecute()) {

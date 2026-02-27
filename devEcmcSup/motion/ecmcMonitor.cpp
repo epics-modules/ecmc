@@ -1024,7 +1024,10 @@ int ecmcMonitor::checkEncoderDiff() {
                                                      encArray_[i]->getActPos(),
                                                      data_->control_.moduloRange);
 
-    encDiffILock = diff > maxDiff || encDiffILock;
+    if (diff > maxDiff) {
+      encDiffILock = true;
+      break;  // No need to keep scanning once interlock is active.
+    }
   }
 
   data_->interlocks_.encDiffInterlock = encDiffILock;

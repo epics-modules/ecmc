@@ -50,6 +50,8 @@ double ecmcTrajectoryS::internalTraj(double *actVelocity,
                                      bool   *trajBusy) {
   double posSetTemp = localCurrentPositionSetpoint_;
   bool   stopped    = false;
+  const auto &statusWord = data_->status_.statusWord_;
+  const auto &interlocks = data_->interlocks_;
 
   switch (motionMode_) {
   case ECMC_MOVE_MODE_POS:
@@ -74,16 +76,16 @@ double ecmcTrajectoryS::internalTraj(double *actVelocity,
                                            posSetTemp);
 
   // Stop ramp when running external
-  bool externalSourceStopTraj = data_->status_.statusWord_.trajsource !=
-                                ECMC_DATA_SOURCE_INTERNAL;
+  const bool externalSourceStopTraj =
+    statusWord.trajsource != ECMC_DATA_SOURCE_INTERNAL;
 
   // check interlocks if stop is needed
   if (externalSourceStopTraj ||
       ((nextDir == ECMC_DIR_BACKWARD) &&
-       data_->interlocks_.trajSummaryInterlockBWD) ||
+       interlocks.trajSummaryInterlockBWD) ||
       ((nextDir == ECMC_DIR_FORWARD) &&
-       data_->interlocks_.trajSummaryInterlockFWD)) {
-    posSetTemp = moveStop(data_->interlocks_.currStopMode,
+       interlocks.trajSummaryInterlockFWD)) {
+    posSetTemp = moveStop(interlocks.currStopMode,
                           actVelocity,
                           actAcceleration,
                           &stopped);
@@ -206,6 +208,9 @@ double ecmcTrajectoryS::moveVel(double *actVelocity,
                                 bool   *trajBusy) {
   double positionSetpoint = localCurrentPositionSetpoint_;
   bool   ruckigBusy       = false;
+  const double absTrajMaxVelo = std::abs(trajMaxVelo_);
+  const double absTargetAcc   = std::abs(targetAcceleration_);
+  const double absTargetJerk  = std::abs(targetJerk_);
 
   input_->control_interface = ControlInterface::Velocity;
 
@@ -216,9 +221,9 @@ double ecmcTrajectoryS::moveVel(double *actVelocity,
   }
 
   input_->target_acceleration[0] = 0;
-  input_->max_velocity[0]        = std::abs(trajMaxVelo_);
-  input_->max_acceleration[0]    = std::abs(targetAcceleration_);
-  input_->max_jerk[0]            = std::abs(targetJerk_);
+  input_->max_velocity[0]        = absTrajMaxVelo;
+  input_->max_acceleration[0]    = absTargetAcc;
+  input_->max_jerk[0]            = absTargetJerk;
   ruckigBusy                     = updateRuckig();
   *actVelocity                   = output_->new_velocity[0];
   *actAcceleration               = output_->new_acceleration[0];
@@ -245,14 +250,17 @@ double ecmcTrajectoryS::moveVel(double *actVelocity,
 double ecmcTrajectoryS::movePos(double *actVelocity,
                                 double *actAcceleration,
                                 bool   *trajBusy) {
+  const double absTargetVelLocal = std::abs(targetVelocityLocal_);
+  const double absTargetAcc      = std::abs(targetAcceleration_);
+  const double absTargetJerk     = std::abs(targetJerk_);
   input_->control_interface      = ControlInterface::Position;
   input_->current_position[0]    = localCurrentPositionSetpoint_;
   input_->target_position[0]     = targetPositionLocal_;
   input_->target_velocity[0]     = 0;
   input_->target_acceleration[0] = 0;
-  input_->max_velocity[0]        = std::abs(targetVelocityLocal_);
-  input_->max_acceleration[0]    = std::abs(targetAcceleration_);
-  input_->max_jerk[0]            = std::abs(targetJerk_);
+  input_->max_velocity[0]        = absTargetVelLocal;
+  input_->max_acceleration[0]    = absTargetAcc;
+  input_->max_jerk[0]            = absTargetJerk;
   *trajBusy                      = updateRuckig();
   *actVelocity                   = output_->new_velocity[0];
   *actAcceleration               = output_->new_acceleration[0];
@@ -268,16 +276,19 @@ double ecmcTrajectoryS::moveStop(stopMode stopMode,
                                  double  *actVelocity,
                                  double  *actAcceleration,
                                  bool    *stopped) {
+  const double absTargetVelLocal  = std::abs(targetVelocityLocal_);
+  const double absTargetDecEmerg  = std::abs(targetDecelerationEmerg_);
+  const double absTargetDecNormal = std::abs(targetDeceleration_);
   input_->current_position[0]    = localCurrentPositionSetpoint_;
   input_->control_interface      = ControlInterface::Velocity;
   input_->target_velocity[0]     = 0;   // stop
   input_->target_acceleration[0] = 0;
-  input_->max_velocity[0]        = std::abs(targetVelocityLocal_);
+  input_->max_velocity[0]        = absTargetVelLocal;
 
   if (stopMode == ECMC_STOP_MODE_EMERGENCY) {
-    input_->max_acceleration[0] = std::abs(targetDecelerationEmerg_);
+    input_->max_acceleration[0] = absTargetDecEmerg;
   } else {
-    input_->max_acceleration[0] = std::abs(targetDeceleration_);
+    input_->max_acceleration[0] = absTargetDecNormal;
   }
 
   input_->max_jerk[0]  = targetJerk_;

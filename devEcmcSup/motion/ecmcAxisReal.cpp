@@ -68,6 +68,8 @@ void ecmcAxisReal::initVars() {
 
 void ecmcAxisReal::execute(bool masterOK) {
   ecmcAxisBase::preExecute(masterOK);
+  const bool axisEnabled = getEnabled();
+  const bool axisEnableCmd = getEnable();
 
   drv_->readEntries(masterOK);
 
@@ -101,8 +103,9 @@ void ecmcAxisReal::execute(bool masterOK) {
       data_.status_.currentPositionActual,
       data_.control_.moduloRange);
 
-  if (getEnabled() && masterOK) {
+  if (axisEnabled && masterOK) {
     double cntrOutput = 0;
+    mon_->setEnable(true);
 
     if (data_.control_.drvMode == ECMC_DRV_MODE_CSV) {
       
@@ -115,7 +118,6 @@ void ecmcAxisReal::execute(bool masterOK) {
         cntrOutput = cntrl_->control(data_.status_.cntrlError,
                                      data_.status_.currentVelocitySetpoint);
       }
-      mon_->setEnable(true);
       drv_->setVelSet(cntrOutput);  // Actual control
     } else if (data_.control_.drvMode == ECMC_DRV_MODE_CSP){
       
@@ -123,12 +125,10 @@ void ecmcAxisReal::execute(bool masterOK) {
       if(data_.control_.cspDrvEncIndex < 0) {
        
         // CSP without controller
-        mon_->setEnable(true);
         // Just sending setpoint, position loop in driver 
         drv_->setCspPosSet(data_.status_.currentPositionSetpoint);
       } else {        
         // CSP with controller
-        mon_->setEnable(true);
         if (data_.status_.statusWord_.busy ||  !mon_->getCtrlInDeadband()) {
           data_.status_.currentCSPPositionSetpointOffset = cntrl_->control(data_.status_.cntrlError,0);
         }
@@ -145,7 +145,7 @@ void ecmcAxisReal::execute(bool masterOK) {
 
     // Only update if enable cmd is low to avoid change of setpoint
     // during between enable and enabled
-    if (!getEnable() && !firstEnableDone_ && masterOK) {
+    if (!axisEnableCmd && !firstEnableDone_ && masterOK) {
       data_.status_.currentPositionSetpoint =
         data_.status_.currentPositionActual;
       traj_->setStartPos(data_.status_.currentPositionSetpoint);
@@ -184,9 +184,9 @@ void ecmcAxisReal::execute(bool masterOK) {
   // refreshExternalOutputSources();
   drv_->writeEntries();
 
-  if (std::abs(drv_->getScale()) > 0) {
-    data_.status_.currentvelocityFFRaw = cntrl_->getOutFFPart() /
-                                         drv_->getScale();
+  const double drvScale = drv_->getScale();
+  if (std::abs(drvScale) > 0) {
+    data_.status_.currentvelocityFFRaw = cntrl_->getOutFFPart() / drvScale;
   } else {
     data_.status_.currentvelocityFFRaw = 0;
   }
