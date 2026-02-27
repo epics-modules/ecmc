@@ -182,19 +182,20 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
   }
 
 
+  const int sampleTimeCycles = paramInfo_.sampleTimeCycles;
   if (!force) {
-    if (paramInfo_.sampleTimeCycles < 0) {
+    if (sampleTimeCycles < 0) {
       return ERROR_ASYN_NOT_REFRESHED_RETURN;
     }
 
-    if ((paramInfo_.sampleTimeCycles >= 0) &&
-        (asynUpdateCycleCounter_ < paramInfo_.sampleTimeCycles - 1)) {
+    if ((sampleTimeCycles >= 0) &&
+        (asynUpdateCycleCounter_ < sampleTimeCycles - 1)) {
       asynUpdateCycleCounter_++;
       return ERROR_ASYN_NOT_REFRESHED_RETURN;  // Not refreshed
     }
   }
 
-  if ((data == 0) || (bytes < 0)) {
+  if (data == 0) {
     return ERROR_ASYN_DATA_NULL;
   }
 
@@ -205,11 +206,13 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
   dataItem_.dataSize = bytes;
 
   asynStatus stat = asynError;
+  const int paramIndex = paramInfo_.index;
+  const asynParamType asynType = paramInfo_.asynType;
 
-  switch (paramInfo_.asynType) {
+  switch (asynType) {
   case asynParamUInt32Digital:
     stat = asynPortDriver_->setUIntDigitalParam(ECMC_ASYN_DEFAULT_LIST,
-                                                paramInfo_.index,
+                                                paramIndex,
                                                 *((epicsInt32 *)data),
                                                 0xFFFFFFFF);
     break;
@@ -219,19 +222,19 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
     switch (dataItem_.dataType) {
     case ECMC_EC_S8:
       stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,
-                                              paramInfo_.index,
+                                              paramIndex,
                                               *((epicsInt8 *)data));
       break;
 
     case ECMC_EC_S16:
       stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,
-                                              paramInfo_.index,
+                                              paramIndex,
                                               *((epicsInt16 *)data));
       break;
 
     default:
       stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,
-                                              paramInfo_.index,
+                                              paramIndex,
                                               *((epicsInt32 *)data));
     }
     break;
@@ -241,7 +244,7 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
     if (paramInfo_.cmdInt64ToFloat64) {
       if (dataItem_.dataSize == sizeof(int64_t)) {
         stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,
-                                               paramInfo_.index,
+                                               paramIndex,
                                                static_cast<epicsFloat64>(*(
                                                                            int64_t
                                                                            *)
@@ -253,7 +256,7 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
     if (paramInfo_.cmdUint64ToFloat64) {
       if (dataItem_.dataSize == sizeof(uint64_t)) {
         stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,
-                                               paramInfo_.index,
+                                               paramIndex,
                                                static_cast<epicsFloat64>(*(
                                                                            uint64_t
                                                                            *)
@@ -265,7 +268,7 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
     if (paramInfo_.cmdUint32ToFloat64) {
       if (dataItem_.dataSize == sizeof(uint32_t)) {
         stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,
-                                               paramInfo_.index,
+                                               paramIndex,
                                                static_cast<epicsFloat64>(*(
                                                                            uint32_t
                                                                            *)
@@ -277,7 +280,7 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
     if (paramInfo_.cmdFloat64ToInt32) {
       if (dataItem_.dataSize == sizeof(double)) {
         stat = asynPortDriver_->setIntegerParam(ECMC_ASYN_DEFAULT_LIST,
-                                                paramInfo_.index,
+                                                paramIndex,
                                                 static_cast<epicsInt32>(*(
                                                                           double
                                                                           *)
@@ -288,63 +291,63 @@ int ecmcAsynDataItem::refreshParam(int force, uint8_t *data, size_t bytes) {
 
     if (dataItem_.dataType == ECMC_EC_F32) {
       stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,
-                                             paramInfo_.index,
+                                             paramIndex,
                                              static_cast<epicsFloat64>(*(float
                                                                          *)data));
       break;
     }
 
     stat = asynPortDriver_->setDoubleParam(ECMC_ASYN_DEFAULT_LIST,
-                                           paramInfo_.index,
+                                           paramIndex,
                                            *((epicsFloat64 *)data));
     break;
 
   case asynParamInt8Array:
     stat = asynPortDriver_->doCallbacksInt8Array((epicsInt8 *)data,
                                                  bytes,
-                                                 paramInfo_.index,
+                                                 paramIndex,
                                                  0);
     break;
 
   case asynParamInt16Array:
     stat = asynPortDriver_->doCallbacksInt16Array((epicsInt16 *)data,
                                                   bytes / sizeof(epicsInt16),
-                                                  paramInfo_.index,
+                                                  paramIndex,
                                                   0);
     break;
 
   case asynParamInt32Array:
     stat = asynPortDriver_->doCallbacksInt32Array((epicsInt32 *)data,
                                                   bytes / sizeof(epicsInt32),
-                                                  paramInfo_.index,
+                                                  paramIndex,
                                                   0);
     break;
 
   case asynParamFloat32Array:
     stat = asynPortDriver_->doCallbacksFloat32Array((epicsFloat32 *)data,
                                                     bytes / sizeof(epicsFloat32),
-                                                    paramInfo_.index,
+                                                    paramIndex,
                                                     0);
     break;
 
   case asynParamFloat64Array:
     stat = asynPortDriver_->doCallbacksFloat64Array((epicsFloat64 *)data,
                                                     bytes / sizeof(epicsFloat64),
-                                                    paramInfo_.index,
+                                                    paramIndex,
                                                     0);
     break;
 
 #ifdef ECMC_ASYN_ASYNPARAMINT64
   case asynParamInt64:
     stat = asynPortDriver_->setInteger64Param(ECMC_ASYN_DEFAULT_LIST,
-                                              paramInfo_.index,
+                                              paramIndex,
                                               *((epicsInt64 *)data));
     break;
 
   case asynParamInt64Array:
     stat = asynPortDriver_->doCallbacksInt64Array((epicsInt64 *)data,
                                                   bytes / sizeof(epicsInt64),
-                                                  paramInfo_.index,
+                                                  paramIndex,
                                                   0);
     break;
 #endif // ECMC_ASYN_ASYNPARAMINT64
@@ -538,9 +541,10 @@ bool ecmcAsynDataItem::willRefreshNext() {
 asynStatus ecmcAsynDataItem::setAlarmParam(int alarm, int severity) {
   asynStatus stat;
   int oldAlarmStatus = 0;
+  const int paramIndex = getAsynParameterIndex();
 
   stat = asynPortDriver_->getParamAlarmStatus(ECMC_ASYN_DEFAULT_LIST,
-                                              getAsynParameterIndex(),
+                                              paramIndex,
                                               &oldAlarmStatus);
 
   if (stat != asynSuccess) {
@@ -551,7 +555,7 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm, int severity) {
 
   if (oldAlarmStatus != alarm) {
     stat = asynPortDriver_->setParamAlarmStatus(ECMC_ASYN_DEFAULT_LIST,
-                                                getAsynParameterIndex(),
+                                                paramIndex,
                                                 alarm);
 
     if (stat != asynSuccess) {
@@ -563,7 +567,7 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm, int severity) {
 
   int oldAlarmSeverity = 0;
   stat = asynPortDriver_->getParamAlarmSeverity(ECMC_ASYN_DEFAULT_LIST,
-                                                getAsynParameterIndex(),
+                                                paramIndex,
                                                 &oldAlarmSeverity);
 
   if (stat != asynSuccess) {
@@ -572,7 +576,7 @@ asynStatus ecmcAsynDataItem::setAlarmParam(int alarm, int severity) {
 
   if (oldAlarmSeverity != severity) {
     stat = asynPortDriver_->setParamAlarmSeverity(ECMC_ASYN_DEFAULT_LIST,
-                                                  getAsynParameterIndex(),
+                                                  paramIndex,
                                                   severity);
 
     if (stat != asynSuccess) {
@@ -650,6 +654,10 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t      *data,
                                           size_t        bytesToWrite,
                                           asynParamType type,
                                           size_t       *writtenBytes) {
+  if (!data || !writtenBytes) {
+    return asynError;
+  }
+
   if (!asynTypeSupported(type)) {
     LOGERR(
       "%s/%s:%d: ERROR: %s asyn type not supported (0x%x).\n",
@@ -667,8 +675,9 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t      *data,
   }
 
   size_t bytes = bytesToWrite;
+  const bool isArrayType = asynTypeIsArray(type);
 
-  if (asynTypeIsArray(type)) {
+  if (isArrayType) {
     if (bytes > ecmcMaxSize_) {
       bytes = ecmcMaxSize_;
     }
@@ -704,7 +713,7 @@ asynStatus ecmcAsynDataItem::writeGeneric(uint8_t      *data,
   }
 
   // Trigger callbacks if not array
-  if (!asynTypeIsArray(type)) {
+  if (!isArrayType) {
     return asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
                                                ECMC_ASYN_DEFAULT_ADDR);
   }
@@ -716,6 +725,10 @@ asynStatus ecmcAsynDataItem::readGeneric(uint8_t      *data,
                                          size_t        bytesToRead,
                                          asynParamType type,
                                          size_t       *readBytes) {
+  if (!data || !readBytes) {
+    return asynError;
+  }
+
   if (!asynTypeSupported(type)) {
     LOGERR(
       "%s/%s:%d: ERROR: %s asyn type not supported (0x%x).\n",
@@ -728,9 +741,10 @@ asynStatus ecmcAsynDataItem::readGeneric(uint8_t      *data,
   }
 
   size_t bytes = bytesToRead;
+  const bool isArrayType = asynTypeIsArray(type);
   *readBytes = 0;
 
-  if (asynTypeIsArray(type)) {
+  if (isArrayType) {
     if ((bytes > ecmcMaxSize_) && arrayCheckSize_) {
       bytes = ecmcMaxSize_;
     }

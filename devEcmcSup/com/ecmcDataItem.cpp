@@ -126,9 +126,11 @@ size_t ecmcDataItem::getEcmcDataMaxSize() {
 
 void ecmcDataItem::refresh() {
   // call callbacks to subscribers here
-  for (int i = 0; i <= callbackFuncsMaxIndex_; ++i) {
-    if (callbackFuncs_[i]) {
-      callbackFuncs_[i](dataItem_.data,
+  const int maxCallbackIndex = callbackFuncsMaxIndex_;
+  for (int i = 0; i <= maxCallbackIndex; ++i) {
+    ecmcDataUpdatedCallback callback = callbackFuncs_[i];
+    if (callback) {
+      callback(dataItem_.data,
                         dataItem_.dataSize,
                         dataItem_.dataType,
                         callbackObjs_[i]);
@@ -179,12 +181,17 @@ int ecmcDataItem::regDataUpdatedCallback(ecmcDataUpdatedCallback func,
 * (retuned by regDataUpdatedCallback())
 */
 void ecmcDataItem::deregDataUpdatedCallback(int handle) {
+  if ((handle < 0) || (handle >= ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS)) {
+    return;
+  }
+
   if (callbackFuncs_[handle]) {
     callbackFuncs_[handle] = NULL;
     callbackObjs_[handle]  = NULL;
   }
 
   // find highest assigned index (update callbackFuncsMaxIndex_)
+  callbackFuncsMaxIndex_ = 0;
   for (int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
     if (callbackFuncs_[i]) {
       callbackFuncsMaxIndex_ = i;

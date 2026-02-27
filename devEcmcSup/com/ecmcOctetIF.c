@@ -212,7 +212,8 @@ int CMDreadIt(char *outbuf, size_t outlen) {
 
   if (!outbuf || !outlen) return -1;
 
-  ret = snprintf(outbuf, outlen + 1, "%s", getEpicsBuffer()->buffer);
+  // snprintf size must match the actual destination buffer size.
+  ret = snprintf(outbuf, outlen, "%s", getEpicsBuffer()->buffer);
 
   if (ret < 0) {
     // printf("RET <0");
@@ -226,8 +227,8 @@ int CMDreadIt(char *outbuf, size_t outlen) {
     fprintf(stdout, "\"\n");
   }
 
-  if (ret >= outlen + 1) {
-    ret = outlen;  // snprintf max utilize buffer size minus one.
+  if (ret >= (int)outlen) {
+    ret = (int)outlen - 1;  // snprintf writes at most outlen-1 chars.
   }
   removeFromBuffer(getEpicsBuffer(), ret);
 

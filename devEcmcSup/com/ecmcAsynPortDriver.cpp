@@ -1228,17 +1228,18 @@ int32_t ecmcAsynPortDriver::calcFastestUpdateRate() {
   fastestParamUpdateCycles_ =
     (int32_t)(defaultSampleTimeMS_ / 1000.0 * mcuFrequency);
 
-  for (int i = 0; i < ecmcParamInUseCount_; i++) {
-    if (pEcmcParamInUseArray_[i]) {
-      if (!pEcmcParamInUseArray_[i]->linkedToAsynClient()) {
+  const int paramCount = ecmcParamInUseCount_;
+  for (int i = 0; i < paramCount; i++) {
+    ecmcAsynDataItem * const param = pEcmcParamInUseArray_[i];
+    if (param) {
+      if (!param->linkedToAsynClient()) {
         continue;
       }
 
-      if ((pEcmcParamInUseArray_[i]->getSampleTimeCycles() <
-           fastestParamUpdateCycles_) &&
-          (pEcmcParamInUseArray_[i]->getSampleTimeCycles() >= 0)) {
-        fastestParamUpdateCycles_ =
-          pEcmcParamInUseArray_[i]->getSampleTimeCycles();
+      const int32_t sampleCycles = param->getSampleTimeCycles();
+      if ((sampleCycles < fastestParamUpdateCycles_) &&
+          (sampleCycles >= 0)) {
+        fastestParamUpdateCycles_ = sampleCycles;
       }
     }
   }
@@ -1246,12 +1247,14 @@ int32_t ecmcAsynPortDriver::calcFastestUpdateRate() {
 }
 
 void ecmcAsynPortDriver::refreshAllInUseParamsRT() {
-  for (int i = 0; i < ecmcParamInUseCount_; i++) {
-    if (pEcmcParamInUseArray_[i]) {
-      if (!pEcmcParamInUseArray_[i]->linkedToAsynClient()) {
+  const int paramCount = ecmcParamInUseCount_;
+  for (int i = 0; i < paramCount; i++) {
+    ecmcAsynDataItem * const param = pEcmcParamInUseArray_[i];
+    if (param) {
+      if (!param->linkedToAsynClient()) {
         continue;
       }
-      pEcmcParamInUseArray_[i]->refreshParamRT(1);
+      param->refreshParamRT(1);
     }
   }
 }
