@@ -2842,7 +2842,10 @@ void ecmcMotorRecordAxis::updateError() {
 
     if (nErrorId) {
       /* Get the ErrorMessage to have it in the log file */
-      strcpy(&sErrorMessage[0], ecmcError::convertErrorIdToString(nErrorId));
+      snprintf(sErrorMessage,
+               sizeof(sErrorMessage),
+               "%s",
+               ecmcError::convertErrorIdToString(nErrorId));
       asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
                 "%ssErrorMessage(%d)=\"%s\"\n",
                 modNamEMC, axisNo_, sErrorMessage);
