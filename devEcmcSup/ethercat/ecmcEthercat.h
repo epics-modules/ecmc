@@ -143,8 +143,7 @@ int ecAddPdo(int      slaveIndex,
  *
  * \note Example: Add an EtherCAT entry for the velocity setpoint of an EL7037
  * stepper drive card.\n
- * "Cfg.EcAddEntryComplete(7,0x2,0x1b7d3052,1,2,0x1604,0x7010,0x21,16,
- * VELOCITY_SETPOINT)" //Command string to ecmcCmdParser.c\n
+ * "Cfg.EcAddEntryComplete(7,0x2,0x1b7d3052,1,2,0x1604,0x7010,0x21,16,VELOCITY_SETPOINT)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddEntryComplete(
   uint16_t slaveBusPosition,
@@ -220,13 +219,12 @@ int ecAddEntryComplete(
  *
  * \note Example: Add an EtherCAT entry for the actual position of an EL5101
  * incremental encoder card.\n
- * "Cfg.EcAddEntry(2,0x2,0x13ed3052,2,3,0x1a03,0x6010,0x10,U16,POSITION,1)"
+* "Cfg.EcAddEntryDT(2,0x2,0x13ed3052,2,3,0x1a03,0x6010,0x10,U16,POSITION,1)"
  * //Command string to ecmcCmdParser.c\n
  *
  * \note Example: Add an EtherCAT entry for the velocity setpoint of an EL7037
  * stepper drive card.\n
- * "Cfg.EcAddEntry(7,0x2,0x1b7d3052,1,2,0x1604,0x7010,0x21,S16,
- * VELOCITY_SETPOINT,1)" //Command string to ecmcCmdParser.c\n
+* "Cfg.EcAddEntryDT(7,0x2,0x1b7d3052,1,2,0x1604,0x7010,0x21,S16,VELOCITY_SETPOINT,1)" //Command string to ecmcCmdParser.c\n
  */
 int ecAddEntry(
   uint16_t slaveBusPosition,
@@ -272,7 +270,7 @@ int ecAddEntry(
 *
 * \note Example: Add an SDO for async reads and writes in runtime.\n
 *  Setting the input 1 as HWE enable for an EL70xx stepper drive:\n
-*  "Cfg.EcAddSdoAsync(3,0x8012,0x32,U8,"hwenable")" //Command string to ecmcCmdParser.c\n
+*  "Cfg.EcAddSdoAsync(3,0x8012,0x32,U8,hwenable)" //Command string to ecmcCmdParser.c\n
 */
 int ecAddSdoAsync(
   uint16_t slaveBusPosition,
@@ -411,7 +409,7 @@ int ecAddDataDT(
  *  \return 0 if success or otherwise an error code.\n
  *
  *  \note Example: Get memmap id.\n
- *  "EcGetMemMapId("ec0.s2.mm.CH1_ARRAY")" //Command string to ecmcCmdParser.c\n
+ *  "EcGetMemMapId(ec0.s2.mm.CH1_ARRAY)" //Command string to ecmcCmdParser.c\n
  */
 int ecGetMemMapId(char *memMapIDString,
                   int  *id);
@@ -633,23 +631,23 @@ int ecWriteSdo(uint16_t slavePosition,
 
 /** \brief Allow domain to be offline
  *
- *  \param[in] allow 0 ==dont't allow (default), 1 == allow
+ *  \param[in] allow 0 == do not allow (default), 1 == allow
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Allow current domain to be offline.
- * "Cfg.EcSetDomAllowOffline(1)" //Command string to ecmcCmdParser.c\n
+ * "Cfg.EcSetDomainAllowOffline(1)" //Command string to ecmcCmdParser.c\n
  */
 int ecSetDomAllowOffline(int allow);
 
 /** \brief Allow master to be offline
  *
- *  \param[in] allow 0 ==dont't allow (default), 1 == allow
+ *  \param[in] allow 0 == do not allow (default), 1 == allow
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Allow master to be offline.
- * "Cfg.EcSetEcAllowOffline(1)" //Command string to ecmcCmdParser.c\n
+ * "Cfg.EcSetAllowOffline(1)" //Command string to ecmcCmdParser.c\n
  */
 int ecSetEcAllowOffline(int allow);
 
@@ -696,7 +694,7 @@ int ecAddDomain(int rateCycles,
  * the slave, in the ESI slave description file or by using the etherlab
  * (www.etherlab.org) ethercat tool.\n
  *
- * \return 0 if success other wise an error code.\n
+ * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Read maximum current setting of the EL7037 stepper drive card
  * on slave position 2.\n
@@ -727,7 +725,7 @@ int ecReadSdo(uint16_t  slavePosition,
  * the slave, in the ESI slave description file or by using the etherlab
  * (www.etherlab.org) ethercat tool.\n
  *
- * \return 0 if success other wise an error code.\n
+ * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Verify maximum current setting of the EL7037 stepper drive card
  * on slave position 2 is set to 1000mA.\n
@@ -753,7 +751,7 @@ int ecVerifySdo(uint16_t slavePosition,
  * \note All configuration data can be found in the documentation of
  * the slave\n
  *
- * \return 0 if success other wise an error code.\n
+ * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Read data for drive 0
  * on slave position 2.\n
@@ -780,7 +778,7 @@ int ecReadSoE(uint16_t slavePosition,  /**< Slave position. */
  * \note All configuration data can be found in the documentation of
  * the slave\n
  *
- * \return 0 if success other wise an error code.\n
+ * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Read data for drive 0
  * on slave position 2.\n
@@ -1131,7 +1129,7 @@ int ecEnablePrintouts(int value);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Delay ethercat OK for 2000ms at startup
- *  "Cfg.ecSetDelayECOkAtStartup(2000)" //Command string to ecmcCmdParser.c\n
+ *  "Cfg.EcSetDelayECOkAtStartup(2000)" //Command string to ecmcCmdParser.c\n
  */
 int ecSetDelayECOkAtStartup(int milliseconds);
 
@@ -1172,7 +1170,7 @@ int ecPrintSlaveConfig(int slaveIndex);
  *
  *  \note Example 1: Link an EtherCAT entry configured as "OUTPUT_0" in slave 1 as
  *  status output for ethercat master.\n
- *   "Cfg.LinkEcEntryToEcStatusOutput(1,"OUTPUT_0")" //Command string to ecmcCmdParser.c\n
+ *   "Cfg.LinkEcEntryToEcStatusOutput(1,OUTPUT_0)" //Command string to ecmcCmdParser.c\n
  */
 int linkEcEntryToEcStatusOutput(int   slaveIndex,
                                 char *entryIDString);
@@ -1200,7 +1198,7 @@ int linkEcEntryToEcStatusOutput(int   slaveIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Verify that slave 3 is an EL5101 with a revision >= 0x04000000\n
- *   "Cfg.EcVerifySlave(0,3,0x2,0x13ed3052,0x04000000)" //Command string to ecmcCmdParser.c\n
+ *   "Cfg.EcSlaveVerify(0,3,0x2,0x13ed3052,0x04000000)" //Command string to ecmcCmdParser.c\n
  */
 int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
                   uint16_t slavePos,   /**< Slave position. */

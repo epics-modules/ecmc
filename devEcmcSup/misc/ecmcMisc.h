@@ -171,7 +171,7 @@ int appendStorageBuffer(int     indexStorage,
 
 /** \brief Set current data index of storage buffer.\n
  *
- * This function can be used to set teh current index of a data
+ * This function can be used to set the current index of a data
  * storage buffer. A subsequent append of data will start at this
  * position index in the buffer array.
  *

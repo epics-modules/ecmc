@@ -206,7 +206,7 @@ int setPLCExpr(int   index,
  *
  *  PLC variables:
  *   1.  plc<id>.enable               plc enable                       (rw)\n
- *                                    (end exe with "plc<id>.enable:=0#"\n
+ *                                    (end execution with "plc<id>.enable:=0#"\n
  *                                    Could be useful for startup\n
  *                                    sequences)\n
  *   2.  plc<id>.error                plc error                        (rw)\n
@@ -543,7 +543,7 @@ int getPLCEnable(int  index,
  * \return pointer to transformation expression.\n
  *
  * \note Example: Get PLC expression for plcIndex 5.\n
- * "getPLCExpr(5)" //Command string to ecmcCmdParser.c.\n
+ * "GetPLCExpr(5)" //Command string to ecmcCmdParser.c.\n
  */
 const char* getPLCExpr(int  axisIndex,
                        int *error);

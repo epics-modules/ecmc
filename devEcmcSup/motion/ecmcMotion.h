@@ -270,8 +270,7 @@ int getAxisCycleCounter(int  axisIndex,
  *
  * \return error code.\n
  *
- * \note Example: Get information of axis 3.\n
- * "GetAxisDebugInfoData(3)" //Command string to ecmcCmdParser.c.\n
+ * \note There is currently no command string in ecmcCmdParser.c for this API.\n
  *
  *  \todo  "TwinCAT syntax. Needs to be changed.\n
  */
@@ -1012,7 +1011,7 @@ int getAxisType(int  axisIndex,
 /** \brief Get axis trajectory transformation expression.\n
  *
  * The axis transformation expression is used for synchronization of axes. The
- * expression is a mathematical expression describing relation ship between
+ * expression is a mathematical expression describing relationship between
  * different axes.\n
  *
  * Example: "out:=sin(traj1+enc5)/500;".\n
@@ -1027,8 +1026,7 @@ int getAxisType(int  axisIndex,
  *
  * \return pointer to transformation expression.\n
  *
- * \note Example: Get trajectory transformation expression for axes 5.\n
- * "GetAxisTrajTransExpr(5)" //Command string to ecmcCmdParser.c.\n
+ * \note There is currently no command string in ecmcCmdParser.c for this API.\n
  */
 const char* getAxisTrajTransExpr(int  axisIndex,
                                  int *error);
@@ -1036,7 +1034,7 @@ const char* getAxisTrajTransExpr(int  axisIndex,
 /** \brief Get axis encoder transformation expression.\n
  *
  * The axis transformation expression is used for synchronization of axes. The
- * expression is a mathematical expression describing relation ship between
+ * expression is a mathematical expression describing relationship between
  * different axes.\n
  *
  * Example: "out:=sin(traj1+enc5)/500;".\n
@@ -1051,8 +1049,7 @@ const char* getAxisTrajTransExpr(int  axisIndex,
  *
  * \return pointer to transformation expression.\n
  *
- * \note Example: Get encoder transformation expression for axes 5.\n
- * "GetAxisEncTransExpr(5)" //Command string to ecmcCmdParser.c.\n
+ * \note There is currently no command string in ecmcCmdParser.c for this API.\n
  */
 const char* getAxisEncTransExpr(int  axisIndex,
                                 int *error);
@@ -1072,7 +1069,7 @@ const char* getAxisEncTransExpr(int  axisIndex,
  * \return pointer to transformation expression.\n
  *
  * \note Example: Get axis sync. PLC expression for axes 5.\n
- * "getAxisPLCExpr(5)" //Command string to ecmcCmdParser.c.\n
+ * "GetAxisPLCExpr(5)" //Command string to ecmcCmdParser.c.\n
  */
 const char* getAxisPLCExpr(int  axisIndex,
                            int *error);
@@ -1124,7 +1121,7 @@ int getAxisEncSource(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get axis enable command from other axis for axis 3.\n
- * "getAxisAllowCommandsFromPLC(3)" //Command string to ecmcCmdParser.c.\n
+ * "GetAxisAllowCommandsFromPLC(3)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisAllowCommandsFromPLC(int  axisIndex,
                                 int *value);
@@ -1140,7 +1137,7 @@ int getAxisAllowCommandsFromPLC(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Get axis enable command transform for axis 5.\n
- * "getAxisPLCEnable(5)" //Command string to ecmcCmdParser.c.\n
+ * "GetAxisPLCEnable(5)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisPLCEnable(int  axisIndex,
                      int *value);
@@ -1254,7 +1251,7 @@ int setAxisEnable(int axisIndex,
 /** \brief Set axis auto amplifier enable timeout time.\n
  *
  * \param[in] axisIndex  Axis index.\n
- * \param[in] timeS  Timeout [[s].\n
+ * \param[in] timeS  Timeout [s].\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -1266,7 +1263,7 @@ int setAxisAutoEnableTimeout(int axisIndex, double timeS);
 /** \brief Set axis auto amplifier disable after a defined idle time (axis not busy).\n
  *
  * \param[in] axisIndex  Axis index.\n
- * \param[in] timeS  idle time [[s].\n
+ * \param[in] timeS  idle time [s].\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -1285,7 +1282,7 @@ int setAxisAutoDisableAfterTime(int axisIndex, double timeS);
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Only allow positioning for axis 3.\n
- * "Cfg.setAxisEnableMotionFunctions(3,1,0,0)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisEnableMotionFunctions(3,1,0,0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEnableMotionFunctions(int axisIndex,
                                  int enablePos,
@@ -1770,8 +1767,7 @@ int setAxisHomeVelOffCam(int    axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set gear ratio setting for axis 3 to 1/7.\n
- * "Cfg.SetAxisGearRatio(3,1,7)" //Command string to ecmcCmdParser.c.\n
+ * \note There is currently no command string in ecmcCmdParser.c for this API.\n
  */
 /*int setAxisGearRatio(int    axisIndex,
                      double ratioNum,
@@ -1809,7 +1805,7 @@ int axisErrorReset(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable velocity filter for external setpoint position for axis 5.
- * "Cfg.SetAxisPLCTrajVelFilterEnable(5,1) //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisPLCTrajVelFilterEnable(5,1)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisPLCTrajVelFilterEnable(int axisIndex,
                                   int *enable);
@@ -1833,7 +1829,7 @@ int setAxisPLCTrajVelFilterEnable(int axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set filter size to 10 for for axis 7.\n
+ * \note Example: Set filter size to 10 for axis 7.\n
  * "Cfg.SetAxisPLCTrajVelFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisPLCTrajVelFilterSize(int axisIndex,
@@ -1868,7 +1864,7 @@ int setAxisPLCEncVelFilterEnable(int axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set filter size to 10 for for axis 7.\n
+ * \note Example: Set filter size to 10 for axis 7.\n
  * "Cfg.SetAxisPLCEncVelFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
  */
 int getAxisPLCEncVelFilterSize(int axisIndex,
@@ -1887,7 +1883,7 @@ int setAxisPLCEncVelFilterSize(int axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set filter size to 10 for for axis 7.\n
+ * \note Example: Set filter size to 10 for axis 7.\n
  * "Cfg.SetAxisEncVelFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncVelFilterSize(int axisIndex,
@@ -1925,7 +1921,7 @@ int getAxisEncPosFilterEnable(int axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set filter size to 10 for for axis 7.\n
+ * \note Example: Set filter size to 10 for axis 7.\n
  * "Cfg.SetAxisEncPosFilterSize(7,10)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncPosFilterSize(int axisIndex,
@@ -2439,7 +2435,7 @@ int setAxisCntrlDeadbandTime(int axisIndex,
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] kp         Prop gain.\n
- * \param[in] ki         Integarl gain.\n
+ * \param[in] ki         Integral gain.\n
  * \param[in] kd         Derivative gain.\n
  * \param[in] tol        Tolerance from target.\n
  *
@@ -2448,7 +2444,7 @@ int setAxisCntrlDeadbandTime(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set PID-controller params for use  abs(actpos - targpos)<tol
- * "Cfg.setAxisCntrlInnerParams(3,4.1,2,5,0.1)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisCntrlInnerParams(3,4.1,2,5,0.1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisCntrlInnerParams(int    axisIndex,
                             double kp,
@@ -2888,7 +2884,7 @@ int getAxisMonStallTimeFactor(int     axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set 1000 cycles minimum stall timeout for axis 7.\n
- * "Cfg.setAxisMonStallMinTimeOut(7,1000)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisMonStallMinTimeOut(7,1000)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonStallMinTimeOut(int axisIndex,
                               double timeCycles);
@@ -3198,10 +3194,10 @@ int getAxisMonStopAtAnyLimit(int  axisIndex,
  * 
  * \note Example: Set control word to 0b10101 (21dec) and 5 bits:\n
  *       When latch needs to be armed, 5 bits of 21 dec will be\n
- *       written to the encoder control word, starting at teh bit\n
+ *       written to the encoder control word, starting at the bit\n
  *       defined when linking the encoder control word\n
  *       This is an example for EL7062 terminal.\n
- * "Cfg.setAxisEncHomeLatchArmControlWord(4,21,5)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisEncHomeLatchArmControlWord(4,21,5)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncHomeLatchArmControlWord(int axisIndex, uint64_t control, int bits);
 
@@ -3216,7 +3212,7 @@ int setAxisEncHomeLatchArmControlWord(int axisIndex, uint64_t control, int bits)
  *    0: disable
  *    1: enable (default)
  *
- * \note Example: Disable latch limit for for axis 4.\n
+ * \note Example: Disable latch limit for axis 4.\n
  * "Cfg.SetAxisMonLatchLimit(4,0)" //Command string to ecmcCmdParser.c.\n
  * \return 0 if success or otherwise an error code.\n
  */
@@ -3356,7 +3352,7 @@ int setAxisMonEnableCntrlOutHLMon(int axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Set maximum allowed output to 2000 for for axis 3.\n
+ * \note Example: Set maximum allowed output to 2000 for axis 3.\n
  * "Cfg.SetAxisMonCntrlOutHL(3,2000)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonCntrlOutHL(int    axisIndex,
@@ -3658,7 +3654,7 @@ int getAxisMonHomeSwitchPolarity(int  axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Enable command from PLC for axis 3.\n
- * "Cfg.setAxisAllowCommandsFromPLC(3,1)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisAllowCommandsFromPLC(3,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisAllowCommandsFromPLC(int axisIndex,
                                 int value);
@@ -3756,38 +3752,38 @@ int createAxis(int axisIndex,
  * \param[in] name name of group.\n
  *
  * \note Example: Create an axis group called 'VirtAxes'.\n
- *  "Cfg.AddAxisGroup('VirtAxes')" //Command string to ecmcCmdParser.c\n
+ *  "Cfg.AddAxisGroup(VirtAxes)" //Command string to ecmcCmdParser.c\n
  */
 int addAxisGroup(const char *name);
 
-/** \brief Adds an axis to an group
+/** \brief Adds an axis to a group
  *
  * \param[in] index index of axis to add.\n
  * \param[in] name name of group.\n
  * \param[in] createGrp create group if not found.\n
  *
  * \note Example: Add axis 1 to group called 'VirtAxes' at group index 1.\n
- *  "Cfg.AddAxisToGroupByName(1,'VirtAxes',1)" //Command string to ecmcCmdParser.c\n
+ *  "Cfg.AddAxisToGroupByName(1,VirtAxes,1)" //Command string to ecmcCmdParser.c\n
  */
 int addAxisToGroupByNameCreate(int axIndex, const char *grpName, int createGrp);
 
-/** \brief Adds an axis to an group
+/** \brief Adds an axis to a group
  *
  * \param[in] index index of axis to add.\n
  * \param[in] name name of group.\n
  *
  * \note Example: Add axis 1 to group called 'VirtAxes' at group index 1.\n
- *  "Cfg.AddAxisToGroupByName(1,'VirtAxes')" //Command string to ecmcCmdParser.c\n
+ *  "Cfg.AddAxisToGroupByName(1,VirtAxes)" //Command string to ecmcCmdParser.c\n
  */
 int addAxisToGroupByName(int axIndex, const char *grpName);
 
-/** \brief Adds an axis to an group
+/** \brief Adds an axis to a group
  *
  * \param[in] index index of axis to add.\n
  * \param[in] grpIndex index of group.\n
  *
- * \note Example: Add axis 1 to group called 'VirtAxes' at group index 1.\n
- *  "Cfg.AddAxisToGroupByName(1,'VirtAxes')" //Command string to ecmcCmdParser.c\n
+ * \note Example: Add axis 1 to group with index 1.\n
+ *  "Cfg.AddAxisToGroupByIndex(1,1)" //Command string to ecmcCmdParser.c\n
  */
 int addAxisToGroupByIndex(int axIndex, int grpIndex);
 
@@ -3797,7 +3793,7 @@ int addAxisToGroupByIndex(int axIndex, int grpIndex);
  * \param[out] index index of group.\n
  *
  * \note Example: Add axis 1 to group called 'VirtAxes' at group index 1.\n
- *  "GetAxisGroupIndexByName('VirtAxes')" //Command string to ecmcCmdParser.c\n
+ *  "GetAxisGroupIndexByName(VirtAxes)" //Command string to ecmcCmdParser.c\n
  */
 int getAxisGroupIndexByName(const char* grpName, int *index);
 
@@ -3911,7 +3907,7 @@ int linkEcEntryToAxisDrv(int   slaveBusPosition,
  *
  *  \note Example 1: Link an EtherCAT entry configured as "INPUT_0" in slave 1 as
  *  forward limit switch entry for the monitor object of axis 5.\n
- *   "Cfg.LinkEcEntryToAxisMonitor(1,"INPUT_0",5,1,0)" //Command string to ecmcCmdParser.c\n
+ *   "Cfg.LinkEcEntryToAxisMonitor(1,INPUT_0,5,1,0)" //Command string to ecmcCmdParser.c\n
  *
  *  Example 2: If an axis is not equipped with limit switches the entries for
  *  limit switches needs to be linked to the simulation entries. The
@@ -3925,7 +3921,7 @@ int linkEcEntryToAxisMon(int   slaveBusPosition,
                          int   monitorEntryIndex,
                          int   entryBitIndex);
 
-/** \brief Links an EtherCAT entry to the an axis object for
+/** \brief Links an EtherCAT entry to an axis object for
  *   status output\n
  *
  *  The output will be high when the axis object is without error code and
@@ -3944,14 +3940,14 @@ int linkEcEntryToAxisMon(int   slaveBusPosition,
  *
  *  \note Example 1: Link an EtherCAT entry configured as "OUTPUT_0" in slave 1 as
  *  status output for axis with index 2.\n
- *   "Cfg.LinkEcEntryToAxisStatusOutput(1,"OUTPUT_0",2)" //Command string to ecmcCmdParser.c\n
+ *   "Cfg.LinkEcEntryToAxisStatusOutput(1,OUTPUT_0,2)" //Command string to ecmcCmdParser.c\n
  */
 
 int linkEcEntryToAxisStatusOutput(int   slaveIndex,
                                   char *entryIDString,
                                   int   axisIndex);
 
-/** \brief Links an EtherCAT entry to the an axis object for \n
+/** \brief Links an EtherCAT entry to an axis object for \n
  *   setting drive mode\n
  *
  *  \param[in] slaveIndex Position of the EtherCAT slave on the bus.\n
@@ -3982,7 +3978,7 @@ int linkEcEntryToAxisSeqAutoModeSet(int   slaveIndex,
  *  \param[in] entryIdString String for addressing purpose (see command
  *                      "Cfg.EcAddEntryComplete() for more information").\n
  *  \param[in] entryIndex The function.\n
- *  \param[in] bitIndex   Teh bit to use (default 0).\n
+ *  \param[in] bitIndex   The bit to use (default 0).\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -4004,7 +4000,7 @@ int linkEcEntryToPVTController(int   slaveIndex,
 int setPVTControllerTrgDurMs(double durationMs);
 
    
-/** \brief Links an EtherCAT entry to the an axis object for \n
+/** \brief Links an EtherCAT entry to an axis object for \n
  *   reading actual drive mode\n
  *
  *  \param[in] slaveIndex Position of the EtherCAT slave on the bus.\n
@@ -4026,7 +4022,7 @@ int linkEcEntryToAxisSeqAutoModeAct(int   slaveIndex,
 
 /** \brief Set axis auto mode command for homing.\n
  *
- * Only relveant if an ethercat entry have been linked with
+ * Only relevant if an EtherCAT entry has been linked with
  * "linkEcEntryToAxisSeqAutoModeSet()"
  *
  * \param[in] axisIndex  Axis index.\n
@@ -4043,7 +4039,7 @@ int setAxisAutoModeCmdHoming(int axisIndex,
 
 /** \brief Set axis auto mode command for motion.\n
  *
- * Only relveant if an ethercat entry have been linked with
+ * Only relevant if an EtherCAT entry has been linked with
  * "linkEcEntryToAxisSeqAutoModeSet()"
  *
  * \param[in] axisIndex  Axis index.\n
@@ -4052,7 +4048,7 @@ int setAxisAutoModeCmdHoming(int axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set drive mode to 18 for when homing.
- * "Cfg.setAxisAutoModeCmdMotion(3,18)" //Command string to ecmcCmdParser.c.\n
+ * "Cfg.SetAxisAutoModeCmdMotion(3,18)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisAutoModeCmdMotion(int axisIndex,
                              int cmd);
@@ -4236,14 +4232,14 @@ void* getAxisPointer(int  axisIndex);
  * \param[in] index index of this state machine.\n
  * \param[in] name name of this state machine.\n
  * \param[in] masterGrpName name of master group.\n
- * \param[in] slaveGrpName name of slave grouop.\n
+ * \param[in] slaveGrpName name of slave group.\n
  * \param[in] autoDisableMasters Auto disable Masters when not busy.\n
  * \param[in] autoDisableSlaves Auto disable Slaves when not busy.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example:
- *  "Cfg.createMasterSlaveSM(1,'SlitSystemSM','Virt','Phys')" //Command string to ecmcCmdParser.c\n
+ *  "Cfg.CreateMasterSlaveSM(1,SlitSystemSM,Virt,Phys,0,0)" //Command string to ecmcCmdParser.c\n
  */
 int createMasterSlaveSM(int index,
                         const char *name,

@@ -25,13 +25,13 @@ extern "C" {
 /** \brief Load a ecmc plugin.\n
  *
  * \param[in] pluginId index of plugin.
- * \param[in] filenameWP Filename of sharded lib with path.
+ * \param[in] filenameWP Filename of shared lib with path.
  * \param[in] config configuration string sent to plugin on load.
  *
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Create and load a plugin at index 0.\n
- *  "Cfg.LoadPlugin(0,./ecmcExampleLip.so,"TEST=10")" //Command string to ecmcCmdParser.c\n
+ *  "Cfg.LoadPlugin(0,./ecmcExampleLib.so)" //Command string to ecmcCmdParser.c\n
  */
 int loadPlugin(int         pluginId,
                const char *filenameWP,
@@ -50,7 +50,7 @@ int reportPlugin(int pluginId);
 
 /** \brief Load safety plugin to ecmc (executes just before data is sent to the bus).\n
  *
- * \param[in] filenameWP Filename of sharded lib with path.
+ * \param[in] filenameWP Filename of shared lib with path.
  * \param[in] config configuration string sent to plugin on load.
  *
  * \return 0 if success or otherwise an error code.\n
@@ -58,7 +58,7 @@ int reportPlugin(int pluginId);
  * \note This plugin can only be loaded once.
  *
  * \note Example: Create and load a plugin at index 0.\n
- *  "Cfg.LoadSafetyPlugin(./ecmcExampleLip.so,"TEST=10")" //Command string to ecmcCmdParser.c\n
+ *  "Cfg.LoadSafetyPlugin(./ecmcExampleLib.so,TEST=10)" //Command string to ecmcCmdParser.c\n
  */
 int loadSafetyPlugin(const char *filenameWP,
                      const char *configStr);
