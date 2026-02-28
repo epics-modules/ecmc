@@ -27,6 +27,7 @@ ecmcTrajectoryBase::ecmcTrajectoryBase(ecmcAxisData *axisData,
     exit(EXIT_FAILURE);
   }
   sampleTime_ = sampleTime;
+  invSampleTime_ = sampleTime > 0 ? 1.0 / sampleTime : 0.0;
 }
 
 ecmcTrajectoryBase::~ecmcTrajectoryBase() {}
@@ -40,6 +41,7 @@ void ecmcTrajectoryBase::initVars() {
   targetDecelerationEmerg_     = 0;
   targetJerk_                  = 0;
   sampleTime_                  = 1;
+  invSampleTime_               = 1;
   posSetMinus1_                = 0;
   targetPosition_              = 0;
   currentPositionSetpoint_     = 0;

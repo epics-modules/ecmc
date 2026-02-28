@@ -122,6 +122,7 @@ class ecmcAxisGroup : public ecmcError {
     std::vector<ecmcAxisBase*>  axes_;
     size_t axesCounter_;
     std::vector<int> axesIds_;
+    std::vector<bool> axisInGroup_;
     bool blocked_;
 };
 

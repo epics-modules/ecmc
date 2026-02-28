@@ -62,6 +62,7 @@ public:
   void         setScaleNum(double scaleNum);
   int          setScaleDenom(double scaleDenom);
   double       getScale();
+  double       getInvScale();
   int          setVelSet(double vel);
   double       getVelSet();
   int          setVelSetRaw(int rawVel);
@@ -97,6 +98,7 @@ protected:
   bool enableAmpCmdOld_;
   int stateMachineTimeoutCycles_;
   double scale_;
+  double invScale_;
   double scaleNum_;
   double scaleDenom_;
   double velSet_;

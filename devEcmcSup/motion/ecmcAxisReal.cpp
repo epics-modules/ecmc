@@ -186,7 +186,7 @@ void ecmcAxisReal::execute(bool masterOK) {
 
   const double drvScale = drv_->getScale();
   if (std::abs(drvScale) > 0) {
-    data_.status_.currentvelocityFFRaw = cntrl_->getOutFFPart() / drvScale;
+    data_.status_.currentvelocityFFRaw = cntrl_->getOutFFPart() * drv_->getInvScale();
   } else {
     data_.status_.currentvelocityFFRaw = 0;
   }

@@ -193,6 +193,7 @@ protected:
   double targetPosition_;
   double targetJerk_;
   double sampleTime_;
+  double invSampleTime_;
   double posSetMinus1_;
   double currentPositionSetpoint_;
   double currentVelocitySetpoint_;

@@ -25,6 +25,7 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
   // Clear error state after external pointers are valid to avoid null deref in reset
   errorReset();
   sampleTimeMs_ = sampleTime * 1000;
+  invSampleTime_ = sampleTime > 0 ? 1.0 / sampleTime : 0.0;
   delayTimeS_ = 2 * sampleTime;  // 2 cycles delay as default
   
 
@@ -71,10 +72,12 @@ void ecmcEncoder::initVars() {
   rawPosUintOld_          = 0;
   rawPosUint_             = 0;
   scale_                  = 0;
+  invScale_               = 0;
   engOffset_              = 0;
   actPos_                 = 0;
   actPosOld_              = 0;
   sampleTimeMs_           = 1;
+  invSampleTime_          = 0;
   actVel_                 = 0;
   actPosLocal_            = 0;
   actVelLocal_            = 0;
@@ -213,6 +216,7 @@ int ecmcEncoder::setScaleNum(double scaleNum) {
 
   if (std::abs(scaleDenom_) > 0) {
     scale_ = scaleNum_ / scaleDenom_;
+    invScale_ = 1.0 / scale_;
   }
   return 0;
 }
@@ -227,6 +231,7 @@ int ecmcEncoder::setScaleDenom(double scaleDenom) {
                       ERROR_ENC_SCALE_DENOM_ZERO);
   }
   scale_ = scaleNum_ / scaleDenom_;
+  invScale_ = 1.0 / scale_;
   return 0;
 }
 
@@ -243,7 +248,7 @@ void ecmcEncoder::setActPos(double pos) {
   engOffset_       = 0;
   rawTurnsOld_     = 0;
   rawTurns_        = 0;
-  rawPosOffset_    = pos / scale_ - rawPosUint_;
+  rawPosOffset_    = pos * invScale_ - rawPosUint_;
   rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
 
   actPosOld_   = pos;
@@ -542,51 +547,52 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
     actPosOld_ = actPosLocal_;
   }
 
+  const double moduloRange = data_->control_.moduloRange;
   // Check modulo
-  if (data_->control_.moduloRange != 0) {
-    if (actPosLocal_ >= data_->control_.moduloRange) {
-      actPosLocal_ = actPosLocal_ - data_->control_.moduloRange;
+  if (moduloRange != 0) {
+    if (actPosLocal_ >= moduloRange) {
+      actPosLocal_ = actPosLocal_ - moduloRange;
 
       // Reset stuff to be able to run forever
       engOffset_       = 0;
       rawTurnsOld_     = 0;
       rawTurns_        = 0;
-      rawPosOffset_    = actPosLocal_ / scale_ - rawPosUint_;
+      rawPosOffset_    = actPosLocal_ * invScale_ - rawPosUint_;
       rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
     }
 
     if (actPosLocal_ < 0) {
-      actPosLocal_ = data_->control_.moduloRange + actPosLocal_;
+      actPosLocal_ = moduloRange + actPosLocal_;
 
       // Reset stuff to be able to run forever
       engOffset_       = 0;
       rawTurnsOld_     = 0;
       rawTurns_        = 0;
-      rawPosOffset_    = actPosLocal_ / scale_ - rawPosUint_;
+      rawPosOffset_    = actPosLocal_ * invScale_ - rawPosUint_;
       rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
     }
   }
 
   if (enablePositionFilter_) {
     actPosLocal_ = positionFilter_->getFiltPos(actPosLocal_,
-                                               data_->control_.moduloRange);
+                                               moduloRange);
   }
-  double distTraveled =  actPosLocal_ - actPosOld_;
+  double distTraveled = actPosLocal_ - actPosOld_;
 
-  if (data_->control_.moduloRange != 0) {
+  if (moduloRange != 0) {
     double modThreshold = FILTER_POS_MODULO_OVER_UNDER_FLOW_LIMIT *
-                          data_->control_.moduloRange;
+                          moduloRange;
 
-    if (actPosLocal_ - actPosOld_ > modThreshold) {
-      distTraveled = actPosLocal_ - actPosOld_ - data_->control_.moduloRange;
-    } else if (actPosLocal_ - actPosOld_ < -modThreshold) {
-      distTraveled = actPosLocal_ - actPosOld_ + data_->control_.moduloRange;
+    if (distTraveled > modThreshold) {
+      distTraveled -= moduloRange;
+    } else if (distTraveled < -modThreshold) {
+      distTraveled += moduloRange;
     }
   }
   if(enableVelocityFilter_) {
     actVelLocal_ = velocityFilter_->getFiltVelo(distTraveled);
   } else {
-    actVelLocal_ = distTraveled/data_->status_.sampleTime;
+    actVelLocal_ = distTraveled * invSampleTime_;
   }
   return 0;
 }

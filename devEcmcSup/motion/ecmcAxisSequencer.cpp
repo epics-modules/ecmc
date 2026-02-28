@@ -1574,7 +1574,7 @@ int ecmcAxisSequencer::seqHoming5() {  // nCmdData==5
       if (mon_->getAtTarget()) {
         double currPos =
           getPrimEnc()->getActPos() -
-          ((homePosLatch2_ + homePosLatch1_) / 2) +
+          ((homePosLatch2_ + homePosLatch1_) * 0.5) +
           homePosition_;
         finalizeHomingSeq(currPos);
       }
@@ -1758,7 +1758,7 @@ int ecmcAxisSequencer::seqHoming6() {  // nCmdData==6
       if (mon_->getAtTarget()) {
         double currPos =
           getPrimEnc()->getActPos() -
-          ((homePosLatch2_ + homePosLatch1_) / 2) +
+          ((homePosLatch2_ + homePosLatch1_) * 0.5) +
           homePosition_;
         finalizeHomingSeq(currPos);
       }
@@ -2056,7 +2056,7 @@ int ecmcAxisSequencer::seqHoming9() {  // nCmdData==9
       if (mon_->getAtTarget()) {
         double currPos =
           getPrimEnc()->getActPos() -
-          ((homePosLatch2_ + homePosLatch1_) / 2) +
+          ((homePosLatch2_ + homePosLatch1_) * 0.5) +
           homePosition_;
         finalizeHomingSeq(currPos);
       }
@@ -2204,7 +2204,7 @@ int ecmcAxisSequencer::seqHoming10() {  // nCmdData==10
       if (mon_->getAtTarget()) {
         double currPos =
           getPrimEnc()->getActPos() -
-          ((homePosLatch2_ + homePosLatch1_) / 2) +
+          ((homePosLatch2_ + homePosLatch1_) * 0.5) +
           homePosition_;
         finalizeHomingSeq(currPos);
       }

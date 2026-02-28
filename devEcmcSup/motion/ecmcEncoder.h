@@ -206,11 +206,13 @@ protected:
   double scaleNum_;
   double scaleDenom_;
   double scale_;
+  double invScale_;
   double engOffset_;
   double actPos_;
   double actPosLocal_;
   double actPosOld_;
   double sampleTimeMs_;
+  double invSampleTime_;
   double actVel_;
   double actVelLocal_;
   bool homed_;

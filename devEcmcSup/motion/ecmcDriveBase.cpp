@@ -47,6 +47,7 @@ ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
 void ecmcDriveBase::initVars() {
   errorReset();
   scale_                     = 0;
+  invScale_                  = 0;
   scaleNum_                  = 0;
   scaleDenom_                = 0;
   velSet_                    = 0;
@@ -106,7 +107,7 @@ int ecmcDriveBase::setVelSet(double vel) {
     return 0;
   }
   velSet_                                   = vel;
-  data_->status_.currentVelocitySetpointRaw = velSet_ / scale_;
+  data_->status_.currentVelocitySetpointRaw = velSet_ * invScale_;
   return 0;
 }
 
@@ -120,7 +121,7 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
   }
 
   if (data_->status_.statusWord_.enabled && data_->status_.statusWord_.enable) {
-    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ +
+    data_->status_.currentPositionSetpointRaw = cspPosSet_ * invScale_ +
                                                 cspRawPosOffset_;
   } else {
     data_->status_.currentPositionSetpointRaw = cspRawActPos_;
@@ -129,7 +130,7 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
   // Calculate new offset
   if (data_->status_.statusWord_.enable && !enableCmdOld_) {
     setCspRecalcOffset(cspPosSet_);
-    data_->status_.currentPositionSetpointRaw = cspPosSet_ / scale_ +
+    data_->status_.currentPositionSetpointRaw = cspPosSet_ * invScale_ +
                                                 cspRawPosOffset_;
   }
 
@@ -140,13 +141,13 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
 void ecmcDriveBase::setCspRef(int64_t posRaw, double posAct,  double posSet) {
   cspRawActPos_    = posRaw;
   cspActPos_       = posAct;
-  cspRawPosOffset_ = cspRawActPos_ - posSet / scale_;  // Raw
+  cspRawPosOffset_ = cspRawActPos_ - posSet * invScale_;  // Raw
   setCspPosSet(posSet);
 }
 
 // Recalculate offset
 int ecmcDriveBase::setCspRecalcOffset(double posEng) {
-  cspRawPosOffset_ = cspRawActPos_ - posEng / scale_;  // RawZ
+  cspRawPosOffset_ = cspRawActPos_ - posEng * invScale_;  // RawZ
   return 0;
 }
 
@@ -163,6 +164,7 @@ void ecmcDriveBase::setScaleNum(double scaleNum) {
 
   if (std::abs(scaleDenom_) > 0) {
     scale_ = scaleNum_ / scaleDenom_;
+    invScale_ = 1.0 / scale_;
   }
 }
 
@@ -177,11 +179,16 @@ int ecmcDriveBase::setScaleDenom(double scaleDenom) {
                       ECMC_SEVERITY_EMERGENCY);
   }
   scale_ = scaleNum_ / scaleDenom_;
+  invScale_ = 1.0 / scale_;
   return 0;
 }
 
 double ecmcDriveBase::getScale() {
   return scale_;
+}
+
+double ecmcDriveBase::getInvScale() {
+  return invScale_;
 }
 
 double ecmcDriveBase::getVelSet() {
@@ -251,6 +258,8 @@ int ecmcDriveBase::getBrakeCloseAheadTime() {
 }
 
 void ecmcDriveBase::writeEntries() {
+  const bool localEnabled = getEnabledLocal();
+
   if (!driveInterlocksOK() && data_->status_.statusWord_.enable) {
     data_->status_.statusWord_.enable = false;
     data_->control_.controlWord_.enableCmd = false;
@@ -264,13 +273,15 @@ void ecmcDriveBase::writeEntries() {
   // Update enable command
   if (enableBrake_) {
     // also wait for brakeOutputCmd_
-    data_->status_.statusWord_.enabled = getEnabledLocal() && brakeOutputCmd_;
+    data_->status_.statusWord_.enabled = localEnabled && brakeOutputCmd_;
     updateBrakeState();
   } else {
     // No brake
-    data_->status_.statusWord_.enabled = getEnabledLocal();
+    data_->status_.statusWord_.enabled = localEnabled;
     enableAmpCmd_          = data_->status_.statusWord_.enable;
   }
+
+  const bool localEnabledNow = getEnabledLocal();
 
   int errorCode = 0;
   // will only write the number of bits configured
@@ -362,7 +373,7 @@ void ecmcDriveBase::writeEntries() {
   }
 
   // Timeout?
-  if (!getEnabledLocal() && data_->status_.statusWord_.enable) {
+  if (!localEnabledNow && data_->status_.statusWord_.enable) {
     cycleCounterBase_++;
 
     if (cycleCounterBase_ > stateMachineTimeoutCycles_) {
@@ -380,7 +391,7 @@ void ecmcDriveBase::writeEntries() {
   }
 
   // Enabled lost?
-  if (!getEnabledLocal() && localEnabledOld_ && data_->status_.statusWord_.enable) {
+  if (!localEnabledNow && localEnabledOld_ && data_->status_.statusWord_.enable) {
     data_->status_.statusWord_.enable = false;
     enableAmpCmd_          = false;
     LOGERR(
@@ -396,7 +407,7 @@ void ecmcDriveBase::writeEntries() {
     }
   }
 
-  localEnabledOld_ = getEnabledLocal();
+  localEnabledOld_ = localEnabledNow;
 
   // Enable command sent to amplifier
   // (if brake is not used then enableAmpCmdOld_==enableCmdOld_)
@@ -947,4 +958,3 @@ void ecmcDriveBase::setCspEnc(ecmcEncoder * enc) {
 int ecmcDriveBase::hwReady() {
   return 1;
 }
-

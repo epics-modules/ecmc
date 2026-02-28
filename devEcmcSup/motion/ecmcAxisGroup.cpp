@@ -17,6 +17,7 @@ ecmcAxisGroup::ecmcAxisGroup(int index, const char *name){
   axesCounter_ = 0;
   index_ = index;
   blocked_ = false;
+  axisInGroup_.assign(ECMC_MAX_AXES, false);
   printf("ecmcAxisGroup: Created axis group[%d] %s.\n", index_, name_.c_str());
 };
 
@@ -35,9 +36,13 @@ void ecmcAxisGroup::addAxis(ecmcAxisBase *axis){
   }
   // Keep this container non-null so hot RT loops can avoid per-element null checks.
   axes_.push_back(axis);
-  axesIds_.push_back(axis->getAxisID());
+  const int axisId = axis->getAxisID();
+  axesIds_.push_back(axisId);
+  if ((axisId >= 0) && (axisId < ECMC_MAX_AXES)) {
+    axisInGroup_[axisId] = true;
+  }
   axesCounter_++;
-  printf("ecmcAxisGroup: Added axis %d to group[%d] %s.\n", axis->getAxisID(),index_,name_.c_str());
+  printf("ecmcAxisGroup: Added axis %d to group[%d] %s.\n", axisId,index_,name_.c_str());
 };
 
 // Check if all axes in group are enable
@@ -174,6 +179,11 @@ void ecmcAxisGroup::halt(){
 
 // Check if axis is in group
 bool ecmcAxisGroup::inGroup(int axisIndex){
+  if ((axisIndex >= 0) && (axisIndex < ECMC_MAX_AXES)) {
+    return axisInGroup_[axisIndex];
+  }
+
+  // Out-of-range lookup fallback keeps behavior for non-standard ids.
   for(const int& i : axesIds_) {
     if(i == axisIndex)  {
       return 1;
