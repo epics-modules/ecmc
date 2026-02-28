@@ -748,7 +748,7 @@ asynStatus ecmcMotorRecordAxis::move(double position,
                                      double minVelocity,
                                      double maxVelocity,
                                      double acceleration) {
-  newCmd();
+  bool commandAccepted = false;
   if (drvlocal.axisPrintDbg) {
     LOGERR(
         "%s/%s:%d: Axis[%d]: move(): tgtpos=%lf, rel=%d, velo = %lf..%lf, acc=%lf\n",
@@ -832,13 +832,28 @@ asynStatus ecmcMotorRecordAxis::move(double position,
                                                         acceleration);
   }
 
+  if (!errorCode) {
+    // Latch command timing while RT mutex is still held so poll() cannot
+    // observe accepted motion with stale moveReady state.
+    drvlocal.moveReady = false;
+    ecmcCycleCounterAtNewCmd_ = drvlocal.ecmcAxis->getCycleCounter();
+#ifndef motorWaitPollsBeforeReadyString
+    drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
+#endif // ifndef motorWaitPollsBeforeReadyString
+    commandAccepted = true;
+  }
+
   //printf("Axis[%d]:ecmcMotorRecordAxis::move(): ecmc busy %d\n", axisNo_,drvlocal.ecmcAxis->getBusy());
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-#ifndef motorWaitPollsBeforeReadyString
-  drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
-#endif // ifndef motorWaitPollsBeforeReadyString
+  if (commandAccepted) {
+    // update motor record
+    setIntegerParam(pC_->motorStatusMoving_, 1);
+    setIntegerParam(pC_->motorStatusDone_,   0);
+    callParamCallbacks();
+  }
+
   return errorCode == 0 ? asynSuccess : asynError;
 }
 
@@ -853,7 +868,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
                                      double maxVelocity,
                                      double acceleration,
                                      int    forwards) {
-   newCmd();
+  bool commandAccepted = false;
   // cmd, nCmddata,homepos,velhigh,vellow,acc
   //printf("velo min max acc= %lf %lf, %lf \n",minVelocity,maxVelocity,acceleration);
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
@@ -991,11 +1006,26 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
                                            accHom,
                                            accHom);
 
+  if (!errorCode) {
+    // Latch command timing while RT mutex is still held so poll() cannot
+    // observe accepted motion with stale moveReady state.
+    drvlocal.moveReady = false;
+    ecmcCycleCounterAtNewCmd_ = drvlocal.ecmcAxis->getCycleCounter();
+#ifndef motorWaitPollsBeforeReadyString
+    drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
+#endif // ifndef motorWaitPollsBeforeReadyString
+    commandAccepted = true;
+  }
+
   if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
 
-#ifndef motorWaitPollsBeforeReadyString
-  drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
-#endif // ifndef motorWaitPollsBeforeReadyString
+  if (commandAccepted) {
+    // update motor record
+    setIntegerParam(pC_->motorStatusMoving_, 1);
+    setIntegerParam(pC_->motorStatusDone_,   0);
+    callParamCallbacks();
+  }
+
   return errorCode == 0 ? asynSuccess : asynError;
 }
 
@@ -1008,7 +1038,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
 asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
                                              double maxVelocity,
                                              double acceleration) {
-  newCmd();
+  bool commandAccepted = false;
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
             "%s/%s:%d: Axis[%d] Move vel cmd:  = %lf..%lf, acc=%lf\n",
             __FILE__, __FUNCTION__, __LINE__,
@@ -1077,6 +1107,17 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
   errorCode = drvlocal.ecmcAxis->moveVelocity(velo,
                                               acc,
                                               acc);
+
+  if (!errorCode) {
+    // Latch command timing while RT mutex is still held so poll() cannot
+    // observe accepted motion with stale moveReady state.
+    drvlocal.moveReady = false;
+    ecmcCycleCounterAtNewCmd_ = drvlocal.ecmcAxis->getCycleCounter();
+#ifndef motorWaitPollsBeforeReadyString
+    drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
+#endif // ifndef motorWaitPollsBeforeReadyString
+    commandAccepted = true;
+  }
  
   // } else
   // {
@@ -1089,9 +1130,13 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
 
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-#ifndef motorWaitPollsBeforeReadyString
-  drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
-#endif // ifndef motorWaitPollsBeforeReadyString
+  if (commandAccepted) {
+    // update motor record
+    setIntegerParam(pC_->motorStatusMoving_, 1);
+    setIntegerParam(pC_->motorStatusDone_,   0);
+    callParamCallbacks();
+  }
+
   return errorCode == 0 ? asynSuccess : asynError;
 }
 
