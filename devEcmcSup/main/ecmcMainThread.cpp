@@ -66,7 +66,12 @@ void printStatus() {
 }
 
 void updateAsynParams(int force) {
-  if (!asynPort->getAllowRtThreadCom()) {
+  auto * const localAsynPort = asynPort;
+  if (!localAsynPort) {
+    return;
+  }
+
+  if (!localAsynPort->getAllowRtThreadCom()) {
     return;
   }
 
@@ -138,22 +143,20 @@ void updateAsynParams(int force) {
   if (asynSkipUpdateCounterFastest && !force) {
     asynSkipUpdateCounterFastest--;
   } else {
-    if (asynPort) {
-      asynSkipUpdateCounterFastest = asynPort->getFastestUpdateRate() - 1;
+    asynSkipUpdateCounterFastest = localAsynPort->getFastestUpdateRate() - 1;
 
-      if (asynSkipUpdateCounterFastest < 0) {
-        asynSkipUpdateCounterFastest = 0;
-      }
+    if (asynSkipUpdateCounterFastest < 0) {
+      asynSkipUpdateCounterFastest = 0;
+    }
 
-      if (asynPort->getAllowRtThreadCom()) {
-        asynPort->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
-                                     ECMC_ASYN_DEFAULT_ADDR);
+    if (localAsynPort->getAllowRtThreadCom()) {
+      localAsynPort->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
+                                        ECMC_ASYN_DEFAULT_ADDR);
 
-        /* refresh updated counter (To know in epics when refresh have been made)
-        waveform*/
-        ecmcUpdatedCounter++;
-        mainAsynParams[ECMC_ASYN_MAIN_PAR_UPDATE_READY_ID]->refreshParamRT(1);
-      }
+      /* refresh updated counter (To know in epics when refresh have been made)
+      waveform*/
+      ecmcUpdatedCounter++;
+      mainAsynParams[ECMC_ASYN_MAIN_PAR_UPDATE_READY_ID]->refreshParamRT(1);
     }
   }
 }
@@ -263,6 +266,17 @@ void cyclic_task(void *usr) {
   struct timespec offsetStartTime = {};
   const struct timespec cycletime = { 0, (long int)mcuPeriod };
   int masterId                    = ec->getMasterIndex();
+  const bool hasRealMaster        = masterId >= 0;
+  const int simMasterIndex        = -masterId + ECMC_SHM_MAX_MASTERS;
+  int axisDiagFreqCached          = -1;
+  int slowCycleInterval           = 1;
+  int activeAxisCount             = 0;
+  ecmcAxisBase *activeAxes[ECMC_MAX_AXES] = {};
+  int activeAxisPlcId[ECMC_MAX_AXES] = {};
+  int activeMasterSlaveCount      = 0;
+  ecmcMasterSlaveStateMachine *activeMasterSlaves[ECMC_MAX_MST_SLVS_SMS] = {};
+  int activePluginCount           = 0;
+  ecmcPluginLib *activePlugins[ECMC_MAX_PLUGINS] = {};
 
   int writeToShm = shmObj.valid &&
                    masterId <= ECMC_SHM_MAX_MASTERS &&
@@ -274,30 +288,57 @@ void cyclic_task(void *usr) {
   // start 100ms + 1 period after  master activate (in setAppMode())
   wakeupTime = timespec_add(masterActivationTimeMonotonic, offsetStartTime);
 
+  // Build active object index lists once at RT start to avoid scanning sparse arrays each cycle.
+  for (int axisIndex = 0; axisIndex < ECMC_MAX_AXES; ++axisIndex) {
+    auto * const axis = axes[axisIndex];
+    if (axis != NULL) {
+      activeAxes[activeAxisCount] = axis;
+      activeAxisPlcId[activeAxisCount] = AXIS_PLC_ID_TO_PLC_ID(axisIndex);
+      activeAxisCount++;
+    }
+  }
+  for (int smsIndex = 0; smsIndex < ECMC_MAX_MST_SLVS_SMS; ++smsIndex) {
+    auto * const masterSlaveSM = masterSlaveSMs[smsIndex];
+    if (masterSlaveSM != NULL) {
+      activeMasterSlaves[activeMasterSlaveCount] = masterSlaveSM;
+      activeMasterSlaveCount++;
+    }
+  }
+  for (int pluginIndex = 0; pluginIndex < ECMC_MAX_PLUGINS; ++pluginIndex) {
+    auto * const plugin = plugins[pluginIndex];
+    if (plugin != NULL) {
+      activePlugins[activePluginCount] = plugin;
+      activePluginCount++;
+    }
+  }
+
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
 
   while (appModeCmd == ECMC_MODE_RUNTIME) {
     const bool ecInitDone = ec->getInitDone();
+    auto * const localAsynPort = asynPort;
 
-    wakeupTime = timespec_add(wakeupTime, cycletime);
+    wakeupTime.tv_nsec += cycletime.tv_nsec;
+    if (wakeupTime.tv_nsec >= MCU_NSEC_PER_SEC) {
+      wakeupTime.tv_sec++;
+      wakeupTime.tv_nsec -= MCU_NSEC_PER_SEC;
+    }
 
     /* Only lock asyn port when ec is started
      * otherwise deadlock in stratup phase
      * (sleep in waitforstartup() this is called
      * in asyn thread) .
      * */
-    if (appModeStat == ECMC_MODE_RUNTIME) {
-      if (asynPort)asynPort->unlock();
+    if ((appModeStat == ECMC_MODE_RUNTIME) && localAsynPort) {
+      localAsynPort->unlock();
     }
 
     // Mutex for motor record access
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeupTime, NULL);
 
-    if (appModeStat == ECMC_MODE_RUNTIME) {
-      if (asynPort) {
-        asynPort->lock();
-      }
+    if ((appModeStat == ECMC_MODE_RUNTIME) && localAsynPort) {
+      localAsynPort->lock();
     }
 
     // Mutex for motor record access
@@ -347,24 +388,25 @@ void cyclic_task(void *usr) {
     if (ecInitDone) {
       ec->receive();
       ec->checkDomainsState();
+      ecStat = ec->statusOK();
+    } else {
+      ecStat = 1;
     }
-    ecStat = ec->statusOK() || !ecInitDone;
 
     // Master to master coms
     if (writeToShm) {
-      if (masterId >= 0) {
+      if (hasRealMaster) {
         shmObj.mstPtr[masterId] = 1 + ecStat;  // ec OK
       } else {   // NO ec master
-        shmObj.simMstPtr[-masterId + ECMC_SHM_MAX_MASTERS] = 1;
+        shmObj.simMstPtr[simMasterIndex] = 1;
       }
     }
 
     // Motion
-    for (i = 0; i < ECMC_MAX_AXES; i++) {
-      if (axes[i] != NULL) {
-        plcs->execute(AXIS_PLC_ID_TO_PLC_ID(i), ecStat);
-        axes[i]->execute(ecStat);
-      }
+    for (i = 0; i < activeAxisCount; i++) {
+      auto * const axis = activeAxes[i];
+      plcs->execute(activeAxisPlcId[i], ecStat);
+      axis->execute(ecStat);
     }
 
     // PVT motion
@@ -373,17 +415,13 @@ void cyclic_task(void *usr) {
     }
 
     // Master Slave statemachines
-    for (int i = 0; i < ECMC_MAX_MST_SLVS_SMS; i++) {
-      if (masterSlaveSMs[i] !=NULL) {
-        masterSlaveSMs[i]->execute();
-      }
+    for (int i = 0; i < activeMasterSlaveCount; i++) {
+      activeMasterSlaves[i]->execute();
     }
 
     // Plugins
-    for (i = 0; i < ECMC_MAX_PLUGINS; i++) {
-      if (plugins[i] != NULL) {
-        pluginsError = plugins[i]->exeRTFunc(controllerError);
-      }
+    for (i = 0; i < activePluginCount; i++) {
+      pluginsError = activePlugins[i]->exeRTFunc(controllerError);
     }
 
     // PLCs
@@ -395,22 +433,22 @@ void cyclic_task(void *usr) {
       counter--;
     } else {    // Lower freq
       if (axisDiagFreq > 0) {
-        int slowCycleInterval = mcuFrequency / axisDiagFreq;
-        if (slowCycleInterval < 1) {
-          slowCycleInterval = 1;
+        if (axisDiagFreq != axisDiagFreqCached) {
+          slowCycleInterval = mcuFrequency / axisDiagFreq;
+          if (slowCycleInterval < 1) {
+            slowCycleInterval = 1;
+          }
+          axisDiagFreqCached = axisDiagFreq;
         }
         counter = slowCycleInterval;
 
         if (ecInitDone) {
           ec->checkState();
-          ec->checkSlavesConfState();
         }
         printStatus();
 
-        for (int i = 0; i < ECMC_MAX_AXES; i++) {
-          if (axes[i] != NULL) {
-            axes[i]->slowExecute();
-          }
+        for (int i = 0; i < activeAxisCount; i++) {
+          activeAxes[i]->slowExecute();
         }
 
         if (ecInitDone) {
@@ -424,7 +462,7 @@ void cyclic_task(void *usr) {
       safetypluginError = safetyplugin->exeRTFunc(controllerError);
     }
 
-    if (asynPort && asynPort->getEpicsState() >= 14) {
+    if (localAsynPort && localAsynPort->getEpicsState() >= 14) {
       updateAsynParams(0);
     }
 
@@ -432,7 +470,7 @@ void cyclic_task(void *usr) {
 
     if (ecInitDone) {
       ec->send(masterActivationTimeOffset);
-    } else if(masterId<0) {
+    } else if (!hasRealMaster) {
       // just set offset to make sense of plc timing functions when running without master
       ec->setTimeOffest(masterActivationTimeOffset);
     }

@@ -243,7 +243,11 @@ private:
   bool inStartupPhase_;
 
   ecmcEcMemMap *ecMemMapArray_[EC_MAX_MEM_MAPS];
+  ecmcEcMemMap *ecMemMapRtInput_[EC_MAX_MEM_MAPS];
+  ecmcEcMemMap *ecMemMapRtOutput_[EC_MAX_MEM_MAPS];
   int ecMemMapArrayCounter_;
+  int ecMemMapRtInputCounter_;
+  int ecMemMapRtOutputCounter_;
   size_t domainSize_;
   ecmcEcEntry *statusOutputEntry_;
   int masterIndex_;

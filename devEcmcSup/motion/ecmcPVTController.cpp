@@ -12,6 +12,31 @@
 
 #include "ecmcPVTController.h"
 
+namespace {
+const char* pvtStateToString(ecmcPVTSMType state) {
+  switch (state) {
+  case ECMC_PVT_IDLE:
+    return "ECMC_PVT_IDLE";
+  case ECMC_PVT_ENABLE_AXES:
+    return "ECMC_PVT_ENABLE_AXES";
+  case ECMC_PVT_TRIGG_MOVE_AXES_TO_START:
+    return "ECMC_PVT_TRIGG_MOVE_AXES_TO_START";
+  case ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START:
+    return "ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START";
+  case ECMC_PVT_TRIGG_PVT:
+    return "ECMC_PVT_TRIGG_PVT";
+  case ECMC_PVT_EXECUTE_PVT:
+    return "ECMC_PVT_EXECUTE_PVT";
+  case ECMC_PVT_ABORT:
+    return "ECMC_PVT_ABORT";
+  case ECMC_PVT_ERROR:
+    return "ECMC_PVT_ERROR";
+  default:
+    return "ECMC_PVT_UNKNOWN";
+  }
+}
+}  // namespace
+
 ecmcPVTController::ecmcPVTController(ecmcAsynPortDriver *asynPortDriver,
                                      double sampleTime) {
   asynPortDriver_ = asynPortDriver;
@@ -39,6 +64,9 @@ ecmcPVTController::ecmcPVTController(ecmcAsynPortDriver *asynPortDriver,
   setTriggerDuration(0.1);
   clearPVTAxes();
   newTrg_              = 0;
+  triggerOutputHigh_   = false;
+  axesBusyState_       = false;
+  axesBusyStateValid_  = false;
   softTrigger_         = 0;
   initAsyn();
 }
@@ -48,10 +76,11 @@ ecmcPVTController::~ecmcPVTController() {
 
 void ecmcPVTController::addAxis(ecmcAxisBase* axis) {
   axes_.push_back(axis);
+  axesBusyStateValid_ = false;
   if(axis) {
-    printf("ecmcPVTController::addAxis(%d)\n",axis->getAxisID());
+    LOGINFO4("ecmcPVTController::addAxis(%d)\n", axis->getAxisID());
   } else {
-    printf("ecmcPVTController::addAxis(NaN)\n");
+    LOGINFO4("ecmcPVTController::addAxis(NaN)\n");
   }
 }
 
@@ -60,6 +89,7 @@ void ecmcPVTController::clearPVTAxes() {
   setAxesBusy(false);
   axes_.clear();
   startPositions_.clear();
+  axesBusyStateValid_ = false;
 }
 
 size_t ecmcPVTController::getCurrentTriggerId() {
@@ -75,8 +105,9 @@ void ecmcPVTController::setExecute(bool execute) {
   execute_ = execute;
   triggerCurrentId_ = 0;
   softTrigger_ = 0;
+  setTriggerOutput(false);
   int error = 0;
-  if(execute_ && !executeOld_ && axes_[0]) {
+  if(execute_ && !executeOld_ && !axes_.empty() && axes_[0]) {
     error=validate();
     if(error) {
       setErrorID(error);
@@ -101,23 +132,26 @@ void ecmcPVTController::execute() {
   int axesAtStartPosition = 0;
   bool seqDone = 0;
   int enabledState = 0;
+  const size_t axisCount = axes_.size();
 
   switch(state_) {
     case  ECMC_PVT_IDLE:
+      if (busy_ || !axesBusyStateValid_ || axesBusyState_) {
+        setAxesBusy(false);
+      }
       busy_ = 0;
-      setAxesBusy(false);
       break;
     case ECMC_PVT_ENABLE_AXES:      
       if(setEnable(1) < 0) {
         state_ = ECMC_PVT_ERROR;
-        printf("ecmcPVTController::execute(): Error: Enabling axes failed\n");
+        LOGERR("ecmcPVTController::execute(): Error: Enabling axes failed\n");
       }
       enabledState = checkEnabledState(1);
       if(enabledState < 0) {
         state_ = ECMC_PVT_ERROR;
-        printf("ecmcPVTController::execute(): Error: Enabling axes failed\n");
+        LOGERR("ecmcPVTController::execute(): Error: Enabling axes failed\n");
       } else if(enabledState == 1) {
-        printf("ecmcPVTController::execute(): All axes enabled.\n");
+        LOGINFO12("ecmcPVTController::execute(): All axes enabled.\n");
         state_ = ECMC_PVT_TRIGG_MOVE_AXES_TO_START;
       }
       break;
@@ -128,7 +162,7 @@ void ecmcPVTController::execute() {
       if(error) {
         setErrorID(error);
         state_ = ECMC_PVT_ERROR;
-        printf("ecmcPVTController::execute(): Error: Axis in error state when trigger move to start position\n");
+        LOGERR("ecmcPVTController::execute(): Error: Axis in error state when trigger move to start position\n");
       }
       setAxesBusy(true);
       state_ = ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START;
@@ -144,20 +178,23 @@ void ecmcPVTController::execute() {
       if(axesAtStartPosition < 0) {
         setErrorID(-axesAtStartPosition);
         state_ = ECMC_PVT_ERROR;
-        printf("ecmcPVTController::execute(): Error: Axis in error state when moving to start position\n");
+        LOGERR("ecmcPVTController::execute(): Error: Axis in error state when moving to start position\n");
       }
       if(axesAtStartPosition > 0 ) {
         state_ = ECMC_PVT_TRIGG_PVT;
         nextTime_ = -sampleTime_; // Start at -1 sample
         // Set time to 0 in all PVT objects
-        for(uint i = 0; i < axes_.size(); i++ ) {      
-          axes_[i]->getPVTObject()->setNextTime(0);
-          axes_[i]->getPVTObject()->setCurrTime(0);
+        for(size_t i = 0; i < axisCount; i++ ) {
+          auto * const axis = axes_[i];
+          auto * const pvt = axis->getPVTObject();
+          pvt->setNextTime(0);
+          pvt->setCurrTime(0);
         }    
         // get end time from first axis
-        endTime_ = axes_[0]->getPVTObject()->endTime();
+        auto * const firstPvt = axes_[0]->getPVTObject();
+        endTime_ = firstPvt->endTime();
         // get acc time from first axis
-        accTime_ = axes_[0]->getPVTObject()->getSegDuration(0);
+        accTime_ = firstPvt->getSegDuration(0);
         //printf("ecmcPVTController: All axes in position, trigger PVT sequence\n");
       }
       break;
@@ -167,7 +204,7 @@ void ecmcPVTController::execute() {
       if(error){
         setErrorID(error);
         state_ = ECMC_PVT_ERROR;
-        printf("ecmcPVTController::execute(): Error: Triggering of PVT objects failed\n");
+        LOGERR("ecmcPVTController::execute(): Error: Triggering of PVT objects failed\n");
       }
       //printf("ecmcPVTController: Executing PVT sequence\n");
       state_ = ECMC_PVT_EXECUTE_PVT;      
@@ -189,15 +226,17 @@ void ecmcPVTController::execute() {
         seqDone = true;
       }
 
-      for(uint i = 0; i < axes_.size(); i++ ) {
-        if(axes_[i]->getPVTObject()->getBusy()) {
-          axes_[i]->getPVTObject()->setNextTime(nextTime_);          
+      for(size_t i = 0; i < axisCount; i++ ) {
+        auto * const axis = axes_[i];
+        auto * const pvt = axis->getPVTObject();
+        if(pvt->getBusy()) {
+          pvt->setNextTime(nextTime_);
           if(seqDone) {
-            axes_[i]->getPVTObject()->setBusy(false);            
-            axes_[i]->setTargetPosToCurrSetPos();
+            pvt->setBusy(false);
+            axis->setTargetPosToCurrSetPos();
             state_ =  ECMC_PVT_IDLE;
             busy_ = false;
-            axes_[i]->setCommand(ECMC_CMD_MOVEABS);
+            axis->setCommand(ECMC_CMD_MOVEABS);
           }
         }
       }
@@ -205,11 +244,13 @@ void ecmcPVTController::execute() {
       break;
 
     case ECMC_PVT_ABORT:
-      for(uint i = 0; i < axes_.size(); i++ ) {
-        axes_[i]->getPVTObject()->setBusy(false);
-        axes_[i]->getSeq()->setGlobalBusy(0);
-        axes_[i]->setTargetPosToCurrSetPos();
-        axes_[i]->setCommand(ECMC_CMD_MOVEABS);
+      for(size_t i = 0; i < axisCount; i++ ) {
+        auto * const axis = axes_[i];
+        auto * const pvt = axis->getPVTObject();
+        pvt->setBusy(false);
+        axis->getSeq()->setGlobalBusy(0);
+        axis->setTargetPosToCurrSetPos();
+        axis->setCommand(ECMC_CMD_MOVEABS);
       }
       setAxesBusy(0);
 
@@ -221,9 +262,11 @@ void ecmcPVTController::execute() {
       break;
     case ECMC_PVT_ERROR:
       busy_ = 0;
-      for(uint i = 0; i < axes_.size(); i++ ) {
-        axes_[i]->getPVTObject()->setBusy(false);
-        axes_[i]->setTargetPosToCurrSetPos();
+      for(size_t i = 0; i < axisCount; i++ ) {
+        auto * const axis = axes_[i];
+        auto * const pvt = axis->getPVTObject();
+        pvt->setBusy(false);
+        axis->setTargetPosToCurrSetPos();
         state_ =  ECMC_PVT_IDLE;
       }
       setAxesBusy(false);
@@ -231,24 +274,21 @@ void ecmcPVTController::execute() {
   }
       
   if(state_!=stateOld_) {
-    printf("PVT state changed to: ");
-    printState(state_);
-    printf(", old state ");
-    printState(stateOld_);
-    printf("\n");
+    LOGINFO12("PVT state changed to: %s, old state %s\n",
+              pvtStateToString(state_),
+              pvtStateToString(stateOld_));
   }
   stateOld_=state_;
 
   //#### triggering below (soft and hw) #####
   if(!busy_) {
+    setTriggerOutput(false);
     return;
   }
 
   // reset trigger
   if(nextTime_ > triggerEndTime_+ triggerDuration_) {
-    if(triggerValidatedOK_) {
-      writeEcEntryValue(triggerEcEntryIndex_,0);
-    }
+    setTriggerOutput(false);
     return; // Done
   }
 
@@ -268,56 +308,26 @@ void ecmcPVTController::execute() {
 
   if( nextTime_ > (nextTriggerTime + halfSampleTime_) && nextTime_ <= (nextTriggerTime + triggerDuration_)) {
     // here we want to also latch data
-    if(triggerValidatedOK_) {
-      writeEcEntryValue(triggerEcEntryIndex_,1);
-    }
+    setTriggerOutput(true);
 
     if(newTrg_) { // new pulse: Trigger DAQ in PVTSequence
       softTrigger_++;
       refreshAsyn();
-      for(uint i = 0; i < axes_.size(); i++ ) {
-        axes_[i]->getPVTObject()->setTrgDAQ();
+      for(size_t i = 0; i < axisCount; i++ ) {
+        auto * const axis = axes_[i];
+        auto * const pvt = axis->getPVTObject();
+        pvt->setTrgDAQ();
         // Compensate with one sampleTime since this is "next time"
-        printf("axis[%d]: DAQ trigger %zu at time %lf\n",
-                axes_[i]->getAxisID(),triggerCurrentId_ + 1, nextTime_ - sampleTime_);
+        LOGINFO12("axis[%d]: DAQ trigger %zu at time %lf\n",
+                  axis->getAxisID(),
+                  triggerCurrentId_ + 1,
+                  nextTime_ - sampleTime_);
       }
     }
     newTrg_ = false;
   } else {
-    if(triggerValidatedOK_) {
-      writeEcEntryValue(triggerEcEntryIndex_,0);
-    }
+    setTriggerOutput(false);
     newTrg_ = true; // trigger data latch at next pulse
-  }
-}
-
-void ecmcPVTController::printState(ecmcPVTSMType state) {
-
-  switch(state) {
-  case ECMC_PVT_IDLE:
-     printf("ECMC_PVT_IDLE");
-     break;
-  case ECMC_PVT_ENABLE_AXES:
-     printf("ECMC_PVT_ENABLE_AXES");
-     break;
-  case ECMC_PVT_TRIGG_MOVE_AXES_TO_START:
-     printf("ECMC_PVT_TRIGG_MOVE_AXES_TO_START");
-     break;
-  case ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START:
-     printf("ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START");
-     break;
-  case ECMC_PVT_TRIGG_PVT:
-     printf("ECMC_PVT_TRIGG_PVT");
-     break;
-  case ECMC_PVT_EXECUTE_PVT:
-     printf("ECMC_PVT_EXECUTE_PVT");
-     break;
-  case ECMC_PVT_ABORT:
-     printf("ECMC_PVT_ABORT");
-     break;
-  case ECMC_PVT_ERROR:
-     printf("ECMC_PVT_ERROR");
-     break;
   }
 }
 
@@ -326,26 +336,30 @@ bool  ecmcPVTController::getBusy() {
 }
 
 int ecmcPVTController::triggMoveAxesToStart() {
-  startPositions_.clear();
+  const size_t axisCount = axes_.size();
+  startPositions_.assign(axisCount, 0.0);
   double startPosition = 0;
   int error = 0;
-  for(uint i = 0; i < axes_.size(); i++ ) {
-    axes_[i]->getPVTObject()->startPosition(&startPosition);        
-    if(axes_[i]->getPVTObject()->getRelMode()) {      
-      startPosition = axes_[i]->getCurrentPositionSetpoint() + startPosition;
-      axes_[i]->getPVTObject()->setPositionOffset(axes_[i]->getCurrentPositionSetpoint());
+  for(size_t i = 0; i < axisCount; i++ ) {
+    auto * const axis = axes_[i];
+    auto * const pvt = axis->getPVTObject();
+    pvt->startPosition(&startPosition);
+    if(pvt->getRelMode()) {
+      const double currSetpoint = axis->getCurrentPositionSetpoint();
+      startPosition = currSetpoint + startPosition;
+      pvt->setPositionOffset(currSetpoint);
     } else {    
-      axes_[i]->getPVTObject()->setPositionOffset(0);
+      pvt->setPositionOffset(0);
     }
 //    printf("ecmcPVTController::triggMoveAxesToStart(): Execute moveAbsolutePosition\n");
 //    printf("ecmcPVTController::triggMoveAxesToStart(): localBusy %d, global %d\n", axes_[i]->getLocalBusy(),axes_[i]->getGlobalBusy());
-    error = axes_[i]->moveAbsolutePosition(startPosition);
+    error = axis->moveAbsolutePosition(startPosition);
     if(error) {
       return error;
     }
 
     // Save all startpositions to be able to verify that the axes arrived
-    startPositions_.push_back(startPosition);
+    startPositions_[i] = startPosition;
   }
   return 0;
 }
@@ -353,16 +367,19 @@ int ecmcPVTController::triggMoveAxesToStart() {
 // negative error
 int ecmcPVTController::axesAtStart() {
   int error = 0;
-  for(uint i = 0; i < axes_.size(); i++ ) {
-    error = axes_[i]->getErrorID();
+  const size_t axisCount = axes_.size();
+  for(size_t i = 0; i < axisCount; i++ ) {
+    auto * const axis = axes_[i];
+    error = axis->getErrorID();
     if(error) {
       return -error;
     }
-    if(axes_[i]->getTrajBusy()) {
+    if(axis->getTrajBusy()) {
       return 0;
     }
-    if(axes_[i]->getMon()->getEnableAtTargetMon()) {
-      if(!axes_[i]->getMon()->getAtTarget()) {
+    auto * const mon = axis->getMon();
+    if(mon->getEnableAtTargetMon()) {
+      if(!mon->getAtTarget()) {
         return 0;
       }
     }
@@ -378,14 +395,16 @@ int ecmcPVTController::axesAtStart() {
 // negative error
 int ecmcPVTController::triggPVT() {
   int error = 0;
-  for(uint i = 0; i < axes_.size(); i++ ) {    
-    error = axes_[i]->getErrorID();    
+  const size_t axisCount = axes_.size();
+  for(size_t i = 0; i < axisCount; i++ ) {
+    auto * const axis = axes_[i];
+    error = axis->getErrorID();
     if(error) {
       return -error;
     }
     
     // Relative are handled with PVTobject with an offset
-    error = axes_[i]->movePVTAbs(true);  // ignore busy.. have checked before
+    error = axis->movePVTAbs(true);  // ignore busy.. have checked before
     if(error) {
       return error;
     }
@@ -403,7 +422,7 @@ void ecmcPVTController::errorReset() {
 
 int ecmcPVTController::validate() {
   if(axes_.size()== 0) {
-    printf("ecmcPVTController::validate(): Error axis count zero\n");
+    LOGERR("ecmcPVTController::validate(): Error axis count zero\n");
     return setErrorID(ERROR_PVT_CTRL_AXIS_COUNT_ZERO);
   }
 
@@ -418,9 +437,10 @@ int ecmcPVTController::validate() {
 }
 
 int ecmcPVTController::anyAxisInterlocked() {
-  
-  for(uint i = 0; i < axes_.size(); i++ ) {    
-    if(axes_[i]->getSumInterlockOrStop() || axes_[i]->getErrorID() > 0) {
+  const size_t axisCount = axes_.size();
+  for(size_t i = 0; i < axisCount; i++ ) {
+    auto * const axis = axes_[i];
+    if(axis->getSumInterlockOrStop() || axis->getErrorID() > 0) {
       return 1;
     }
   }
@@ -428,32 +448,42 @@ int ecmcPVTController::anyAxisInterlocked() {
 }
 
 int ecmcPVTController::abortPVT() {
-  for(uint i = 0; i < axes_.size(); i++ ) {    
-    axes_[i]->stopMotion(0);
-    axes_[i]->getPVTObject()->setBusy(false);
-    setAxesBusy(false);
+  const size_t axisCount = axes_.size();
+  for(size_t i = 0; i < axisCount; i++ ) {
+    auto * const axis = axes_[i];
+    axis->stopMotion(0);
+    auto * const pvt = axis->getPVTObject();
+    pvt->setBusy(false);
   }
+  setAxesBusy(false);
+  setTriggerOutput(false);
   state_ = ECMC_PVT_ABORT;
   // All axes in correct position to start
   return 0;
 }
 
 int ecmcPVTController::axisNotBusy() {
-  int axesFree = 1;
-  for(uint i = 0; i < axes_.size(); i++ ) {    
-    axesFree = axesFree && !axes_[i]->getTrajBusy();
+  const size_t axisCount = axes_.size();
+  for(size_t i = 0; i < axisCount; i++ ) {
+    if(axes_[i]->getTrajBusy()) {
+      return 0;
+    }
   }
-  return axesFree;
+  return 1;
 }
 
 void ecmcPVTController::initPVT() {
-  for(uint i = 0; i < axes_.size(); i++ ) {    
-    axes_[i]->getPVTObject()->setExecute(0);
-    axes_[i]->getPVTObject()->setTrgDAQMode(triggerCount_ == 0 ? 
-                     TRG_INT_ON_SEG_CHANGE : TRG_EXT_ON_PULSE_TRG);
+  const size_t axisCount = axes_.size();
+  const trgMode trgModeSelect = triggerCount_ == 0 ?
+                                TRG_INT_ON_SEG_CHANGE : TRG_EXT_ON_PULSE_TRG;
+  for(size_t i = 0; i < axisCount; i++ ) {
+    auto * const pvt = axes_[i]->getPVTObject();
+    pvt->setExecute(0);
+    pvt->setTrgDAQMode(trgModeSelect);
   }
   triggerCurrentId_ = 0;
   newTrg_           = 1;
+  setTriggerOutput(false);
 }
 
 int ecmcPVTController::setEcEntry(ecmcEcEntry *entry,int entryIndex, int bitIndex) {
@@ -466,13 +496,13 @@ int ecmcPVTController::setEcEntry(ecmcEcEntry *entry,int entryIndex, int bitInde
     return error;
   }
   
-  error = validateEntryBit(triggerEcEntryIndex_);
+  error = validateEntryBit(entryIndex);
   if(error) {
     return setErrorID(error);
   }
   triggerEcEntryIndex_ = entryIndex;
   triggerDefined_ = 1;
-  printf("ecmcPVTController::setEcEntry(): Trigger defined.\n");
+  LOGINFO4("ecmcPVTController::setEcEntry(): Trigger defined.\n");
   return 0;
 }
 
@@ -481,21 +511,30 @@ int ecmcPVTController::setTriggerInfo(double start, double between, double end, 
   triggerEndTime_     = end;
   triggerTimeBetween_ = between;
   triggerCount_       = count;
+  setTriggerOutput(false);
   return 0;
 }
 
 int ecmcPVTController::setTriggerDuration(double durationS) {
   triggerDuration_ = durationS + sampleTime_;
+  setTriggerOutput(false);
   return 0;
 }
 
 int ecmcPVTController::setAxesBusy(bool busy) {
-  
-  for(uint i = 0; i < axes_.size(); i++ ) {    
-    if(axes_[i]!=NULL) {
-      axes_[i]->getSeq()->setGlobalBusy(busy);
-    };
+  if (axesBusyStateValid_ && axesBusyState_ == busy) {
+    return 0;
   }
+
+  const size_t axisCount = axes_.size();
+  for(size_t i = 0; i < axisCount; i++ ) {
+    auto * const axis = axes_[i];
+    if(axis != NULL) {
+      axis->getSeq()->setGlobalBusy(busy);
+    }
+  }
+  axesBusyState_ = busy;
+  axesBusyStateValid_ = true;
   return 0;
 }
 
@@ -503,37 +542,56 @@ ecmcPVTSMType  ecmcPVTController::getSMState() {
   return state_;
 }
 
+void ecmcPVTController::setTriggerOutput(bool high) {
+  if(!triggerDefined_) {
+    triggerOutputHigh_ = false;
+    return;
+  }
+
+  if(triggerOutputHigh_ == high) {
+    return;
+  }
+
+  writeEcEntryValue(triggerEcEntryIndex_, high ? 1 : 0);
+  triggerOutputHigh_ = high;
+}
+
 int ecmcPVTController::setEnable(bool enable) {  
-  for(uint i = 0; i < axes_.size(); i++ ) {
-    if(axes_[i]!=NULL) {
+  const size_t axisCount = axes_.size();
+  for(size_t i = 0; i < axisCount; i++ ) {
+    auto * const axis = axes_[i];
+    if(axis != NULL) {
       // Always disable
       if(!enable) {
-        axes_[i]->setEnable(enable);        
+        axis->setEnable(enable);
         break;
       }
       // do not enable if error
-      if(axes_[i]->getError()) {
+      if(axis->getError()) {
         return -1;
       }      
-      if(!axes_[i]->getEnable()) {
-        axes_[i]->setEnable(enable);
+      if(!axis->getEnable()) {
+        axis->setEnable(enable);
       }
-    };
+    }
   }
   return 0;
 }
 
 int ecmcPVTController::checkEnabledState(bool enabled) {
-  bool state = 1;
-  for(uint i = 0; i < axes_.size(); i++ ) {
-    if(axes_[i]!=NULL) {
-      state = state && axes_[i]->getEnabled();
-      //printf("ecmcPVTController::triggMoveAxesToStart(): localBusy %d, global %d\n", axes_[i]->getLocalBusy(),axes_[i]->getGlobalBusy());
+  const size_t axisCount = axes_.size();
+  for(size_t i = 0; i < axisCount; i++ ) {
+    auto * const axis = axes_[i];
+    if(axis != NULL) {
+      if(axis->getEnabled() != enabled) {
+        return 0;
+      }
+      //printf("ecmcPVTController::triggMoveAxesToStart(): localBusy %d, global %d\n", axis->getLocalBusy(),axis->getGlobalBusy());
     } else {
       return -1;
     }
   }
-  return state;
+  return 1;
 }
 
 void ecmcPVTController::refreshAsyn() {
@@ -557,7 +615,6 @@ void ecmcPVTController::initAsyn() {
   }
 
   ecmcAsynDataItem *paramTemp = NULL;
-  int errorCode               = 0;
 
   paramTemp = asynPortDriver_->addNewAvailParam("pvt.softtrigger",
                               asynParamInt32,
@@ -566,7 +623,7 @@ void ecmcPVTController::initAsyn() {
                               ECMC_EC_S32,
                               0);
 
-  if (errorCode) {
+  if (paramTemp == NULL) {
     LOGERR("%s/%s:%d: PVT: ERROR: Failed create pvt.softtrigger asyn parameter.\n",
            __FILE__,
            __FUNCTION__,
@@ -576,7 +633,6 @@ void ecmcPVTController::initAsyn() {
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
   asynSoftTrigger_ = paramTemp;
-  printf("SUCCESS!");
+  LOGINFO4("ecmcPVTController::initAsyn(): pvt.softtrigger created.\n");
 
 }
-

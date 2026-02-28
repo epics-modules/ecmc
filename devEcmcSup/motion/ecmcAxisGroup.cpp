@@ -33,6 +33,7 @@ void ecmcAxisGroup::addAxis(ecmcAxisBase *axis){
   if(!axis) {
     throw std::runtime_error( "Axis NULL");
   }
+  // Keep this container non-null so hot RT loops can avoid per-element null checks.
   axes_.push_back(axis);
   axesIds_.push_back(axis->getAxisID());
   axesCounter_++;
@@ -41,86 +42,71 @@ void ecmcAxisGroup::addAxis(ecmcAxisBase *axis){
 
 // Check if all axes in group are enable
 bool ecmcAxisGroup::getEnable(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      if (!(*axis)->getEnable()) {
-        return 0;
-      }
+  for (auto *axis : axes_) {
+    if (!axis->getEnable()) {
+      return false;
     }
   }
-  return 1;
+  return true;
 };
 
 // Check if at least one axis in group are enable
 bool ecmcAxisGroup::getAnyEnable(){ 
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      if ((*axis)->getEnable()) {
-        return 1;
-      }
+  for (auto *axis : axes_) {
+    if (axis->getEnable()) {
+      return true;
     }
   }
-  return 0;
+  return false;
 };
 
 // Check if all axes in group are enabled
 bool ecmcAxisGroup::getEnabled(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      if (!(*axis)->getEnabled()) {
-        return 0;
-      }
+  for (auto *axis : axes_) {
+    if (!axis->getEnabled()) {
+      return false;
     }
   }
-  return 1;
+  return true;
 };
 
 // Check if at least one axis in group are enabled
 bool ecmcAxisGroup::getAnyEnabled(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      // Only check enabled flag, not enable cmd
-      if ((*axis)->getEnabledOnly()) {
-        return 1;
-      }
+  for (auto *axis : axes_) {
+    // Only check enabled flag, not enable cmd
+    if (axis->getEnabledOnly()) {
+      return true;
     }
   }
-  return 0;
+  return false;
 };
 
 // Check if all axes in group are busy
 bool ecmcAxisGroup::getBusy(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      if (!(*axis)->getBusy()) {
-        return 0;
-      }
+  for (auto *axis : axes_) {
+    if (!axis->getBusy()) {
+      return false;
     }
   }
-  return 1;
+  return true;
 };
 
 // Check if at least one axis in group are busy
 bool ecmcAxisGroup::getAnyBusy(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      if ((*axis)->getBusy()) {
-        return 1;
-      }
+  for (auto *axis : axes_) {
+    if (axis->getBusy()) {
+      return true;
     }
   }
-  return 0;
+  return false;
 };
 
 // Check if at least one axis in group are in error state
 int ecmcAxisGroup::getAnyErrorId(){
-  int errorId = 0;
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      errorId = (*axis)->getErrorID();
-      if (errorId) {
-        return errorId;
-      }
+  for (auto *axis : axes_) {
+    const int errorId = axis->getErrorID();
+    if (errorId) {
+      return errorId;
     }
   }
   return 0;
@@ -128,78 +114,61 @@ int ecmcAxisGroup::getAnyErrorId(){
 
 // Set enable of all axes in group
 int ecmcAxisGroup::setEnable(bool enable){
-  int error = 0;
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      error = (*axis)->setEnable(enable);
-      if(error) {
-        return error;
-      }
+  for (auto *axis : axes_) {
+    const int error = axis->setEnable(enable);
+    if (error) {
+      return error;
     }
   }
-  return error;
+  return 0;
 }
 
 // set traj source of all axes in group
 int ecmcAxisGroup::setTrajSrc(dataSource trajSource){
-  int error = 0;
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      error = (*axis)->getSeq()->setTrajDataSourceType(trajSource);
-      if(error) {
-        return error;
-      }
+  for (auto *axis : axes_) {
+    const int error = axis->getSeq()->setTrajDataSourceType(trajSource);
+    if (error) {
+      return error;
     }
   }
-  return error;
+  return 0;
 }
 
 // set enc source of all axes in group
 int ecmcAxisGroup::setEncSrc(dataSource encSource){
-  int error = 0;
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      error = (*axis)->setEncDataSourceType(encSource);
-      if(error) {
-        return error;
-      }
+  for (auto *axis : axes_) {
+    const int error = axis->setEncDataSourceType(encSource);
+    if (error) {
+      return error;
     }
   }
-  return error;
+  return 0;
 }
 
 void ecmcAxisGroup::setErrorReset(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->errorReset();
-    }
+  for (auto *axis : axes_) {
+    axis->errorReset();
   }
 }
 
 // Set errors all axes
 void ecmcAxisGroup::setError(int error){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->setErrorID(error);
-    }
+  for (auto *axis : axes_) {
+    axis->setErrorID(error);
   }
 }
 
 // Set slaved axis error all axes
 void ecmcAxisGroup::setSlavedAxisInError(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->setSlavedAxisInError();
-    }
+  for (auto *axis : axes_) {
+    axis->setSlavedAxisInError();
   }
 };
 
 // Set slaved axis error all axes
 void ecmcAxisGroup::halt(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->stopMotion(0);
-    }
+  for (auto *axis : axes_) {
+    axis->stopMotion(0);
   }
 };
 
@@ -218,171 +187,206 @@ size_t ecmcAxisGroup::size(){
   return axesCounter_;
 }
 
-// get all traj src in extern
-bool ecmcAxisGroup::getTrajSrcExt(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      if ( ((*axis)->getTrajDataSourceType()) == ECMC_DATA_SOURCE_INTERNAL) {
-        return 0;
+ecmcAxisGroupStatusSummary ecmcAxisGroup::getStatusSummary(bool includeMonFields) {
+  ecmcAxisGroupStatusSummary summary;
+  summary.allEnableCmd    = true;
+  summary.anyEnableCmd    = false;
+  summary.allEnabled      = true;
+  summary.anyEnabled      = false;
+  summary.allBusy         = true;
+  summary.anyBusy         = false;
+  summary.anyIlocked      = false;
+  summary.allAtTarget     = true;
+  summary.allWithinCtrlDb = true;
+  summary.allTrajExternal = true;
+  summary.anyTrajExternal = false;
+  summary.firstErrorId    = 0;
+
+  for (auto *axis : axes_) {
+    const bool enableCmd = axis->getEnable();
+    const bool enabledOnly = axis->getEnabledOnly();
+    const bool enabled = enableCmd && enabledOnly;
+    const bool busy = axis->getBusy();
+    const bool ilocked = axis->getSumInterlock();
+    const dataSource trajSource = axis->getTrajDataSourceType();
+    const int errorId = axis->getErrorID();
+    summary.allEnableCmd = summary.allEnableCmd && enableCmd;
+    summary.anyEnableCmd = summary.anyEnableCmd || enableCmd;
+    summary.allEnabled = summary.allEnabled && enabled;
+    summary.anyEnabled = summary.anyEnabled || enabledOnly;
+    summary.allBusy = summary.allBusy && busy;
+    summary.anyBusy = summary.anyBusy || busy;
+    summary.anyIlocked = summary.anyIlocked || ilocked;
+    summary.allTrajExternal = summary.allTrajExternal &&
+                              (trajSource != ECMC_DATA_SOURCE_INTERNAL);
+    summary.anyTrajExternal = summary.anyTrajExternal ||
+                              (trajSource == ECMC_DATA_SOURCE_EXTERNAL);
+    if ((summary.firstErrorId == 0) && errorId) {
+      summary.firstErrorId = errorId;
+    }
+
+    if (includeMonFields && (summary.allAtTarget || summary.allWithinCtrlDb)) {
+      auto * const mon = axis->getMon();
+
+      if (summary.allAtTarget) {
+        const bool axisAtTarget = mon->getEnableAtTargetMon() ? mon->getAtTarget() : !busy;
+        summary.allAtTarget = axisAtTarget;
+      }
+      if (summary.allWithinCtrlDb) {
+        summary.allWithinCtrlDb = mon->getAxisIsWithinCtrlDB();
       }
     }
   }
-  return 1;
+  return summary;
+}
+
+// get all traj src in extern
+bool ecmcAxisGroup::getTrajSrcExt(){
+  for (auto *axis : axes_) {
+    if (axis->getTrajDataSourceType() == ECMC_DATA_SOURCE_INTERNAL) {
+      return false;
+    }
+  }
+  return true;
 };
 
 // get any traj src in extern
 bool ecmcAxisGroup::getTrajSrcAnyExt(){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      if ( ((*axis)->getTrajDataSourceType()) == ECMC_DATA_SOURCE_EXTERNAL) {
-        return 1;
-      }
+  for (auto *axis : axes_) {
+    if (axis->getTrajDataSourceType() == ECMC_DATA_SOURCE_EXTERNAL) {
+      return true;
     }
   }
-  return 0;
+  return false;
 };
 
 // set allow traj/enc source change when enabled
 void ecmcAxisGroup::setAllowSrcChangeWhenEnabled(int allow){
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->setAllowSourceChangeWhenEnabled(allow);
-    }
+  for (auto *axis : axes_) {
+    axis->setAllowSourceChangeWhenEnabled(allow);
   }
 }
 
 void ecmcAxisGroup::setMRSync(bool sync) {
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->setMRSync(sync);
-    }
+  for (auto *axis : axes_) {
+    axis->setMRSync(sync);
   }
 }
 
 void ecmcAxisGroup::setMRStop(bool stop) {
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->setMRStop(stop);
-    }
+  for (auto *axis : axes_) {
+    axis->setMRStop(stop);
   }
 }
 
 void ecmcAxisGroup::setMRCnen(bool cnen) {
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->setMRCnen(cnen);
-    }
+  for (auto *axis : axes_) {
+    axis->setMRCnen(cnen);
   }
 }
 
 void ecmcAxisGroup::setMRIgnoreDisableStatusCheck(bool ignore) {
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->setMRIgnoreDisableStatusCheck(ignore);
-    }
+  for (auto *axis : axes_) {
+    axis->setMRIgnoreDisableStatusCheck(ignore);
   }
 }
 
 void ecmcAxisGroup::setEnableAutoEnable(bool enable) {
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->setEnableAutoEnable(enable);
-    }
+  for (auto *axis : axes_) {
+    axis->setEnableAutoEnable(enable);
   }
 }
 
 void ecmcAxisGroup::setEnableAutoDisable(bool enable) {
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->setEnableAutoDisable(enable);
-    }
+  for (auto *axis : axes_) {
+    axis->setEnableAutoDisable(enable);
   }
 }
 
 // Check if any axes in group is at fwd limit switch
 bool ecmcAxisGroup::getAnyAtLimitFwd() {
-  bool atLim = false;
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      atLim = atLim || !(*axis)->getLimitFwd();
+  for (auto *axis : axes_) {
+    if (!axis->getLimitFwd()) {
+      return true;
     }
   }
-  return atLim;
+  return false;
 }
 
 // Check if any axes in group is at bwd limit switch
 bool ecmcAxisGroup::getAnyAtLimitBwd() {
-  bool atLim = false;
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      atLim = atLim || !(*axis)->getLimitBwd();
+  for (auto *axis : axes_) {
+    if (!axis->getLimitBwd()) {
+      return true;
     }
   }
-  return atLim;
+  return false;
 }
 
 // Check if any axes in group is at a limit switch
 bool ecmcAxisGroup::getAnyAtLimit() {
-  return getAnyAtLimitFwd() || getAnyAtLimitBwd();
+  for (auto *axis : axes_) {
+    if (!axis->getLimitFwd() || !axis->getLimitBwd()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void ecmcAxisGroup::setSlavedAxisIlocked() {
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->setSlavedAxisInterlock();
-    }
+  for (auto *axis : axes_) {
+    axis->setSlavedAxisInterlock();
   }
 }
 
 void ecmcAxisGroup::setAxisIsWithinCtrlDBExtTraj(bool within) {
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->getMon()->setAxisIsWithinCtrlDBExtTraj(within);
-    }
+  for (auto *axis : axes_) {
+    axis->getMon()->setAxisIsWithinCtrlDBExtTraj(within);
   }
 }
 
 bool ecmcAxisGroup::getAxisIsWithinCtrlDB() {
-  bool attarget = true;
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      attarget = attarget && (*axis)->getMon()->getAxisIsWithinCtrlDB();
+  for (auto *axis : axes_) {
+    if (!axis->getMon()->getAxisIsWithinCtrlDB()) {
+      return false;
     }
   }
-  return attarget;
+  return true;
 }
 
 bool ecmcAxisGroup::getAnyIlocked() {
-  bool ilocked = false;
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      ilocked = ilocked || (*axis)->getSumInterlock();
+  for (auto *axis : axes_) {
+    if (axis->getSumInterlock()) {
+      return true;
     }
   }
-  return ilocked;
+  return false;
 }
 
 bool ecmcAxisGroup::getAtTarget() {
-  bool attarget = true;
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      if((*axis)->getMon()->getEnableAtTargetMon()) {
-        attarget = attarget && (*axis)->getMon()->getAtTarget();
-      } else {
-        attarget = attarget && !(*axis)->getBusy();
+  for (auto *axis : axes_) {
+    auto * const mon = axis->getMon();
+    if(mon->getEnableAtTargetMon()) {
+      if (!mon->getAtTarget()) {
+        return false;
+      }
+    } else {
+      if (axis->getBusy()) {
+        return false;
       }
     }
   }
-  return attarget;
+  return true;
 }
 
 // set Group blocked
 void ecmcAxisGroup::setBlocked(bool blocked) {
+  if (blocked_ == blocked) {
+    return;
+  }
   blocked_ = blocked;
-  for(std::vector<ecmcAxisBase*>::iterator axis = axes_.begin(); axis != axes_.end(); ++axis) {
-    if((*axis)) {
-      (*axis)->setBlocked(blocked);
-    }
+  for (auto *axis : axes_) {
+    axis->setBlocked(blocked);
   }
 
 }

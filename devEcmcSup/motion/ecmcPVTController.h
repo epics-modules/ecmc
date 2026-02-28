@@ -71,7 +71,7 @@ class ecmcPVTController: public ecmcEcEntryLink {
     void   setAxesDAQTrgMode();
     void   initAsyn();
     void   refreshAsyn();
-    void   printState(ecmcPVTSMType state);
+    void   setTriggerOutput(bool high);
 
     double sampleTime_;
     double nextTime_, accTime_, endTime_;
@@ -93,6 +93,9 @@ class ecmcPVTController: public ecmcEcEntryLink {
     double triggerDuration_;
     size_t triggerCurrentId_;
     bool   newTrg_;
+    bool   triggerOutputHigh_;
+    bool   axesBusyState_;
+    bool   axesBusyStateValid_;
     double halfSampleTime_;
     ecmcAsynPortDriver *asynPortDriver_;
     ecmcAsynDataItem *asynSoftTrigger_;

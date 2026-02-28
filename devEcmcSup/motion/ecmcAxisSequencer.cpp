@@ -82,14 +82,17 @@ void ecmcAxisSequencer::init(double sampleTime) {
 
 // Cyclic execution
 void ecmcAxisSequencer::execute() {
+  auto &status = data_->status_;
+  auto &statusWord = status.statusWord_;
+  auto &control = data_->control_;
   const bool internalTrajSource =
-    data_->status_.statusWord_.trajsource == ECMC_DATA_SOURCE_INTERNAL;
+    statusWord.trajsource == ECMC_DATA_SOURCE_INTERNAL;
   const bool internalEncSource =
-    data_->status_.statusWord_.encsource == ECMC_DATA_SOURCE_INTERNAL;
+    statusWord.encsource == ECMC_DATA_SOURCE_INTERNAL;
 
   pvtmode_ = pvtOk_ && 
-      (/*data_->status_.command == ECMC_CMD_MOVEPVTREL ||*/
-       data_->status_.command == ECMC_CMD_MOVEPVTABS);
+      (/*status.command == ECMC_CMD_MOVEPVTREL ||*/
+       status.command == ECMC_CMD_MOVEPVTABS);
   const bool pvtExecute = pvt_ && pvt_->getExecute();
   const bool pvtActive = pvtmode_ && !pvtStopping_ && pvtExecute;
 
@@ -97,30 +100,25 @@ void ecmcAxisSequencer::execute() {
   if (internalTrajSource) {
 
     if (pvtActive) {
-      data_->status_.currentPositionSetpoint = pvt_->getCurrPosition();
-      data_->status_.currentVelocitySetpoint = pvt_->getCurrVelocity();      
+      status.currentPositionSetpoint = pvt_->getCurrPosition();
+      status.currentVelocitySetpoint = pvt_->getCurrVelocity();
     } else {
-      data_->status_.currentPositionSetpoint = traj_->getNextPosSet();
-      data_->status_.currentVelocitySetpoint = traj_->getNextVel();
+      status.currentPositionSetpoint = traj_->getNextPosSet();
+      status.currentVelocitySetpoint = traj_->getNextVel();
     }
 
   } else {    // External source (PLC or other)
-    data_->status_.currentPositionSetpoint =
-      data_->status_.externalTrajectoryPosition;
-    data_->status_.currentVelocitySetpoint =
-      data_->status_.externalTrajectoryVelocity;
+    status.currentPositionSetpoint = status.externalTrajectoryPosition;
+    status.currentVelocitySetpoint = status.externalTrajectoryVelocity;
   }
 
   if (internalEncSource) {
-    data_->status_.currentPositionActual =
-      encArray_[data_->control_.primaryEncIndex]->getActPos();
-    data_->status_.currentVelocityActual =
-      encArray_[data_->control_.primaryEncIndex]->getActVel();
+    auto * const primaryEnc = encArray_[control.primaryEncIndex];
+    status.currentPositionActual = primaryEnc->getActPos();
+    status.currentVelocityActual = primaryEnc->getActVel();
   } else { // External
-    data_->status_.currentPositionActual =
-      data_->status_.externalEncoderPosition;
-    data_->status_.currentVelocityActual =
-      data_->status_.externalEncoderVelocity;
+    status.currentPositionActual = status.externalEncoderPosition;
+    status.currentVelocityActual = status.externalEncoderVelocity;
   }
 
   executeInternal();
@@ -131,11 +129,9 @@ void ecmcAxisSequencer::execute() {
   trajLockOld_ = trajLock_;
   trajLock_ =
     ((data_->interlocks_.trajSummaryInterlockFWD &&
-      data_->status_.currentPositionSetpoint >
-      data_->statusOld_.currentPositionSetpoint) ||
+      status.currentPositionSetpoint > data_->statusOld_.currentPositionSetpoint) ||
      (data_->interlocks_.trajSummaryInterlockBWD &&
-      data_->status_.currentPositionSetpoint <
-      data_->statusOld_.currentPositionSetpoint));
+      status.currentPositionSetpoint < data_->statusOld_.currentPositionSetpoint));
   
   // If internal source and not PVT-mode then interlocks are handled in trajectory generator
   // TODO Would be nice to change this design..
@@ -149,17 +145,17 @@ void ecmcAxisSequencer::execute() {
   pvtStopping_ = traj_->getBusy() && pvtStopping_;
 
   // PVT
-  if (pvtOk_ && !pvtStopping_ && data_->status_.statusWord_.execute && pvt_) {
+  if (pvtOk_ && !pvtStopping_ && statusWord.execute && pvt_) {
     // Go to next pvt time step
     if (pvt_->nextSampleStep() && pvtExecute) {
-      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
+      traj_->setCurrentPosSet(status.currentPositionSetpoint);
     }
   }
-  traj_->setStartPos(data_->status_.currentPositionSetpoint);
+  traj_->setStartPos(status.currentPositionSetpoint);
 
 
-  if (data_->control_.command == ECMC_CMD_MOVEVEL || pvtmode_ || !internalTrajSource) {
-    data_->status_.currentTargetPosition = data_->status_.currentPositionSetpoint;
+  if (control.command == ECMC_CMD_MOVEVEL || pvtmode_ || !internalTrajSource) {
+    status.currentTargetPosition = status.currentPositionSetpoint;
   }
 }
 
@@ -169,7 +165,8 @@ void ecmcAxisSequencer::executeInternal() {
   // read mode if entry is linked
   uint64_t tempRaw = 0;
 
-  if (modeActEntry_) {
+  const bool autoModeEnabled = modeMotionCmdSet_ || modeHomingCmdSet_;
+  if (modeActEntry_ && autoModeEnabled) {
     modeActEntry_->readValue(&tempRaw);
     modeAct_ = (int)tempRaw;
   }
@@ -191,19 +188,21 @@ void ecmcAxisSequencer::executeInternal() {
   const bool startupFinished = status.startupFinsished;
   const bool isHoming = status.command == ECMC_CMD_HOMING;
   const bool pvtRun = pvtmode_ && !pvtStopping_ && pvt_;
+  const bool trajBusy = traj_->getBusy();
+  const bool pvtBusy = pvtRun ? pvt_->getBusy() : false;
 
   // Reset busy (set in setExecute)
   if (internalTrajSource) {
     // HOMING 
     if (isHoming) {
-      statusWord.localBusy = traj_->getBusy();
+      statusWord.localBusy = trajBusy;
     } else {
      // PVT 
       if (pvtRun) {
-        statusWord.localBusy = (pvt_->getBusy() && axisEnabled) || !startupFinished;
+        statusWord.localBusy = (pvtBusy && axisEnabled) || !startupFinished;
       } else {
       // Normal motion
-        statusWord.localBusy = (traj_->getBusy() && axisEnabled) || !startupFinished;
+        statusWord.localBusy = (trajBusy && axisEnabled) || !startupFinished;
       }
     }
   } else { // Sync to other axis
@@ -251,168 +250,70 @@ void ecmcAxisSequencer::executeInternal() {
     return;
   }
   int seqReturnVal         = 0;
-  ecmcHomingType homeSeqId = (ecmcHomingType)data_->status_.cmdData;
+  ecmcHomingType homeSeqId = (ecmcHomingType)status.cmdData;
 
-  switch (data_->status_.command) {
+  switch (status.command) {
   case ECMC_CMD_JOG:
     ;
     break;
 
-  case ECMC_CMD_HOMING:
-
+  case ECMC_CMD_HOMING: {
+    bool homingSeqHandled = true;
     switch (homeSeqId) {
     case ECMC_SEQ_HOME_LOW_LIM:
       seqReturnVal = seqHoming1();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_HIGH_LIM:
       seqReturnVal = seqHoming2();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_LOW_LIM_HOME:
       seqReturnVal = seqHoming3();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_HIGH_LIM_HOME:
       seqReturnVal = seqHoming4();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_LOW_LIM_HOME_HOME:
       seqReturnVal = seqHoming5();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_HIGH_LIM_HOME_HOME:
       seqReturnVal = seqHoming6();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_BWD_HOME:
       seqReturnVal = seqHoming7();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_FWD_HOME:
       seqReturnVal = seqHoming8();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_BWD_HOME_HOME:
       seqReturnVal = seqHoming9();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_FWD_HOME_HOME:
       seqReturnVal = seqHoming10();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_LOW_LIM_INDEX:
       seqReturnVal = seqHoming11();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_HIGH_LIM_INDEX:
       seqReturnVal = seqHoming12();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS:
       seqReturnVal = seqHoming21();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_HIGH_LIM_SINGLE_TURN_ABS:
       seqReturnVal = seqHoming22();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_USE_ENC_CFGS:
@@ -422,36 +323,34 @@ void ecmcAxisSequencer::executeInternal() {
       setErrorID(__FILE__, __FUNCTION__, __LINE__,
                  ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED);
       stopSeq();
+      homingSeqHandled = false;
       break;
 
     case ECMC_SEQ_HOME_SET_POS:
       seqReturnVal = seqHoming15();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     case ECMC_SEQ_HOME_TRIGG_EXTERN:
       seqReturnVal = seqHoming26();
-
-      if (seqReturnVal > 0) {  // Error
-        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
-        stopSeq();
-      } else if (seqReturnVal == 0) {  // Homing ready
-        stopSeq();
-      }
       break;
 
     default:
       setErrorID(__FILE__, __FUNCTION__, __LINE__,
                  ERROR_SEQ_CMD_DATA_UNDEFINED);
+      homingSeqHandled = false;
       break;
-    }    
+    }
+
+    if (homingSeqHandled) {
+      if (seqReturnVal > 0) {  // Error
+        setErrorID(__FILE__, __FUNCTION__, __LINE__, seqReturnVal);
+        stopSeq();
+      } else if (seqReturnVal == 0) {  // Homing ready
+        stopSeq();
+      }
+    }
     break;
+  }
 
   default:
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_CMD_UNDEFINED);
@@ -460,9 +359,16 @@ void ecmcAxisSequencer::executeInternal() {
 }
 
 int ecmcAxisSequencer::setExecute(bool execute) {
+  auto &status = data_->status_;
+  auto &statusWord = status.statusWord_;
+  auto &control = data_->control_;
+  const bool dbgPrint = control.controlWord_.enableDbgPrintout;
 
-  if(data_->control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: seq::setExetute execute = %d, old %d\n",data_->status_.axisId,execute, executeOld_);
+  if (dbgPrint) {
+    printf("INFO: Axis[%d]: seq::setExetute execute = %d, old %d\n",
+           status.axisId,
+           execute,
+           executeOld_);
   }
   int errorCode = 0;
   int modeSet   = 0;
@@ -471,17 +377,18 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_TRAJ_NULL);
   }  
   
-  executeOld_ = data_->status_.statusWord_.execute;
-  data_->status_.statusWord_.execute = execute;
+  executeOld_ = statusWord.execute;
+  statusWord.execute = execute;
+  const bool execRisingEdge = statusWord.execute && !executeOld_;
 
   seqInProgress_          = false;
   seqState_               = 0;
 
   setTrajAccAndDec();
-  if (data_->status_.statusWord_.execute  && !executeOld_) {
+  if (execRisingEdge) {
 
     // velo for homing is set in a different way
-    if (data_->status_.command != ECMC_CMD_HOMING) {
+    if (status.command != ECMC_CMD_HOMING) {
       errorCode = checkVelAccDec();
 
       if (errorCode) {
@@ -495,18 +402,19 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     modeSet = modeMotionCmd_;
   }
 
-  switch (data_->status_.command) {
+  switch (status.command) {
   case ECMC_CMD_JOG:
 
     // Triggered via jog inputs
     break;
 
   case ECMC_CMD_MOVEVEL:
-    if(data_->control_.controlWord_.enableDbgPrintout) {
-      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEVEL\n",data_->status_.axisId);
+    if (dbgPrint) {
+      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEVEL\n",
+             status.axisId);
     }
 
-    if (data_->status_.statusWord_.execute  && !executeOld_) {
+    if (execRisingEdge) {
       if (!enableConstVel_) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
@@ -515,21 +423,21 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
 
       // Only allow cmdData 0 (no different modes implemented)
-      if (data_->control_.cmdData != 0) {
+      if (control.cmdData != 0) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
                           __LINE__,
                           ERROR_SEQ_CMD_DATA_UNDEFINED);
       }
 
-      data_->status_.statusWord_.localBusy = true;
-      traj_->setStartPos(data_->status_.currentPositionSetpoint);
-      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
+      statusWord.localBusy = true;
+      traj_->setStartPos(status.currentPositionSetpoint);
+      traj_->setCurrentPosSet(status.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
-      traj_->setTargetVel(data_->status_.currentVelocityTarget);
+      traj_->setTargetVel(status.currentVelocityTarget);
     }
 
-    errorCode =  traj_->setExecute(data_->status_.statusWord_.execute);
+    errorCode =  traj_->setExecute(statusWord.execute);
 
     if (errorCode) {
       return errorCode;
@@ -538,10 +446,12 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     break;
 
   case ECMC_CMD_MOVEREL:
-    if(data_->control_.controlWord_.enableDbgPrintout) {
-      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEREL to %lf\n",data_->status_.axisId,data_->status_.currentTargetPosition);
+    if (dbgPrint) {
+      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEREL to %lf\n",
+             status.axisId,
+             status.currentTargetPosition);
     }
-    if (data_->status_.statusWord_.execute && !executeOld_) {
+    if (execRisingEdge) {
       if (!enablePos_) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
@@ -550,21 +460,21 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
 
       // Only allow cmdData 0 (no different modes implemented)
-      if (data_->control_.cmdData != 0) {
+      if (control.cmdData != 0) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
                           __LINE__,
                           ERROR_SEQ_CMD_DATA_UNDEFINED);
       }
 
-      data_->status_.statusWord_.localBusy = true;
+      statusWord.localBusy = true;
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
-      traj_->setStartPos(data_->status_.currentPositionSetpoint);
-      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
-      traj_->setTargetVel(data_->status_.currentVelocityTarget);
-      traj_->setTargetPos(data_->status_.currentTargetPosition);
+      traj_->setStartPos(status.currentPositionSetpoint);
+      traj_->setCurrentPosSet(status.currentPositionSetpoint);
+      traj_->setTargetVel(status.currentVelocityTarget);
+      traj_->setTargetPos(status.currentTargetPosition);
     }
-    errorCode = traj_->setExecute(data_->status_.statusWord_.execute);
+    errorCode = traj_->setExecute(statusWord.execute);
 
     if (errorCode) {
       return errorCode;
@@ -573,10 +483,12 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     break;
 
   case ECMC_CMD_MOVEABS:
-    if(data_->control_.controlWord_.enableDbgPrintout) {
-      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEABS to %lf\n",data_->status_.axisId,data_->status_.currentTargetPosition);
+    if (dbgPrint) {
+      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEABS to %lf\n",
+             status.axisId,
+             status.currentTargetPosition);
     }
-    if (data_->status_.statusWord_.execute && !executeOld_) {
+    if (execRisingEdge) {
       if (!enablePos_) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
@@ -584,17 +496,17 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                           ERROR_SEQ_MOTION_CMD_NOT_ENABLED);
       }
       
-      data_->status_.statusWord_.localBusy = true;
-      traj_->setStartPos(data_->status_.currentPositionSetpoint);
-      traj_->setCurrentPosSet(data_->status_.currentPositionSetpoint);
+      statusWord.localBusy = true;
+      traj_->setStartPos(status.currentPositionSetpoint);
+      traj_->setCurrentPosSet(status.currentPositionSetpoint);
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
-      traj_->setTargetVel(data_->status_.currentVelocityTarget);
+      traj_->setTargetVel(status.currentVelocityTarget);
       double targPos   = 0;
       int    errorCode = 0;
 
-      switch (data_->control_.cmdData) {
+      switch (control.cmdData) {
       case 0:     // Normal positioning
-        traj_->setTargetPos(data_->status_.currentTargetPosition);
+        traj_->setTargetPos(status.currentTargetPosition);
         break;
 
       // Go to external transform curr value (as targetPosition)
@@ -616,7 +528,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                           ERROR_SEQ_CMD_DATA_UNDEFINED);
       }
     }
-    errorCode = traj_->setExecute(data_->status_.statusWord_.execute);
+    errorCode = traj_->setExecute(statusWord.execute);
 
     if (errorCode) {
       return errorCode;
@@ -634,10 +546,12 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   // PVT is only abs here (relative is handled by the PVt controller)
   case ECMC_CMD_MOVEPVTABS:
-    if(data_->control_.controlWord_.enableDbgPrintout) {
-      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEPVTABS execute %d\n",data_->status_.axisId,data_->status_.statusWord_.execute);
+    if (dbgPrint) {
+      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEPVTABS execute %d\n",
+             status.axisId,
+             statusWord.execute);
     }
-    if (data_->status_.statusWord_.execute && !executeOld_) {
+    if (execRisingEdge) {
       errorCode = validatePVT();
       if(errorCode) {
         return errorCode;
@@ -651,7 +565,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         return errorCode;
       }
       data_->interlocks_.noExecuteInterlock = false;
-    } else if(!data_->status_.statusWord_.execute){
+    } else if(!statusWord.execute){
       errorCode = pvt_->setExecute(0);
       setGlobalBusy(false);
       // needed since this is evaluated in trajectory which is not in use
@@ -661,9 +575,9 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     break;
 
   case ECMC_CMD_HOMING:
-    if(data_->control_.controlWord_.enableDbgPrintout) {
+    if (dbgPrint) {
       printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_HOMING execute %d, proc %d\n",
-              data_->status_.axisId, data_->status_.statusWord_.execute, data_->status_.cmdData);
+              status.axisId, statusWord.execute, status.cmdData);
     }
 
     // set mode to homing
@@ -671,11 +585,12 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       modeSet = modeHomingCmd_;
     }
 
-    if (data_->status_.statusWord_.execute && !executeOld_) {
+    if (execRisingEdge) {
+      auto * const primEnc = getPrimEnc();
       // oldPrimaryEnc_ = data_->control_.primaryEncIndex;
       // encoder data source must be internal for homing
-      traj_->setStartPos(data_->status_.currentPositionSetpoint);
-      if (data_->status_.statusWord_.encsource != ECMC_DATA_SOURCE_INTERNAL) {
+      traj_->setStartPos(status.currentPositionSetpoint);
+      if (statusWord.encsource != ECMC_DATA_SOURCE_INTERNAL) {
         return setErrorID(__FILE__,
                           __FUNCTION__,
                           __LINE__,
@@ -693,19 +608,19 @@ int ecmcAxisSequencer::setExecute(bool execute) {
       }
 
       if ((traj_ != NULL) &&
-          (getPrimEnc() != NULL) &&
+          (primEnc != NULL) &&
           (mon_ != NULL) &&
-          ((cntrl_ != NULL) || (data_->status_.axisType == ECMC_AXIS_TYPE_VIRTUAL))) {
+          ((cntrl_ != NULL) || (status.axisType == ECMC_AXIS_TYPE_VIRTUAL))) {
         seqInProgress_      = true;
         localSeqBusy_       = true;
-        data_->status_.statusWord_.localBusy = true;
+        statusWord.localBusy = true;
 
         // Use the parameters defined in encoder object
-        if (data_->control_.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {          
+        if (control.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {
           readHomingParamsFromEnc();
         }
 
-        if (data_->control_.cmdData == ECMC_SEQ_HOME_NOT_VALID) {
+        if (control.cmdData == ECMC_SEQ_HOME_NOT_VALID) {
           // Homing not allowed
           return setErrorID(__FILE__,
                             __FUNCTION__,
@@ -722,7 +637,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
           traj_->setExecute(false);
         }
 
-        if (getPrimEnc() == NULL) {
+        if (primEnc == NULL) {
           return setErrorID(__FILE__,
                             __FUNCTION__,
                             __LINE__,
@@ -743,9 +658,9 @@ int ecmcAxisSequencer::setExecute(bool execute) {
                             ERROR_SEQ_CNTRL_NULL);
         }
       }
-    } else if (!data_->status_.statusWord_.execute) {
+    } else if (!statusWord.execute) {
       stopSeq();
-      errorCode = traj_->setExecute(data_->status_.statusWord_.execute);
+      errorCode = traj_->setExecute(statusWord.execute);
 
       if (errorCode) {
         return errorCode;
@@ -778,7 +693,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     break;
   }
 
-  if (data_->status_.statusWord_.execute  && !executeOld_) {
+  if (execRisingEdge) {
     // write mode if entry is linked
     if (modeSetEntry_) {
       modeSetEntry_->writeValue((uint64_t)modeSet);
@@ -841,22 +756,26 @@ double ecmcAxisSequencer::getJogVel() {
 }
 
 void ecmcAxisSequencer::setTargetPos(double pos) {  
-  
-  if (data_->status_.command == ECMC_CMD_MOVEREL) {
+  auto &status = data_->status_;
+  auto &control = data_->control_;
+
+  if (status.command == ECMC_CMD_MOVEREL) {
     //pos = traj_->getCurrentPosSet() + pos;
-    pos = data_->status_.currentTargetPosition + pos;
+    pos = status.currentTargetPosition + pos;
   }
 
   pos = checkSoftLimits(pos);
 
-  data_->status_.currentTargetPosition = pos;
+  status.currentTargetPosition = pos;
   
   // "On the fly change"
   if (getBusy()) {
-    traj_->setTargetPos(data_->status_.currentTargetPosition);
+    traj_->setTargetPos(status.currentTargetPosition);
   }
-  if(data_->control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisSequencer::setTargetPos(%lf)\n",data_->status_.axisId, pos);
+  if (control.controlWord_.enableDbgPrintout) {
+    printf("INFO: Axis[%d]: ecmcAxisSequencer::setTargetPos(%lf)\n",
+           status.axisId,
+           pos);
   }
 }
 
@@ -874,6 +793,8 @@ double ecmcAxisSequencer::getTargetPos() {
 }
 
 void ecmcAxisSequencer::setTargetVel(double velTarget) {
+  auto &status = data_->status_;
+  auto &control = data_->control_;
   // silent restriction to max velocity
   if (mon_->getEnableMaxVelMon()) {
     double maxVelo = std::abs(mon_->getMaxVel());
@@ -889,14 +810,16 @@ void ecmcAxisSequencer::setTargetVel(double velTarget) {
     }
   }
 
-  data_->status_.currentVelocityTarget = velTarget;
-  data_->control_.velocityTarget = velTarget;
+  status.currentVelocityTarget = velTarget;
+  control.velocityTarget = velTarget;
   // Do not write to traj if homing
-  if (data_->status_.command != ECMC_CMD_HOMING) {
+  if (status.command != ECMC_CMD_HOMING) {
     traj_->setTargetVel(velTarget);
   }
-  if(data_->control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisSequencer::setTargetVel(%lf)\n",data_->status_.axisId, velTarget);
+  if (control.controlWord_.enableDbgPrintout) {
+    printf("INFO: Axis[%d]: ecmcAxisSequencer::setTargetVel(%lf)\n",
+           status.axisId,
+           velTarget);
   }
 }
 
@@ -905,6 +828,7 @@ double ecmcAxisSequencer::getTargetVel() {
 }
 
 void ecmcAxisSequencer::setJogFwd(bool jog) {
+  auto &status = data_->status_;
   jogFwd_ = jog;
 
   if (traj_ == NULL) {
@@ -912,12 +836,12 @@ void ecmcAxisSequencer::setJogFwd(bool jog) {
     return;
   }
 
-  if ((data_->status_.command == ECMC_CMD_JOG) && jogFwd_) {
+  if ((status.command == ECMC_CMD_JOG) && jogFwd_) {
     traj_->setTargetVel(jogVel_);
     traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
     traj_->setExecute(jogFwd_);
   } else {
-    traj_->setTargetVel(data_->status_.currentVelocityTarget);
+    traj_->setTargetVel(status.currentVelocityTarget);
   }
 }
 
@@ -930,6 +854,7 @@ bool ecmcAxisSequencer::getJogFwd() {
 }
 
 void ecmcAxisSequencer::setJogBwd(bool jog) {
+  auto &status = data_->status_;
   jogBwd_ = jog;
 
   if (traj_ == NULL) {
@@ -937,12 +862,12 @@ void ecmcAxisSequencer::setJogBwd(bool jog) {
     return;
   }
 
-  if ((data_->status_.command == ECMC_CMD_JOG) && jogBwd_) {
+  if ((status.command == ECMC_CMD_JOG) && jogBwd_) {
     traj_->setTargetVel(-jogVel_);
     traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
     traj_->setExecute(jogBwd_);
   } else {
-    traj_->setTargetVel(data_->status_.currentVelocityTarget);
+    traj_->setTargetVel(status.currentVelocityTarget);
   }
 }
 
@@ -1342,8 +1267,7 @@ int ecmcAxisSequencer::seqHoming3() {  // nCmdData==3
       data_->status_.currentTargetPosition = traj_->getCurrentPosSet();
 
       // Wait for controller to settle in order to minimize bump.
-      if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
-          !mon_->getEnableAtTargetMon()) {
+      if (isAtTargetOrAtTargetMonDisabled()) {
         double currPos =
           getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
@@ -1463,8 +1387,7 @@ int ecmcAxisSequencer::seqHoming4() {  // nCmdData==4
       data_->status_.currentTargetPosition = traj_->getCurrentPosSet();
 
       // Wait for controller to settle in order to minimize bump
-      if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
-          !mon_->getEnableAtTargetMon()) {
+      if (isAtTargetOrAtTargetMonDisabled()) {
         double currPos =
           getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
@@ -2435,8 +2358,7 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
       data_->status_.currentTargetPosition = traj_->getCurrentPosSet();
 
       // Wait for controller to settle in order to minimize bump.
-      if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
-          !mon_->getEnableAtTargetMon()) {
+      if (isAtTargetOrAtTargetMonDisabled()) {
         double currPos =
           getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
@@ -2595,8 +2517,7 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
       data_->status_.currentTargetPosition = traj_->getCurrentPosSet();
 
       // Wait for controller to settle in order to minimize bump
-      if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
-          !mon_->getEnableAtTargetMon()) {
+      if (isAtTargetOrAtTargetMonDisabled()) {
         double currPos =
           getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
@@ -2624,23 +2545,24 @@ int ecmcAxisSequencer::seqHoming21() {  // nCmdData==21 Resolver homing (keep ab
   // State 5 Wait for standstill before rescale of encoder. Keep encoder absolute bits
 
   int retValue = traj_->getErrorID();  // Abort if error from trajectory
+  auto * const primEnc = getPrimEnc();
 
   if (retValue) {
     return retValue;
   }
 
-  if ((getPrimEnc()->getAbsBits() <
-       ECMC_ENCODER_ABS_BIT_MIN) ||
-      (getPrimEnc()->getAbsBits() >
-       getPrimEnc()->getBits())) {
+  const int absBits = primEnc->getAbsBits();
+  const int bits = primEnc->getBits();
+  if ((absBits < ECMC_ENCODER_ABS_BIT_MIN) ||
+      (absBits > bits)) {
     LOGERR(
       "%s/%s:%d: ERROR: Sequence aborted. Encoder absolute bit count out of range (%d). Allowed range: %d:%d. (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      getPrimEnc()->getAbsBits(),
-      getPrimEnc()->getAbsBits(),
-      getPrimEnc()->getBits(),
+      absBits,
+      absBits,
+      bits,
       ERROR_SEQ_ERROR_ABS_BIT_OUT_OF_RANGE);
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -2748,22 +2670,19 @@ int ecmcAxisSequencer::seqHoming21() {  // nCmdData==21 Resolver homing (keep ab
     if (!traj_->getBusy()) {  // Wait for stop ramp ready
       data_->status_.currentTargetPosition = traj_->getCurrentPosSet();
 
-      if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
-          !mon_->getEnableAtTargetMon()) {
+      if (isAtTargetOrAtTargetMonDisabled()) {
         // now stopped just at limit switch
-        if (getPrimEnc()->getScale() < 0) {
-          distToAbsBitsUnderOverFlow = std::abs(
-            getPrimEnc()->getRawAbsPosRegister() *
-            getPrimEnc()->getScale());
+        const double encScale = primEnc->getScale();
+        const double rawAbsPosScaled =
+          std::abs(primEnc->getRawAbsPosRegister() * encScale);
+        if (encScale < 0) {
+          distToAbsBitsUnderOverFlow = rawAbsPosScaled;
         } else {
           distToAbsBitsUnderOverFlow =
-            getPrimEnc()->getAbsRangeEng() -
-            std::abs(
-              getPrimEnc()->getRawAbsPosRegister() *
-              getPrimEnc()->getScale());
+            primEnc->getAbsRangeEng() - rawAbsPosScaled;
         }
         currPos = homePosition_ - (homeLatchCountOffset_ - 1) *
-                  getPrimEnc()->getAbsRangeEng()
+                  primEnc->getAbsRangeEng()
                   - distToAbsBitsUnderOverFlow;
         finalizeHomingSeq(currPos);
       }
@@ -2788,23 +2707,24 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
   // State 5 Wait for standstill before rescale of encoder. Keep encoder absolute bits
 
   int retValue = traj_->getErrorID();  // Abort if error from trajectory
+  auto * const primEnc = getPrimEnc();
 
   if (retValue) {
     return retValue;
   }
 
-  if ((getPrimEnc()->getAbsBits() <
-       ECMC_ENCODER_ABS_BIT_MIN) ||
-      (getPrimEnc()->getAbsBits() >
-       getPrimEnc()->getBits())) {
+  const int absBits = primEnc->getAbsBits();
+  const int bits = primEnc->getBits();
+  if ((absBits < ECMC_ENCODER_ABS_BIT_MIN) ||
+      (absBits > bits)) {
     LOGERR(
       "%s/%s:%d: ERROR: Sequence aborted. Encoder absolute bit count out of range (%d). Allowed range: %d:%d. (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
-      getPrimEnc()->getAbsBits(),
-      getPrimEnc()->getAbsBits(),
-      getPrimEnc()->getBits(),
+      absBits,
+      absBits,
+      bits,
       ERROR_SEQ_ERROR_ABS_BIT_OUT_OF_RANGE);
     return setErrorID(__FILE__,
                       __FUNCTION__,
@@ -2920,22 +2840,19 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
     if (!traj_->getBusy()) {  // Wait for stop ramp ready
       data_->status_.currentTargetPosition = traj_->getCurrentPosSet();
 
-      if ((mon_->getAtTarget() && mon_->getEnableAtTargetMon()) ||
-          !mon_->getEnableAtTargetMon()) {
+      if (isAtTargetOrAtTargetMonDisabled()) {
         // now stopped just at limit switch
-        if (getPrimEnc()->getScale() < 0) {
+        const double encScale = primEnc->getScale();
+        const double rawAbsPosScaled =
+          std::abs(primEnc->getRawAbsPosRegister() * encScale);
+        if (encScale < 0) {
           distToAbsBitsUnderOverFlow =
-            getPrimEnc()->getAbsRangeEng() -
-            std::abs(
-              getPrimEnc()->getRawAbsPosRegister() *
-              getPrimEnc()->getScale());
+            primEnc->getAbsRangeEng() - rawAbsPosScaled;
         } else {
-          distToAbsBitsUnderOverFlow = std::abs(
-            getPrimEnc()->getRawAbsPosRegister() *
-            getPrimEnc()->getScale());
+          distToAbsBitsUnderOverFlow = rawAbsPosScaled;
         }
         currPos = homePosition_ + (homeLatchCountOffset_ - 1) *
-                  getPrimEnc()->getAbsRangeEng()
+                  primEnc->getAbsRangeEng()
                   + distToAbsBitsUnderOverFlow;
         finalizeHomingSeq(currPos);
       }
@@ -2950,6 +2867,7 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
 
 // External triggered homig (set trigg bit and then wait for status bit to be 1)
 int ecmcAxisSequencer::seqHoming26() {
+  auto * const primEnc = getPrimEnc();
   // Sequence code
   switch (seqState_) {
   case 0:
@@ -2959,7 +2877,7 @@ int ecmcAxisSequencer::seqHoming26() {
       return -2000;   // negative state that is not used
     }
 
-    if (!getPrimEnc()->getHomeExtTriggEnabled()) {
+    if (!primEnc->getHomeExtTriggEnabled()) {
       LOGERR(
         "%s/%s:%d: ERROR: Homing sequence not supported by encoder (hw links not set) (0x%x).\n",
         __FILE__,
@@ -2978,19 +2896,19 @@ int ecmcAxisSequencer::seqHoming26() {
     // Must disable following error mon since traj generation is external (will be auto restored by the restorePosLagMonAfterSeq())
     mon_->setEnableLagMon(false); 
 
-    getPrimEnc()->setHomeExtTrigg(1);
+    primEnc->setHomeExtTrigg(1);
     seqState_ = 1;
     break;
 
   case 1:  // Get status of homig seq (read bit)
-    if (!homeTrigStatOld_ && getPrimEnc()->getHomeExtTriggStat()) {  // consider check for edge..
-      getPrimEnc()->setHomeExtTrigg(0);
+    if (!homeTrigStatOld_ && primEnc->getHomeExtTriggStat()) {  // consider check for edge..
+      primEnc->setHomeExtTrigg(0);
       finalizeHomingSeq(homePosition_);
     }
     break;
   }
 
-  homeTrigStatOld_ = getPrimEnc()->getHomeExtTriggStat();
+  homeTrigStatOld_ = primEnc->getHomeExtTriggStat();
   postHomeMove();
 
   return -seqState_;
@@ -3077,32 +2995,43 @@ int ecmcAxisSequencer::checkHWLimitsAndStop(bool checkBWD, bool checkFWD) {
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_MON_NULL);
   }
 
-  if (!data_->status_.limitFwdFiltered && checkFWD) {
+  const auto &status = data_->status_;
+  const int cmdData = data_->control_.cmdData;
+
+  if (checkFWD && !status.limitFwdFiltered) {
     LOGERR(
       "%s/%s:%d: ERROR: Unexpected activation of forward limit switch in homing state %d of sequence %d (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
       seqState_,
-      data_->control_.cmdData,
+      cmdData,
       ERROR_SEQ_SEQ_FAILED);
     stopSeq();
     return ERROR_SEQ_SEQ_FAILED;
   }
 
-  if (!data_->status_.limitBwdFiltered && checkBWD) {
+  if (checkBWD && !status.limitBwdFiltered) {
     LOGERR(
       "%s/%s:%d: ERROR: Unexpected activation of backward limit switch in homing state %d of sequence %d (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
       seqState_,
-      data_->control_.cmdData,
+      cmdData,
       ERROR_SEQ_SEQ_FAILED);
     stopSeq();
     return ERROR_SEQ_SEQ_FAILED;
   }
   return 0;
+}
+
+bool ecmcAxisSequencer::isAtTargetOrAtTargetMonDisabled() const {
+  if (!mon_) {
+    return false;
+  }
+  const bool atTargetMonEnabled = mon_->getEnableAtTargetMon();
+  return !atTargetMonEnabled || mon_->getAtTarget();
 }
 
 int ecmcAxisSequencer::getSeqState() {
@@ -3114,8 +3043,9 @@ int ecmcAxisSequencer::stopSeq() {
     traj_->setExecute(false);
   }
 
-  if (getPrimEnc() != NULL) {
-    getPrimEnc()->setHomeExtTrigg(0);
+  auto * const primEnc = getPrimEnc();
+  if (primEnc != NULL) {
+    primEnc->setHomeExtTrigg(0);
   }
 
   seqInProgress_  = false;
@@ -3154,8 +3084,12 @@ int ecmcAxisSequencer::setAxisDataRef(ecmcAxisData *data) {
 }
 
 int ecmcAxisSequencer::checkVelAccDec() {
-  if ((data_->status_.command == ECMC_CMD_HOMING) &&
-      (data_->control_.cmdData != ECMC_SEQ_HOME_SET_POS)) {
+  const auto &status = data_->status_;
+  const auto &control = data_->control_;
+  const int cmdData = control.cmdData;
+
+  if ((status.command == ECMC_CMD_HOMING) &&
+      (cmdData != ECMC_SEQ_HOME_SET_POS)) {
     if ((std::abs(homeVelTowardsCam_) == 0) ||
         (std::abs(homeVelOffCam_) == 0)) {
       return setErrorID(__FILE__,
@@ -3165,7 +3099,7 @@ int ecmcAxisSequencer::checkVelAccDec() {
     }
   } else {
     // Sanity check of target velocity
-    if (std::abs(data_->status_.currentVelocityTarget) == 0) {
+    if (std::abs(status.currentVelocityTarget) == 0) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
@@ -3179,7 +3113,7 @@ int ecmcAxisSequencer::checkVelAccDec() {
 
   // Sanity check of acceleration
   if ((traj_->getAcc() <= 0) &&
-      (data_->control_.cmdData != ECMC_SEQ_HOME_SET_POS)) {
+      (cmdData != ECMC_SEQ_HOME_SET_POS)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -3188,7 +3122,7 @@ int ecmcAxisSequencer::checkVelAccDec() {
 
   // Sanity check of deceleration
   if ((traj_->getDec() <= 0) &&
-      (data_->control_.cmdData != ECMC_SEQ_HOME_SET_POS)) {
+      (cmdData != ECMC_SEQ_HOME_SET_POS)) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -3199,7 +3133,8 @@ int ecmcAxisSequencer::checkVelAccDec() {
 }
 
 void ecmcAxisSequencer::initHomingSeq() {
-  getPrimEnc()->setHomed(false);
+  auto * const primEnc = getPrimEnc();
+  primEnc->setHomed(false);
   traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
   traj_->setExecute(0);
   traj_->setAcc(homeAcc_);
@@ -3292,12 +3227,13 @@ void ecmcAxisSequencer::setNewPositionCtrlDrvTrajBumpless(double newPosition) {
 }
 
 void ecmcAxisSequencer::readHomingParamsFromEnc() {
+  auto * const primEnc = getPrimEnc();
   // This param is only accessibele in encoder object, so always read
   setHomeLatchCountOffset(
-    getPrimEnc()->getHomeLatchCountOffset());
+    primEnc->getHomeLatchCountOffset());
 
   // Check if encoder has parameters then overwrite existing parameters if any
-  if (!getPrimEnc()->getHomeParamsValid()) {
+  if (!primEnc->getHomeParamsValid()) {
     LOGERR(
       "%s/%s:%d: WARNING: No valid homing info stored for encoder, falling back to axis params.\n",
       __FILE__,
@@ -3307,30 +3243,30 @@ void ecmcAxisSequencer::readHomingParamsFromEnc() {
   }
 
   // Overwrite homing seqence id with what is stored in encoder object
-  setCmdData((ecmcHomingType)getPrimEnc()->getHomeSeqId());
+  setCmdData((ecmcHomingType)primEnc->getHomeSeqId());
   // Encoder has parameters stored so read those..
-  homeVelTowardsCam_ = getPrimEnc()->getHomeVelTowardsCam();
+  homeVelTowardsCam_ = primEnc->getHomeVelTowardsCam();
 
   if (std::abs(homeVelTowardsCam_) == 0) {
     homeVelTowardsCam_ = data_->status_.currentVelocityTarget;
   }
-  homeVelOffCam_ = getPrimEnc()->getHomeVelOffCam();
+  homeVelOffCam_ = primEnc->getHomeVelOffCam();
 
   if (std::abs(homeVelOffCam_) == 0) {
     homeVelOffCam_ = data_->status_.currentVelocityTarget;
   }
 
-  homePosition_          = getPrimEnc()->getHomePosition();
-  homeEnablePostMove_    = getPrimEnc()->getHomePostMoveEnable();
-  homePostMoveTargetPos_ = getPrimEnc()->getHomePostMoveTargetPosition();
+  homePosition_          = primEnc->getHomePosition();
+  homeEnablePostMove_    = primEnc->getHomePostMoveEnable();
+  homePostMoveTargetPos_ = primEnc->getHomePostMoveTargetPosition();
   
-  homeAcc_ = getPrimEnc()->getHomeAcc();
+  homeAcc_ = primEnc->getHomeAcc();
                  
   if (homeAcc_ <= 0) {
     homeAcc_ = data_->control_.accelerationTarget;
   }
 
-  homeDec_ = getPrimEnc()->getHomeDec();
+  homeDec_ = primEnc->getHomeDec();
 
   if (homeDec_ <= 0) {
     homeDec_ = data_->control_.decelerationTarget;
@@ -3395,31 +3331,36 @@ void ecmcAxisSequencer::setDefaultDec(double dec) {
 }
 
 void ecmcAxisSequencer::setAcc(double acc) {
-  data_->status_.currentAccelerationSetpoint = acc;
-  if (data_->status_.command != ECMC_CMD_HOMING) {
-    getTraj()->setAcc(data_->status_.currentAccelerationSetpoint);
+  auto &status = data_->status_;
+  status.currentAccelerationSetpoint = acc;
+  if (status.command != ECMC_CMD_HOMING) {
+    traj_->setAcc(status.currentAccelerationSetpoint);
   }  
 }
 
 void ecmcAxisSequencer::setDec(double dec) {
-  data_->status_.currentDecelerationSetpoint = dec;
-  if (data_->status_.command != ECMC_CMD_HOMING) {
-    getTraj()->setDec(data_->status_.currentDecelerationSetpoint);
+  auto &status = data_->status_;
+  status.currentDecelerationSetpoint = dec;
+  if (status.command != ECMC_CMD_HOMING) {
+    traj_->setDec(status.currentDecelerationSetpoint);
   }  
 }
 
 void ecmcAxisSequencer::setTrajAccAndDec() {
+  auto * const traj = traj_;
+  const auto &status = data_->status_;
+  const auto &control = data_->control_;
   // Revert to defaullt acc and dec if needed
-  if (data_->status_.currentAccelerationSetpoint > 0) {
-    getTraj()->setAcc(data_->status_.currentAccelerationSetpoint);
-  } else if (data_->control_.accelerationTarget > 0) {
-    getTraj()->setAcc(data_->control_.accelerationTarget);
+  if (status.currentAccelerationSetpoint > 0) {
+    traj->setAcc(status.currentAccelerationSetpoint);
+  } else if (control.accelerationTarget > 0) {
+    traj->setAcc(control.accelerationTarget);
   }
 
-  if (data_->status_.currentDecelerationSetpoint > 0) {
-    getTraj()->setDec(data_->status_.currentDecelerationSetpoint);
-  } else if (data_->control_.decelerationTarget > 0) {
-    getTraj()->setDec(data_->control_.decelerationTarget);
+  if (status.currentDecelerationSetpoint > 0) {
+    traj->setDec(status.currentDecelerationSetpoint);
+  } else if (control.decelerationTarget > 0) {
+    traj->setDec(control.decelerationTarget);
   }
 }
 

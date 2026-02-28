@@ -201,6 +201,9 @@ private:
   double enableAlarmAtHardlimitFwd_;
   ecmcAxisData *data_;
   int switchFilterCounter_;
+  int limitFwdFilterSum_;
+  int limitBwdFilterSum_;
+  int homeFilterSum_;
   bool limitFwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool limitBwdFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool homeFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];

@@ -203,9 +203,11 @@ private:
   ec_slave_config_t *slaveConfig_;
   ecmcEcSyncManager *syncManagerArray_[EC_MAX_SYNC_MANAGERS];
   ecmcEcEntry *entryList_[EC_MAX_ENTRIES];
-  ecmcEcEntry *entryListInUse_[EC_MAX_ENTRIES];
   uint32_t entryCounter_;
-  uint32_t entryCounterInUse_;
+  ecmcEcEntry *entryListRtInput_[EC_MAX_ENTRIES];
+  ecmcEcEntry *entryListRtOutput_[EC_MAX_ENTRIES];
+  uint32_t entryCounterRtInput_;
+  uint32_t entryCounterRtOutput_;
   int pdosArrayIndex_;
   int syncManArrayIndex_;
   int syncManCounter_;

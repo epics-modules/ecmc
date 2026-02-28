@@ -45,7 +45,9 @@ ecmcMasterSlaveStateMachine::ecmcMasterSlaveStateMachine(ecmcAsynPortDriver *asy
   slaveGrp_->setMRIgnoreDisableStatusCheck(true);
   masterGrp_->setMRIgnoreDisableStatusCheck(true);
 
-  printf("ecmcMasterSlaveStateMachine: %s:  Created master slave state machine [%d]\n",name_.c_str(),index_);
+  LOGINFO("ecmcMasterSlaveStateMachine: %s:  Created master slave state machine [%d]\n",
+          name_.c_str(),
+          index_);
 
   initAsyn();
 };
@@ -72,7 +74,7 @@ void ecmcMasterSlaveStateMachine::execute(){
       slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
       state_ = ECMC_MST_SLV_STATE_IDLE;
     }
-    memcpy(&controlOld_,&control_, sizeof(control_));
+    controlOld_ = control_;
     return;
   }
 
@@ -102,7 +104,7 @@ void ecmcMasterSlaveStateMachine::execute(){
       stateReset();
       break;
   };
-  memcpy(&controlOld_,&control_, sizeof(control_));
+  controlOld_ = control_;
 };
 
 int ecmcMasterSlaveStateMachine::stateIdle(){
@@ -121,38 +123,43 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
   //masterGrp_->setEnable(false);
   //slaveGrp_->setEnable(false);
 
-  // optimize
-  bool anySlaveBusy     = slaveGrp_->getAnyBusy();
-  bool anySlaveErrorId  = slaveGrp_->getAnyErrorId();
-  bool anyMasterEnabled = masterGrp_->getAnyEnabled();
+  const ecmcAxisGroupStatusSummary slaveStatus = slaveGrp_->getStatusSummary(false);
+  const ecmcAxisGroupStatusSummary masterStatus = masterGrp_->getStatusSummary(false);
+  const bool anySlaveBusy       = slaveStatus.anyBusy;
+  const int anySlaveErrorId     = slaveStatus.firstErrorId;
+  const bool anyMasterEnabled   = masterStatus.anyEnabled;
+  const bool anyMasterEnableCmd = masterStatus.anyEnableCmd;
+  const bool anySlaveTrajAnyExt = slaveStatus.anyTrajExternal;
 
   // State transision to SLAVE
-  if( anySlaveBusy && 
-    !slaveGrp_->getTrajSrcAnyExt() && 
-    !anyMasterEnabled && 
-    !masterGrp_->getAnyEnable()) {
+  if( anySlaveBusy &&
+    !anySlaveTrajAnyExt &&
+    !anyMasterEnabled &&
+    !anyMasterEnableCmd) {
     // (un)block commands
     slaveGrp_->setBlocked(false);
     masterGrp_->setBlocked(true);
     state_ = ECMC_MST_SLV_STATE_SLAVES;
     if(control_.enableDbgPrintouts) {
-      printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> SLAVE\n",name_.c_str());
+      LOGINFO("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> SLAVE\n",
+              name_.c_str());
     }
 
   // State transision to MASTER
   } else if(anyMasterEnabled &&
             anySlaveErrorId == 0 ) {
-
-    if(slaveGrp_->getEnabled() && anyMasterEnabled && !anySlaveBusy){
-
-      if(masterGrp_->getAnyBusy()) {
+    const bool allSlavesEnabled = slaveStatus.allEnabled;
+    if(allSlavesEnabled && !anySlaveBusy){
+      const bool anyMasterBusy = masterStatus.anyBusy;
+      if(anyMasterBusy) {
         slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_EXTERNAL);
         state_ = ECMC_MST_SLV_STATE_MASTERS;
         // (un)block commands
         masterGrp_->setBlocked(false);
         slaveGrp_->setBlocked(true);
         if(control_.enableDbgPrintouts) {
-          printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> MASTER\n", name_.c_str());
+          LOGINFO("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> MASTER\n",
+                  name_.c_str());
         }
       }
 
@@ -171,8 +178,10 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
           masterGrp_->setSlavedAxisInError();
         }
         if(control_.enableDbgPrintouts) {
-          printf("ecmcMasterSlaveStateMachine: %s: Error enabling axes\n", name_.c_str());
-          printf("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> IDLE\n", name_.c_str());
+          LOGINFO("ecmcMasterSlaveStateMachine: %s: Error enabling axes\n",
+                  name_.c_str());
+          LOGINFO("ecmcMasterSlaveStateMachine: %s: State change, IDLE -> IDLE\n",
+                  name_.c_str());
         }
         state_ = ECMC_MST_SLV_STATE_IDLE;
         
@@ -190,8 +199,12 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
 
 int ecmcMasterSlaveStateMachine::stateSlave(){
 
+  const ecmcAxisGroupStatusSummary slaveStatus = slaveGrp_->getStatusSummary(false);
+  const ecmcAxisGroupStatusSummary masterStatus = masterGrp_->getStatusSummary(false);
+  const bool anySlaveBusy = slaveStatus.anyBusy;
+
   // Maybe add atTarget here?!
-  if(!slaveGrp_->getAnyBusy()) {
+  if(!anySlaveBusy) {
 
     if(control_.autoDisableSlaves) {
       slaveGrp_->setEnable(0);
@@ -211,11 +224,14 @@ int ecmcMasterSlaveStateMachine::stateSlave(){
 
     state_ = ECMC_MST_SLV_STATE_IDLE;
     if(control_.enableDbgPrintouts) {
-      printf("ecmcMasterSlaveStateMachine: %s: State change, SLAVE -> IDLE\n", name_.c_str());
+      LOGINFO("ecmcMasterSlaveStateMachine: %s: State change, SLAVE -> IDLE\n",
+              name_.c_str());
     }
   }
 
-  if(masterGrp_->getAnyEnabled() || masterGrp_->getAnyEnable()) {
+  const bool anyMasterEnabled = masterStatus.anyEnabled;
+  const bool anyMasterEnableCmd = masterStatus.anyEnableCmd;
+  if(anyMasterEnabled || anyMasterEnableCmd) {
     masterGrp_->setEnable(0);
     masterGrp_->setMRCnen(0);
   }
@@ -223,12 +239,19 @@ int ecmcMasterSlaveStateMachine::stateSlave(){
 }
 
 int ecmcMasterSlaveStateMachine::stateMaster(){
-  
-  if(slaveGrp_->getAnyErrorId() > 0) {
+
+  const ecmcAxisGroupStatusSummary slaveStatus = slaveGrp_->getStatusSummary(false);
+  const ecmcAxisGroupStatusSummary masterStatus = masterGrp_->getStatusSummary(false);
+  const bool slaveAnyError = slaveStatus.firstErrorId > 0;
+  const bool masterAnyEnabled = masterStatus.anyEnabled;
+  const bool masterAnyBusy = masterStatus.anyBusy;
+  const bool masterAnyError = masterStatus.firstErrorId > 0;
+
+  if(slaveAnyError) {
     masterGrp_->setSlavedAxisInError();
   }
 
-  if( masterGrp_->getAnyEnabled() && !masterGrp_->getAnyBusy()) {
+  if(masterAnyEnabled && !masterAnyBusy) {
     if(control_.autoDisableMasters) {
       slaveGrp_->setEnable(0);
       masterGrp_->setEnable(0);
@@ -237,18 +260,21 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     }
   }
   
-  bool lostEnableCmd = !slaveGrp_->getEnable() || !masterGrp_->getEnable();
+  bool lostEnableCmd = false;
+  if(masterAnyBusy && !masterAnyError) {
+    lostEnableCmd = !slaveStatus.allEnableCmd || !masterStatus.allEnableCmd;
+  }
   
   // One master or slave axis gets killed during motion then kill all and goto IDLE
-  if( (masterGrp_->getAnyBusy() && lostEnableCmd) || masterGrp_->getAnyErrorId()) {
-    bool lostEnabled =          masterGrp_->getAnyEnabled() && !masterGrp_->getEnabled();
-    lostEnabled = lostEnabled  || (slaveGrp_->getAnyEnabled() && !slaveGrp_->getEnabled());
-    if(lostEnabled || masterGrp_->getAnyErrorId()) {
+  if((masterAnyBusy && lostEnableCmd) || masterAnyError) {
+    bool lostEnabled = masterAnyEnabled && !masterStatus.allEnabled;
+    lostEnabled = lostEnabled || (slaveStatus.anyEnabled && !slaveStatus.allEnabled);
+    if(lostEnabled || masterAnyError) {
       state_ = ECMC_MST_SLV_STATE_IDLE;
-      //if(control_.enableDbgPrintouts) {
-        printf("ecmcMasterSlaveStateMachine: %s: At least one axis lost enable during motion. Disable all axes..\n", name_.c_str());    
-        printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> RESET\n", name_.c_str());
-      //}
+      LOGERR("ecmcMasterSlaveStateMachine: %s: At least one axis lost enable during motion. Disable all axes..\n",
+             name_.c_str());
+      LOGERR("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> RESET\n",
+             name_.c_str());
       masterGrp_->halt();
       masterGrp_->setEnable(0);
       masterGrp_->setMRStop(1);
@@ -258,7 +284,7 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
       slaveGrp_->setMRStop(1);
       slaveGrp_->setMRSync(1);
       slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
-      if(!masterGrp_->getAnyErrorId()) { // Dont overwrite error if master error
+      if(!masterAnyError) { // Dont overwrite error if master error
         masterGrp_->setSlavedAxisIlocked();
       }
       masterGrp_->setEnableAutoDisable(1);
@@ -267,14 +293,23 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     }
   }
 
+  // Refresh once here so decisions below are based on the latest state after
+  // potential enable/disable actions above.
+  const ecmcAxisGroupStatusSummary slaveStatusNow = slaveGrp_->getStatusSummary();
+  const ecmcAxisGroupStatusSummary masterStatusNow = masterGrp_->getStatusSummary();
+
   // postpone disable until all master axes are done
   //masterGrp_->setEnableAutoDisable(masterGrp_->getAnyBusy() == 0);
-  masterGrp_->setEnableAutoDisable(masterGrp_->getAtTarget() == 1 && masterGrp_->getAnyBusy() == 0);
+  const bool masterAtTarget = masterStatusNow.allAtTarget;
+  masterGrp_->setEnableAutoDisable(masterAtTarget && !masterStatusNow.anyBusy);
   // ensure attarget/reduced current of slave axes
-  slaveGrp_->setAxisIsWithinCtrlDBExtTraj(masterGrp_->getAxisIsWithinCtrlDB());
+  const bool masterWithinCtrlDb = masterStatusNow.allWithinCtrlDb;
+  slaveGrp_->setAxisIsWithinCtrlDBExtTraj(masterWithinCtrlDb);
   
   // Ilock or if any slaved axis is changing to internal source
-  if(slaveGrp_->getAnyIlocked() || !slaveGrp_->getTrajSrcExt()){
+  const bool anySlaveIlocked = slaveStatusNow.anyIlocked;
+  const bool allSlaveTrajExternal = slaveStatusNow.allTrajExternal;
+  if(anySlaveIlocked || !allSlaveTrajExternal){
     slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
     slaveGrp_->setMRSync(1);
     slaveGrp_->setMRStop(1);
@@ -283,13 +318,15 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     masterGrp_->setEnableAutoDisable(1);
     state_ = ECMC_MST_SLV_STATE_SLAVES;
     if(control_.enableDbgPrintouts) {
-      printf("ecmcMasterSlaveStateMachine: %s: Slaved axis interlock (or traj source change)\n", name_.c_str());
-      printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> SLAVE\n", name_.c_str());
+      LOGINFO("ecmcMasterSlaveStateMachine: %s: Slaved axis interlock (or traj source change)\n",
+              name_.c_str());
+      LOGINFO("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> SLAVE\n",
+              name_.c_str());
     }
   }
   
   // Done?
-  if(!masterGrp_->getAnyEnabled()) {
+  if(!masterStatusNow.anyEnabled) {
     slaveGrp_->setEnable(0);
     slaveGrp_->setMRCnen(0);
     slaveGrp_->setTrajSrc(ECMC_DATA_SOURCE_INTERNAL);
@@ -297,7 +334,8 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     masterGrp_->setEnableAutoDisable(1);
     state_ = ECMC_MST_SLV_STATE_IDLE;
     if(control_.enableDbgPrintouts) {
-      printf("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> IDLE\n", name_.c_str());
+      LOGINFO("ecmcMasterSlaveStateMachine: %s: State change, MASTER -> IDLE\n",
+              name_.c_str());
     }
   }
   return 0;
@@ -316,7 +354,8 @@ int ecmcMasterSlaveStateMachine::stateReset() {
   slaveGrp_->setBlocked(false);
   state_ = ECMC_MST_SLV_STATE_IDLE;
   if(control_.enableDbgPrintouts) {
-    printf("ecmcMasterSlaveStateMachine: %s: State change, RESET -> IDLE\n", name_.c_str());
+    LOGINFO("ecmcMasterSlaveStateMachine: %s: State change, RESET -> IDLE\n",
+            name_.c_str());
   }
   return  0;
 }
@@ -359,7 +398,7 @@ int ecmcMasterSlaveStateMachine::initAsyn() {
                               &paramTemp);
 
   if (errorCode) {
-    printf("Error creating asyn parameter for control word\n");
+    LOGERR("Error creating asyn parameter for control word\n");
     return errorCode;
   }
 
@@ -377,7 +416,7 @@ int ecmcMasterSlaveStateMachine::initAsyn() {
                               &paramTemp);
 
   if (errorCode) {
-    printf("Error creating asyn parameter for state\n");
+    LOGERR("Error creating asyn parameter for state\n");
     return errorCode;
   }
   paramTemp->setAllowWriteToEcmc(true);
@@ -393,7 +432,7 @@ int ecmcMasterSlaveStateMachine::initAsyn() {
                               &paramTemp);
 
   if (errorCode) {
-    printf("Error creating asyn parameter for status\n");
+    LOGERR("Error creating asyn parameter for status\n");
     return errorCode;
   }
 

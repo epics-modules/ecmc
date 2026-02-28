@@ -84,7 +84,8 @@ void ecmcEcSlave::initVars() {
   slaveConfig_       = NULL;
   syncManCounter_    = 0;
   entryCounter_      = 0;
-  entryCounterInUse_ = 0;
+  entryCounterRtInput_  = 0;
+  entryCounterRtOutput_ = 0;
   pdosArrayIndex_    = 0;
   syncManArrayIndex_ = 0;
   statusWord_        = 0;
@@ -102,8 +103,9 @@ void ecmcEcSlave::initVars() {
   }
 
   for (int i = 0; i < EC_MAX_ENTRIES; i++) {
-    entryList_[i]      = NULL;
-    entryListInUse_[i] = NULL;
+    entryList_[i]         = NULL;
+    entryListRtInput_[i]  = NULL;
+    entryListRtOutput_[i] = NULL;
   }
 
   for (int i = 0; i < ECMC_ASYN_EC_SLAVE_PAR_COUNT; i++) {
@@ -133,8 +135,9 @@ ecmcEcSlave::~ecmcEcSlave() {
 
   // Clear pointers
   for (int i = 0; i < EC_MAX_ENTRIES; i++) {
-    entryList_[i]      = NULL; // deleted in ecmcEcPdo()
-    entryListInUse_[i] = NULL; // deleted in ecmcEcPdo()
+    entryList_[i]         = NULL; // deleted in ecmcEcPdo()
+    entryListRtInput_[i]  = NULL; // deleted in ecmcEcPdo()
+    entryListRtOutput_[i] = NULL; // deleted in ecmcEcPdo()
   }
 
   for (int i = 0; i < ECMC_ASYN_EC_SLAVE_PAR_COUNT; i++) {
@@ -518,12 +521,9 @@ ecmcEcEntry * ecmcEcSlave::getEntry(int entryIndex) {
 }
 
 int ecmcEcSlave::updateInputProcessImage() {
-  const uint entryCountInUse = entryCounterInUse_;
+  const uint entryCountInUse = entryCounterRtInput_;
   for (uint i = 0; i < entryCountInUse; i++) {
-    ecmcEcEntry *entry = entryListInUse_[i];
-    if (entry != NULL) {
-      entry->updateInputProcessImage();
-    }
+    entryListRtInput_[i]->updateInputProcessImage();
   }
 
   // Execute async SDOs
@@ -536,12 +536,9 @@ int ecmcEcSlave::updateInputProcessImage() {
 }
 
 int ecmcEcSlave::updateOutProcessImage() {
-  const uint entryCountInUse = entryCounterInUse_;
+  const uint entryCountInUse = entryCounterRtOutput_;
   for (uint i = 0; i < entryCountInUse; i++) {
-    ecmcEcEntry *entry = entryListInUse_[i];
-    if (entry != NULL) {
-      entry->updateOutProcessImage();
-    }
+    entryListRtOutput_[i]->updateOutProcessImage();
   }
 
   return 0;
@@ -935,10 +932,21 @@ int ecmcEcSlave::appendEntryToList(ecmcEcEntry *entry, bool useInRealTime) {
   entryList_[entryCounter_] = entry;
   entryCounter_++;
 
-  // Only update if in realtime
+  // Only add to real-time lists if in real-time.
   if (useInRealTime) {
-    entryListInUse_[entryCounterInUse_] = entry;
-    entryCounterInUse_++;
+    if (entry->getDirection() == EC_DIR_INPUT) {
+      if (entryCounterRtInput_ >= EC_MAX_ENTRIES) {
+        return ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE;
+      }
+      entryListRtInput_[entryCounterRtInput_] = entry;
+      entryCounterRtInput_++;
+    } else if (entry->getDirection() == EC_DIR_OUTPUT || entry->getSimEntry()) {
+      if (entryCounterRtOutput_ >= EC_MAX_ENTRIES) {
+        return ERROR_EC_SLAVE_ENTRY_INDEX_OUT_OF_RANGE;
+      }
+      entryListRtOutput_[entryCounterRtOutput_] = entry;
+      entryCounterRtOutput_++;
+    }
   }
   return 0;
 }

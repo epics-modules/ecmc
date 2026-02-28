@@ -132,6 +132,7 @@ private:
   int          seqHoming26(); // nCmdData==26
   int          checkHWLimitsAndStop(bool checkBWD,
                                     bool checkFWD);
+  bool         isAtTargetOrAtTargetMonDisabled() const;
   int          stopSeq();
   int          getExtTrajSetpoint(double *pos);
   int          checkVelAccDec();

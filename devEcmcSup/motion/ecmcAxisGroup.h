@@ -20,6 +20,21 @@
 #include <vector>
 #include <string>
 
+struct ecmcAxisGroupStatusSummary {
+  bool allEnableCmd;
+  bool anyEnableCmd;
+  bool allEnabled;
+  bool anyEnabled;
+  bool allBusy;
+  bool anyBusy;
+  bool anyIlocked;
+  bool allAtTarget;
+  bool allWithinCtrlDb;
+  bool allTrajExternal;
+  bool anyTrajExternal;
+  int firstErrorId;
+};
+
 class ecmcAxisGroup : public ecmcError {
   public:
     ecmcAxisGroup(int index, const char *name);
@@ -98,6 +113,8 @@ class ecmcAxisGroup : public ecmcError {
     void setAxisIsWithinCtrlDBExtTraj(bool within);
     // get "atTarget"
     bool getAxisIsWithinCtrlDB();
+    // Collect common group state in one scan (for RT usage).
+    ecmcAxisGroupStatusSummary getStatusSummary(bool includeMonFields = true);
 
   private:
     std::string name_;  

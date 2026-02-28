@@ -73,9 +73,13 @@ void ecmcEc::initVars() {
   asynPortDriver_ = NULL;
 
   ecMemMapArrayCounter_ = 0;
+  ecMemMapRtInputCounter_  = 0;
+  ecMemMapRtOutputCounter_ = 0;
 
   for (int i = 0; i < EC_MAX_MEM_MAPS; i++) {
-    ecMemMapArray_[i] = NULL;
+    ecMemMapArray_[i]      = NULL;
+    ecMemMapRtInput_[i]    = NULL;
+    ecMemMapRtOutput_[i]   = NULL;
   }
   domainSize_        = 0;
   statusOutputEntry_ = NULL;
@@ -774,16 +778,12 @@ int ecmcEc::writeSoE(uint16_t slavePosition,  /**< Slave position. */
 int ecmcEc::updateInputProcessImage() {
   const int slaveCount = slaveCounter_;
   for (int i = 0; i < slaveCount; i++) {
-    if (slaveArray_[i] != NULL) {
-      slaveArray_[i]->updateInputProcessImage();
-    }
+    slaveArray_[i]->updateInputProcessImage();
   }
 
-  const int memMapCount = ecMemMapArrayCounter_;
+  const int memMapCount = ecMemMapRtInputCounter_;
   for (int i = 0; i < memMapCount; i++) {
-    if (ecMemMapArray_[i] != NULL) {
-      ecMemMapArray_[i]->updateInputProcessImage();
-    }
+    ecMemMapRtInput_[i]->updateInputProcessImage();
   }
 
   return 0;
@@ -792,16 +792,12 @@ int ecmcEc::updateInputProcessImage() {
 int ecmcEc::updateOutProcessImage() {
   const int slaveCount = slaveCounter_;
   for (int i = 0; i < slaveCount; i++) {
-    if (slaveArray_[i] != NULL) {
-      slaveArray_[i]->updateOutProcessImage();
-    }
+    slaveArray_[i]->updateOutProcessImage();
   }
 
-  const int memMapCount = ecMemMapArrayCounter_;
+  const int memMapCount = ecMemMapRtOutputCounter_;
   for (int i = 0; i < memMapCount; i++) {
-    if (ecMemMapArray_[i] != NULL) {
-      ecMemMapArray_[i]->updateOutProcessImage();
-    }
+    ecMemMapRtOutput_[i]->updateOutProcessImage();
   }
 
   // I/O intr to EPCIS.
@@ -1090,8 +1086,6 @@ void ecmcEc::slowExecute() {
     domainsOK_,
     getErrorID());
 
-  checkState();
-
   const int domainCount = domainCounter_;
   for (int i = 0; i < domainCount; i++ ) {
     domains_[i]->slowExecute();
@@ -1185,6 +1179,15 @@ int ecmcEc::addMemMap(uint16_t       startEntryBusPosition,
   }
 
   ecMemMapArrayCounter_++;
+  if (direction == EC_DIR_INPUT) {
+    ecMemMapRtInput_[ecMemMapRtInputCounter_] =
+      ecMemMapArray_[ecMemMapArrayCounter_ - 1];
+    ecMemMapRtInputCounter_++;
+  } else if (direction == EC_DIR_OUTPUT) {
+    ecMemMapRtOutput_[ecMemMapRtOutputCounter_] =
+      ecMemMapArray_[ecMemMapArrayCounter_ - 1];
+    ecMemMapRtOutputCounter_++;
+  }
   ecAsynParams_[ECMC_ASYN_EC_PAR_MEMMAP_COUNT_ID]->refreshParam(1);
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
                                       ECMC_ASYN_DEFAULT_ADDR);                          // also for memmap and ecEntry

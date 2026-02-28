@@ -76,6 +76,9 @@ void ecmcMonitor::initVars() {
   velDiffMaxDiff_            = 0;
   latchOnLimit_              = 1;
   switchFilterCounter_       = 0;
+  limitFwdFilterSum_         = 0;
+  limitBwdFilterSum_         = 0;
+  homeFilterSum_             = 0;
   memset(&limitFwdFilterBuffer_, 0, sizeof(limitFwdFilterBuffer_));
   memset(&limitBwdFilterBuffer_, 0, sizeof(limitBwdFilterBuffer_));
   memset(&homeFilterBuffer_,     0, sizeof(homeFilterBuffer_));
@@ -304,6 +307,8 @@ bool ecmcMonitor::getHomeSwitch() {
 void ecmcMonitor::readEntries() {
   uint64_t tempRaw = 0;
   int errorCode = 0;
+  auto &statusWord = data_->status_.statusWord_;
+  auto &interlocks = data_->interlocks_;
   // Hard limit BWD
   if(!limitSwitchBwdPLCOverride_) {
     errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_LOWLIM, &tempRaw);
@@ -321,11 +326,11 @@ void ecmcMonitor::readEntries() {
       tempRaw = tempRaw == 0;
     }
   
-    data_->status_.statusWord_.limitbwd = tempRaw > 0;
+    statusWord.limitbwd = tempRaw > 0;
 
   } else {
     // Override limit switch from PLC code (when logic is needed)
-    data_->status_.statusWord_.limitbwd = limitSwitchBwdPLCOverrideValue_;
+    statusWord.limitbwd = limitSwitchBwdPLCOverrideValue_;
   }
 
   // Hard limit FWD
@@ -346,11 +351,11 @@ void ecmcMonitor::readEntries() {
       tempRaw = tempRaw == 0;
     }
   
-    data_->status_.statusWord_.limitfwd = tempRaw > 0;
+    statusWord.limitfwd = tempRaw > 0;
 
   } else {
       // Override limit switch from PLC code (when logic is needed)
-      data_->status_.statusWord_.limitfwd = limitSwitchFwdPLCOverrideValue_;
+      statusWord.limitfwd = limitSwitchFwdPLCOverrideValue_;
   }
 
   // Home
@@ -371,10 +376,10 @@ void ecmcMonitor::readEntries() {
       tempRaw = tempRaw == 0;
     }
   
-    data_->status_.statusWord_.homeswitch = tempRaw > 0;
+    statusWord.homeswitch = tempRaw > 0;
   } else {
     // Override limit switch from PLC code (when logic is needed)
-    data_->status_.statusWord_.homeswitch = homeSwitchPLCOverrideValue_;
+    statusWord.homeswitch = homeSwitchPLCOverrideValue_;
   }
 
   // Refresh filtered switches
@@ -395,11 +400,11 @@ void ecmcMonitor::readEntries() {
 
     switch (hardwareInterlockPolarity_) {
     case ECMC_POLARITY_NC:
-      data_->interlocks_.hardwareInterlock = tempRaw == 0;
+      interlocks.hardwareInterlock = tempRaw == 0;
       break;
 
     case ECMC_POLARITY_NO:
-      data_->interlocks_.hardwareInterlock = tempRaw > 0;
+      interlocks.hardwareInterlock = tempRaw > 0;
       break;
     }
   }
@@ -420,11 +425,11 @@ void ecmcMonitor::readEntries() {
 
     switch (analogPolarity_) {
     case ECMC_POLARITY_NC:
-      data_->interlocks_.analogInterlock = tempDouble > analogRawLimit_;
+      interlocks.analogInterlock = tempDouble > analogRawLimit_;
       break;
 
     case ECMC_POLARITY_NO:
-      data_->interlocks_.analogInterlock = tempDouble < analogRawLimit_;
+      interlocks.analogInterlock = tempDouble < analogRawLimit_;
       break;
     }
   }
@@ -682,26 +687,30 @@ int ecmcMonitor::setSoftLimitFwd(double limit) {
 }
 
 int ecmcMonitor::checkLimits() {
-  const auto &statusWord = data_->status_.statusWord_;
+  auto &interlocks = data_->interlocks_;
+  const auto &status = data_->status_;
+  const auto &control = data_->control_;
+  const auto &statusWord = status.statusWord_;
   const auto &statusOldWord = data_->statusOld_.statusWord_;
+  int warningId = getWarningID();
   const bool limitBwdOk = statusWord.limitbwd;
   const bool limitFwdOk = statusWord.limitfwd;
   const bool moving = statusWord.moving;
   const bool axisEnabled = statusWord.enabled && statusOldWord.enabled;
-  const bool isHomingCmd = data_->status_.command == ECMC_CMD_HOMING;
+  const bool isHomingCmd = status.command == ECMC_CMD_HOMING;
 
   hardBwdOld_ = limitBwdOk;
   hardFwdOld_ = limitFwdOk;
 
   // Both limit switches
-  data_->interlocks_.bothLimitsLowInterlock = !limitBwdOk && !limitFwdOk;
+  interlocks.bothLimitsLowInterlock = !limitBwdOk && !limitFwdOk;
 
   // Stop at any limit (reuse same interlock as both limit)
   if (stopAtAnyLimit_) {
-    data_->interlocks_.bothLimitsLowInterlock = !limitBwdOk || !limitFwdOk;
+    interlocks.bothLimitsLowInterlock = !limitBwdOk || !limitFwdOk;
   }
 
-  if (data_->interlocks_.bothLimitsLowInterlock) {
+  if (interlocks.bothLimitsLowInterlock) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -711,7 +720,7 @@ int ecmcMonitor::checkLimits() {
 
   // Bwd limit switch
   if (!limitBwdOk) {
-    data_->interlocks_.bwdLimitInterlock = true;
+    interlocks.bwdLimitInterlock = true;
 
     if (enableAlarmAtHardlimitBwd_) {
       return setErrorID(__FILE__,
@@ -720,24 +729,28 @@ int ecmcMonitor::checkLimits() {
                         ERROR_MON_HARD_LIMIT_BWD_INTERLOCK,
                         ECMC_SEVERITY_NORMAL);
     }
-    setWarningID(WARNING_MON_HARD_LIMIT_BWD_INTERLOCK);
+    if (warningId != WARNING_MON_HARD_LIMIT_BWD_INTERLOCK) {
+      setWarningID(WARNING_MON_HARD_LIMIT_BWD_INTERLOCK);
+      warningId = WARNING_MON_HARD_LIMIT_BWD_INTERLOCK;
+    }
   } else {
     if (latchOnLimit_) {
-      if (!moving || (data_->status_.currentVelocityActual > 0)) {
-        data_->interlocks_.bwdLimitInterlock = false;
+      if (!moving || (status.currentVelocityActual > 0)) {
+        interlocks.bwdLimitInterlock = false;
       }
     } else {
       // Auto reset warning
-      if (getWarningID() == WARNING_MON_HARD_LIMIT_BWD_INTERLOCK) {
+      if (warningId == WARNING_MON_HARD_LIMIT_BWD_INTERLOCK) {
         setWarningID(0);
+        warningId = 0;
       }
-      data_->interlocks_.bwdLimitInterlock = false;
+      interlocks.bwdLimitInterlock = false;
     }
   }
 
   // Fwd limit switch
   if (!limitFwdOk) {
-    data_->interlocks_.fwdLimitInterlock = true;
+    interlocks.fwdLimitInterlock = true;
 
     if (enableAlarmAtHardlimitFwd_) {
       return setErrorID(__FILE__,
@@ -746,73 +759,75 @@ int ecmcMonitor::checkLimits() {
                         ERROR_MON_HARD_LIMIT_FWD_INTERLOCK,
                         ECMC_SEVERITY_NORMAL);
     }
-    setWarningID(WARNING_MON_HARD_LIMIT_FWD_INTERLOCK);
+    if (warningId != WARNING_MON_HARD_LIMIT_FWD_INTERLOCK) {
+      setWarningID(WARNING_MON_HARD_LIMIT_FWD_INTERLOCK);
+      warningId = WARNING_MON_HARD_LIMIT_FWD_INTERLOCK;
+    }
   } else {
     if (latchOnLimit_) {
-      if (!moving || (data_->status_.currentVelocityActual < 0)) {
-        data_->interlocks_.fwdLimitInterlock = false;
+      if (!moving || (status.currentVelocityActual < 0)) {
+        interlocks.fwdLimitInterlock = false;
       }
     } else {
       // Auto reset warning
-      if (getWarningID() == WARNING_MON_HARD_LIMIT_FWD_INTERLOCK) {
+      if (warningId == WARNING_MON_HARD_LIMIT_FWD_INTERLOCK) {
         setWarningID(0);
+        warningId = 0;
       }
-      data_->interlocks_.fwdLimitInterlock = false;
+      interlocks.fwdLimitInterlock = false;
     }
   }
 
-  // Bwd soft limit switch
-  bool virtSoftlimitBwd =
-    ((data_->status_.currentPositionSetpoint < data_->control_.softLimitBwd) ||
-     (data_->control_.positionTarget < data_->control_.softLimitBwd)) &&
-    axisEnabled; /*&&
-    (data_->status_.currentPositionSetpoint <
-    data_->status_.currentPositionSetpointOld); */// data_->control_.execute;
+  const bool checkSoftLimits = axisEnabled && !isHomingCmd;
 
-  if (virtSoftlimitBwd /*&& data_->status_.busy*/ &&
-      statusWord.softlimbwdena && !isHomingCmd) {
-    data_->interlocks_.bwdSoftLimitInterlock = true;
-    setWarningID(WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK);
-
-    // if(enableAlarmOnSofLimits_) {
-    //  return setErrorID(__FILE__,
-    //                    __FUNCTION__,
-    //                    __LINE__,
-    //                    ERROR_MON_SOFT_LIMIT_BWD_INTERLOCK);
-    // }
-  } else {
-    // Auto reset this warning
-    if (getWarningID() == WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
-      setWarningID(0);
+  if (checkSoftLimits && statusWord.softlimbwdena) {
+    const bool virtSoftlimitBwd =
+      (status.currentPositionSetpoint < control.softLimitBwd) ||
+      (control.positionTarget < control.softLimitBwd);
+    if (virtSoftlimitBwd) {
+      interlocks.bwdSoftLimitInterlock = true;
+      if (warningId != WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
+        setWarningID(WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK);
+        warningId = WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK;
+      }
+    } else {
+      if (warningId == WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
+        setWarningID(0);
+        warningId = 0;
+      }
+      interlocks.bwdSoftLimitInterlock = false;
     }
-    data_->interlocks_.bwdSoftLimitInterlock = false;
+  } else {
+    if (warningId == WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
+      setWarningID(0);
+      warningId = 0;
+    }
+    interlocks.bwdSoftLimitInterlock = false;
   }
 
-  bool virtSoftlimitFwd =
-    ((data_->status_.currentPositionSetpoint > data_->control_.softLimitFwd) || 
-     (data_->control_.positionTarget > data_->control_.softLimitFwd)) &&
-    axisEnabled; /*&&
-    (data_->status_.currentPositionSetpoint >
-      data_->status_.currentPositionSetpointOld);*/// && data_->control_.execute;
-
-  // Fwd soft limit switch
-  if (virtSoftlimitFwd /*&& data_->status_.busy*/ &&
-      statusWord.softlimfwdena && !isHomingCmd) {
-    data_->interlocks_.fwdSoftLimitInterlock = true;
-    setWarningID(WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK);
-
-    // if(enableAlarmOnSofLimits_) {
-    //  return setErrorID(__FILE__,
-    //                    __FUNCTION__,
-    //                    __LINE__,
-    //                    ERROR_MON_SOFT_LIMIT_FWD_INTERLOCK);
-    // }
-  } else {
-    // Auto reset this warning
-    if (getWarningID() == WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK) {
-      setWarningID(0);
+  if (checkSoftLimits && statusWord.softlimfwdena) {
+    const bool virtSoftlimitFwd =
+      (status.currentPositionSetpoint > control.softLimitFwd) ||
+      (control.positionTarget > control.softLimitFwd);
+    if (virtSoftlimitFwd) {
+      interlocks.fwdSoftLimitInterlock = true;
+      if (warningId != WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK) {
+        setWarningID(WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK);
+        warningId = WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK;
+      }
+    } else {
+      if (warningId == WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK) {
+        setWarningID(0);
+        warningId = 0;
+      }
+      interlocks.fwdSoftLimitInterlock = false;
     }
-    data_->interlocks_.fwdSoftLimitInterlock = false;
+  } else {
+    if (warningId == WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK) {
+      setWarningID(0);
+      warningId = 0;
+    }
+    interlocks.fwdSoftLimitInterlock = false;
   }
   return 0;
 }
@@ -820,15 +835,17 @@ int ecmcMonitor::checkLimits() {
 int ecmcMonitor::checkAtTarget() {
   bool atTarget      = false;
   bool ctrlWithinTol = false;
-  const double targetSetDiffAbs = std::abs(data_->status_.currentTargetPositionModulo -
-                                           data_->status_.currentPositionSetpoint);
-  const double cntrlErrAbs      = std::abs(data_->status_.cntrlError);
-  const bool internalTrajSource = data_->status_.statusWord_.trajsource == 0;
+  auto &status = data_->status_;
+  auto &statusWord = status.statusWord_;
+  const bool internalTrajSource = statusWord.trajsource == 0;
 
   if (enableAtTargetMon_) {
+    const double targetSetDiffAbs = std::abs(status.currentTargetPositionModulo -
+                                             status.currentPositionSetpoint);
+    const double cntrlErrAbs      = std::abs(status.cntrlError);
     /*if (std::abs(data_->status_.currentTargetPosition -
                  data_->status_.currentPositionActual) < atTargetTol_) {*/
-    if (targetSetDiffAbs < atTargetTol_ && !data_->status_.statusWord_.localBusy) {
+    if (targetSetDiffAbs < atTargetTol_ && !statusWord.localBusy) {
       if (cntrlErrAbs < atTargetTol_) {
         if (atTargetCounter_ <= atTargetTime_) {
           atTargetCounter_++;
@@ -863,13 +880,13 @@ int ecmcMonitor::checkAtTarget() {
     ctrlDeadbandCounter_ = 0;
   }
 
-  data_->status_.statusWord_.attarget = atTarget;
+  statusWord.attarget = atTarget;
   
   if (internalTrajSource) {
-    data_->status_.ctrlWithinDeadband = ctrlWithinTol;
+    status.ctrlWithinDeadband = ctrlWithinTol;
   } else {
     // external source used. No way for axis to know when atTarget/reduce torque. Make possible to write from PLC
-    data_->status_.ctrlWithinDeadband = axisIsWithinCtrlDBExtTraj_;
+    status.ctrlWithinDeadband = axisIsWithinCtrlDBExtTraj_;
   }
   
   return 0;
@@ -904,7 +921,11 @@ int  ecmcMonitor::checkStall() {
         stallCheckAtTargetAtCycle_ = stallMinTimeoutCycles_;
       }
       if (dbgPrint) {
-        printf("Axis[%d]: Time to check stall after: %" PRIu64 ", factor %lf, min time %lf\n", data_->status_.axisId, stallCheckAtTargetAtCycle_,stallTimeFactor_,stallMinTimeoutCycles_);        
+        LOGINFO("Axis[%d]: Time to check stall after: %" PRIu64 ", factor %lf, min time %lf\n",
+                data_->status_.axisId,
+                stallCheckAtTargetAtCycle_,
+                stallTimeFactor_,
+                stallMinTimeoutCycles_);
       }      
     }
   }
@@ -915,7 +936,7 @@ int  ecmcMonitor::checkStall() {
     data_->interlocks_.stallInterlock = false;
     if (!statusOldWord.attarget) {
       if (dbgPrint) {
-        printf("Axis[%d]: No stall.. Brilliant!!\n",data_->status_.axisId);                
+        LOGINFO("Axis[%d]: No stall.. Brilliant!!\n", data_->status_.axisId);
       }
     }
     stallLastMotionCmdCycles_ = 0;
@@ -926,7 +947,7 @@ int  ecmcMonitor::checkStall() {
   if ((maxStallCounter_ > stallCheckAtTargetAtCycle_) && 
      (stallCheckAtTargetAtCycle_ > 0)) {
     if (dbgPrint) {
-      printf("Axis[%d]: Stall...\n",data_->status_.axisId);      
+      LOGINFO("Axis[%d]: Stall...\n", data_->status_.axisId);
     }
     stallLastMotionCmdCycles_ = 0;  
     stallCheckAtTargetAtCycle_ = 0;
@@ -943,34 +964,39 @@ int  ecmcMonitor::checkStall() {
 int ecmcMonitor::checkPositionLag() {
   bool lagErrorTraj  = false;
   bool lagErrorDrive = false;
+  auto &interlocks = data_->interlocks_;
+
+  if (!enableLagMon_ || !data_->control_.controlWord_.enableCmd) {
+    lagMonCounter_ = 0;
+    interlocks.lagDriveInterlock = false;
+    interlocks.lagTrajInterlock  = false;
+    return 0;
+  }
+
   const int posLagDriveTime = posLagTime_ * 2;
   const bool axisEnabled = data_->status_.statusWord_.enabled &&
                            data_->statusOld_.statusWord_.enabled;
   const double cntrlErrAbs = std::abs(data_->status_.cntrlError);
 
-  if (enableLagMon_ && !lagErrorDrive && data_->control_.controlWord_.enableCmd) {
-    if ((cntrlErrAbs > posLagTol_) && axisEnabled) {
-      if (lagMonCounter_ <= posLagDriveTime) {
-        lagMonCounter_++;
-      }
+  if ((cntrlErrAbs > posLagTol_) && axisEnabled) {
+    if (lagMonCounter_ <= posLagDriveTime) {
+      lagMonCounter_++;
+    }
 
-      if (lagMonCounter_ > posLagTime_) {
-        lagErrorTraj = true;
-      }
+    if (lagMonCounter_ > posLagTime_) {
+      lagErrorTraj = true;
+    }
 
-      // interlock the drive in twice the time..
-      if (lagMonCounter_ >= posLagDriveTime) {
-        lagErrorDrive = true;
-      }
-    } else {
-      lagMonCounter_ = 0;
+    // interlock the drive in twice the time..
+    if (lagMonCounter_ >= posLagDriveTime) {
+      lagErrorDrive = true;
     }
   } else {
     lagMonCounter_ = 0;
   }
 
-  data_->interlocks_.lagDriveInterlock = lagErrorDrive;
-  data_->interlocks_.lagTrajInterlock  = lagErrorTraj;
+  interlocks.lagDriveInterlock = lagErrorDrive;
+  interlocks.lagTrajInterlock  = lagErrorTraj;
 
   if (lagErrorDrive || lagErrorTraj) {
     return setErrorID(__FILE__,
@@ -995,6 +1021,8 @@ int ecmcMonitor::checkEncoderDiff() {
   }
 
   const int primaryEncIndex = data_->control_.primaryEncIndex;
+  const int encoderCount = data_->status_.encoderCount;
+  const double moduloRange = data_->control_.moduloRange;
   ecmcEncoder *primaryEnc = encArray_[primaryEncIndex];
 
   // Do not check if prim enc not homed
@@ -1007,13 +1035,14 @@ int ecmcMonitor::checkEncoderDiff() {
   bool   encDiffILock  = false;
   double primEncActPos = primaryEnc->getActPos();
 
-  for (int i = 0; i < data_->status_.encoderCount; i++) {
+  for (int i = 0; i < encoderCount; i++) {
+    auto * const enc = encArray_[i];
     // Do not check prim encoder vs itself or if this encoder is not homed
-    if ((i == primaryEncIndex) || !encArray_[i]->getHomed()) {
+    if ((i == primaryEncIndex) || !enc->getHomed()) {
       continue;
     }
 
-    maxDiff = encArray_[i]->getMaxPosDiffToPrimEnc();
+    maxDiff = enc->getMaxPosDiffToPrimEnc();
 
     // disable functionality if getMaxPosDiffToPrimEnc() == 0
     if (maxDiff == 0) {
@@ -1021,8 +1050,8 @@ int ecmcMonitor::checkEncoderDiff() {
     }
 
     double diff = ecmcMotionUtils::getPosErrorModAbs(primEncActPos,
-                                                     encArray_[i]->getActPos(),
-                                                     data_->control_.moduloRange);
+                                                     enc->getActPos(),
+                                                     moduloRange);
 
     if (diff > maxDiff) {
       encDiffILock = true;
@@ -1036,18 +1065,15 @@ int ecmcMonitor::checkEncoderDiff() {
 }
 
 int ecmcMonitor::checkVelocityDiff() {
-  // cntrlOutput_/cntrlKff_;
-  double currentSetVelocityToDrive = data_->status_.cntrlOutput;
-  bool   velocityDiffErrorDrive    = false;
-  bool   velocityDiffErrorTraj     = false;
-
   if (!enableVelocityDiffMon_ || !data_->status_.statusWord_.enabled||
       !data_->statusOld_.statusWord_.enabled) {
     velocityDiffCounter_ = 0;
     return 0;
   }
 
-  const double velocityDiffAbs = std::abs(currentSetVelocityToDrive -
+  bool velocityDiffErrorDrive = false;
+  bool velocityDiffErrorTraj  = false;
+  const double velocityDiffAbs = std::abs(data_->status_.cntrlOutput -
                                           data_->status_.currentVelocityActual);
   if (velocityDiffAbs > velDiffMaxDiff_) {
     velocityDiffCounter_++;
@@ -1088,12 +1114,15 @@ int ecmcMonitor::checkMaxVelocity() {
     return 0;
   }
 
-  const double currentVelocityActualAbs = std::abs(data_->status_.currentVelocityActual);
-  const double currentVelocitySetAbs    = std::abs(data_->status_.currentVelocitySetpoint);
-  if (((currentVelocityActualAbs > maxVel_) || (currentVelocitySetAbs > maxVel_)) &&
-      enableMaxVelMon_) {
-    if (maxVelCounterTraj_ <= maxVelTrajILDelay_) {
-      maxVelCounterTraj_++;
+  if (enableMaxVelMon_) {
+    const double currentVelocityActualAbs = std::abs(data_->status_.currentVelocityActual);
+    const double currentVelocitySetAbs    = std::abs(data_->status_.currentVelocitySetpoint);
+    if ((currentVelocityActualAbs > maxVel_) || (currentVelocitySetAbs > maxVel_)) {
+      if (maxVelCounterTraj_ <= maxVelTrajILDelay_) {
+        maxVelCounterTraj_++;
+      }
+    } else {
+      maxVelCounterTraj_ = 0;
     }
   } else {
     maxVelCounterTraj_ = 0;
@@ -1133,8 +1162,7 @@ int ecmcMonitor::checkCntrlMaxOutput() {
     return 0;
   }
 
-  const double cntrlOutputAbs = std::abs(data_->status_.cntrlOutput);
-  if (enableCntrlHLMon_ && (cntrlOutputAbs > cntrlOutputHL_)) {
+  if (enableCntrlHLMon_ && (std::abs(data_->status_.cntrlOutput) > cntrlOutputHL_)) {
     data_->interlocks_.cntrlOutputHLDriveInterlock = true;
     data_->interlocks_.cntrlOutputHLTrajInterlock  = true;
     return setErrorID(__FILE__,
@@ -1188,27 +1216,32 @@ int ecmcMonitor::filterSwitches() {
   if (switchFilterCounter_ >= ECMC_MON_SWITCHES_FILTER_CYCLES) {
     switchFilterCounter_ = 0;
   }
-  limitFwdFilterBuffer_[switchFilterCounter_] = data_->status_.statusWord_.limitfwd;
-  limitBwdFilterBuffer_[switchFilterCounter_] = data_->status_.statusWord_.limitbwd;
-  homeFilterBuffer_[switchFilterCounter_]     = data_->status_.statusWord_.homeswitch;
 
-  int limFwdSum  = 0;
-  int limBwdSum  = 0;
-  int limHomeSum = 0;
+  const int idx = switchFilterCounter_;
+  auto &statusWord = data_->status_.statusWord_;
+  const bool limitFwd = statusWord.limitfwd;
+  const bool limitBwd = statusWord.limitbwd;
+  const bool homeSw = statusWord.homeswitch;
 
-  for (int i = 0; i < ECMC_MON_SWITCHES_FILTER_CYCLES; i++) {
-    limFwdSum  = limFwdSum + limitFwdFilterBuffer_[i];
-    limBwdSum  = limBwdSum + limitBwdFilterBuffer_[i];
-    limHomeSum = limHomeSum + homeFilterBuffer_[i];
-  }
-  data_->status_.limitFwdFiltered = limFwdSum >
-                                    ECMC_MON_SWITCHES_FILTER_CYCLES / 2;
-  data_->status_.limitBwdFiltered = limBwdSum >
-                                    ECMC_MON_SWITCHES_FILTER_CYCLES / 2;
-  data_->status_.homeSwitchFiltered = limHomeSum >
-                                      ECMC_MON_SWITCHES_FILTER_CYCLES / 2;
+  // Rolling sum update: remove overwritten sample and add new sample.
+  limitFwdFilterSum_ -= limitFwdFilterBuffer_[idx];
+  limitBwdFilterSum_ -= limitBwdFilterBuffer_[idx];
+  homeFilterSum_ -= homeFilterBuffer_[idx];
 
-  switchFilterCounter_++;
+  limitFwdFilterBuffer_[idx] = limitFwd;
+  limitBwdFilterBuffer_[idx] = limitBwd;
+  homeFilterBuffer_[idx] = homeSw;
+
+  limitFwdFilterSum_ += limitFwd;
+  limitBwdFilterSum_ += limitBwd;
+  homeFilterSum_ += homeSw;
+
+  const int threshold = ECMC_MON_SWITCHES_FILTER_CYCLES / 2;
+  data_->status_.limitFwdFiltered = limitFwdFilterSum_ > threshold;
+  data_->status_.limitBwdFiltered = limitBwdFilterSum_ > threshold;
+  data_->status_.homeSwitchFiltered = homeFilterSum_ > threshold;
+
+  switchFilterCounter_ = idx + 1;
   return 0;
 }
 

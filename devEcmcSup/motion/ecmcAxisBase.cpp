@@ -195,6 +195,7 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_   = asynPortDriver;
   data_.status_.axisId     = axisID;
   data_.status_.sampleTime = sampleTime;
+  invSampleTime_ = sampleTime > 0 ? 1.0 / sampleTime : 0.0;
   data_.control_.cspDrvEncIndex =  -1;   // used for control
   setExternalPtrs(&(data_.status_.errorCode), &(data_.status_.warningCode));
   try {
@@ -309,11 +310,15 @@ void ecmcAxisBase::initVars() {
   enableAutoEnable_             = 0;
   enableAutoDisable_            = 0;
   positionTargetAsyn_           = 0;
+  invSampleTime_                = 1000.0;
   blocked_                      = 0;
   enableAutoResetError_         = 1;
 }
 
 void ecmcAxisBase::preExecute(bool masterOK) {
+  auto &status = data_.status_;
+  auto &statusWord = status.statusWord_;
+  auto &interlocks = data_.interlocks_;
   hwReadyOld_ = hwReady_;
 
   //if(data_.status_.statusWord_.localBusy != data_.statusOld_.statusWord_.localBusy) {
@@ -324,21 +329,18 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   //  printf("ecmcAxisBase::preExecute(): globalBusy changed state = %d\n",data_.status_.statusWord_.globalBusy);
   //}
   
-  data_.interlocks_.etherCatMasterInterlock = !masterOK;
+  interlocks.etherCatMasterInterlock = !masterOK;
 
   if (!masterOK) {
     setEnable(false);
   }
   data_.refreshInterlocks();
 
-  data_.status_.statusWord_.moving = data_.status_.statusWord_.busy && std::abs(
-    data_.status_.currentVelocityActual) > 0; /*|| getTraj()->getBusy();*/
+  statusWord.moving = statusWord.busy &&
+                      std::abs(status.currentVelocityActual) > 0; /*|| getTraj()->getBusy();*/
 
-  for (int i = 0; i < data_.status_.encoderCount; i++) {
-    if (encArray_[i] == NULL) {
-      break;
-    }
-
+  const int encoderCount = status.encoderCount;
+  for (int i = 0; i < encoderCount; i++) {
     encArray_[i]->readEntries(masterOK);
   }
   
@@ -349,8 +351,8 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   case ECMC_AXIS_STATE_STARTUP:
     setEnable(false);
     seq_.setGlobalBusy(true);
-    data_.status_.statusWord_.busy = true;
-    data_.status_.distToStop = 0;
+    statusWord.busy = true;
+    status.distToStop = 0;
 
     if (masterOK) {
       
@@ -374,14 +376,14 @@ void ecmcAxisBase::preExecute(bool masterOK) {
       setInStartupPhase(false);
 
       // only init encoders after first startup
-      if (!data_.status_.startupFinsished) {
+      if (!status.startupFinsished) {
         initEncoders();
-        data_.status_.currentPositionActual = getPrimEnc()->getActPos();
+        status.currentPositionActual = getPrimEnc()->getActPos();
       }
 
-      data_.status_.startupFinsished = true;
-      data_.control_.positionTarget = data_.status_.currentPositionActual;
-      data_.status_.currentTargetPosition = data_.status_.currentPositionActual;
+      status.startupFinsished = true;
+      data_.control_.positionTarget = status.currentPositionActual;
+      status.currentTargetPosition = status.currentPositionActual;
 
       refreshAsynTargetValue();
 
@@ -397,8 +399,8 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     if (!autoEnableRequest_ ) {
       seq_.setGlobalBusy(false); 
     }   
-    data_.status_.statusWord_.busy = false;
-    data_.status_.distToStop = 0;
+    statusWord.busy = false;
+    status.distToStop = 0;
 
     if (data_.status_.statusWord_.enabled) {
       axisState_ = ECMC_AXIS_STATE_ENABLED;
@@ -416,10 +418,9 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     break;
 
   case ECMC_AXIS_STATE_ENABLED:
-    data_.status_.distToStop = traj_->distToStop(
-      data_.status_.currentVelocitySetpoint);
+    status.distToStop = traj_->distToStop(status.currentVelocitySetpoint);
 
-    if (!data_.status_.statusWord_.enabled) {
+    if (!statusWord.enabled) {
       axisState_ = ECMC_AXIS_STATE_DISABLED;
     }
 
@@ -439,46 +440,46 @@ void ecmcAxisBase::preExecute(bool masterOK) {
 
   // Filter velocities from PLC source
   const double extTrajDelta =
-    data_.status_.externalTrajectoryPosition -
+    status.externalTrajectoryPosition -
     data_.statusOld_.externalTrajectoryPosition;
   const double extEncDelta =
-    data_.status_.externalEncoderPosition -
+    status.externalEncoderPosition -
     data_.statusOld_.externalEncoderPosition;
-  const double invSampleTime = 1.0 / data_.status_.sampleTime;
 
   // Traj
   if (enableExtTrajVeloFilter_ && extTrajVeloFilter_) {
-    data_.status_.externalTrajectoryVelocity =
-      extTrajVeloFilter_->getFiltVelo(extTrajDelta);
+    status.externalTrajectoryVelocity = extTrajVeloFilter_->getFiltVelo(extTrajDelta);
   } else {
-    data_.status_.externalTrajectoryVelocity = extTrajDelta * invSampleTime;
+    status.externalTrajectoryVelocity = extTrajDelta * invSampleTime_;
   }
 
   // Enc
   if (enableExtEncVeloFilter_ && extEncVeloFilter_) {
-    data_.status_.externalEncoderVelocity =
-      extEncVeloFilter_->getFiltVelo(extEncDelta);
+    status.externalEncoderVelocity = extEncVeloFilter_->getFiltVelo(extEncDelta);
   } else {
-    data_.status_.externalEncoderVelocity = extEncDelta * invSampleTime;
+    status.externalEncoderVelocity = extEncDelta * invSampleTime_;
   }
 }
 
 void ecmcAxisBase::postExecute(bool masterOK) {
-  data_.status_.statusWord_.busy = getBusy();
+  auto &status = data_.status_;
+  auto &statusWord = status.statusWord_;
+  statusWord.busy = getBusy();
   autoEnableSM();
   autoDisableSM();
 
   // status wordbit 9 homed
   bool homedtemp = 0;
   getAxisHomed(&homedtemp);
-  data_.status_.statusWord_.homed = homedtemp > 0;
+  statusWord.homed = homedtemp > 0;
   
   // Write encoder entries
-  for (int i = 0; i < data_.status_.encoderCount; i++) {
+  const int encoderCount = status.encoderCount;
+  for (int i = 0; i < encoderCount; i++) {
     encArray_[i]->writeEntries();
   }
   
-   data_.status_.cycleCounter++;
+  status.cycleCounter++;
 
   // Update asyn parameters
   refreshStatusWd();
@@ -2971,11 +2972,16 @@ bool ecmcAxisBase::getHwReady() {
 
   /* Only check prim encoder (allow encoders to be in error state 
   if they are not used) */
-  bool ready = getPrimEnc()->hwReady();
+  auto * const primEnc = getPrimEnc();
+  bool ready = primEnc->hwReady();
+  if (!ready) {
+    return false;
+  }
 
   // Check drive if REAL axis
-  if(getDrv()) {
-    ready = ready && getDrv()->hwReady();
+  auto * const drv = getDrv();
+  if(drv) {
+    ready = ready && drv->hwReady();
   }
   return ready;
 }
