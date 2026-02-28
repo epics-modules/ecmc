@@ -169,7 +169,7 @@ void ecmcAxisReal::execute(bool masterOK) {
   }
 
   if (!masterOK) {
-    if (getEnabled() || getEnable()) {
+    if (getEnable()) {
       setEnable(false);
     }
     cntrl_->reset();

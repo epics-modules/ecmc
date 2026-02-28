@@ -74,9 +74,10 @@ class ecmcPVTController: public ecmcEcEntryLink {
     void   setTriggerOutput(bool high);
 
     double sampleTime_;
-    double nextTime_, accTime_, endTime_;
+    double nextTime_, endTime_;
     std::vector<double> startPositions_;
     std::vector<ecmcAxisBase*> axes_;
+    std::vector<ecmcAxisPVTSequence*> pvtObjs_;
     bool executeOld_, execute_;
     ecmcPVTSMType state_;
     ecmcPVTSMType stateOld_;

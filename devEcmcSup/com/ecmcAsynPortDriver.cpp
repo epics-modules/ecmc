@@ -1251,7 +1251,8 @@ void ecmcAsynPortDriver::refreshAllInUseParamsRT() {
   for (int i = 0; i < paramCount; i++) {
     ecmcAsynDataItem * const param = pEcmcParamInUseArray_[i];
     if (param) {
-      if (!param->linkedToAsynClient()) {
+      // Keep plugin/data subscribers alive even if no asyn client is linked.
+      if (!param->linkedToAsynClient() && !param->hasDataUpdatedCallbacks()) {
         continue;
       }
       param->refreshParamRT(1);

@@ -69,8 +69,6 @@ void ecmcMonitor::initVars() {
   velocityDiffCounter_       = 0;
   enableAlarmAtHardlimitBwd_ = false;
   enableAlarmAtHardlimitFwd_ = false;
-  hardBwdOld_                = false;
-  hardFwdOld_                = false;
   velDiffTimeTraj_           = 100;
   velDiffTimeDrive_          = 100;
   velDiffMaxDiff_            = 0;
@@ -82,7 +80,6 @@ void ecmcMonitor::initVars() {
   memset(&limitFwdFilterBuffer_, 0, sizeof(limitFwdFilterBuffer_));
   memset(&limitBwdFilterBuffer_, 0, sizeof(limitBwdFilterBuffer_));
   memset(&homeFilterBuffer_,     0, sizeof(homeFilterBuffer_));
-  interlockStatusOld_        = ECMC_INTERLOCK_NONE;
   hardwareInterlockPolarity_ = ECMC_POLARITY_NC;
   lowLimPolarity_            = ECMC_POLARITY_NC;
   highLimPolarity_           = ECMC_POLARITY_NC;
@@ -154,7 +151,6 @@ void ecmcMonitor::execute() {
   }
 
   data_->refreshInterlocks();
-  interlockStatusOld_ = data_->interlocks_.interlockStatus;
 }
 
 bool ecmcMonitor::getAtTarget() {
@@ -698,9 +694,6 @@ int ecmcMonitor::checkLimits() {
   const bool moving = statusWord.moving;
   const bool axisEnabled = statusWord.enabled && statusOldWord.enabled;
   const bool isHomingCmd = status.command == ECMC_CMD_HOMING;
-
-  hardBwdOld_ = limitBwdOk;
-  hardFwdOld_ = limitFwdOk;
 
   // Both limit switches
   interlocks.bothLimitsLowInterlock = !limitBwdOk && !limitFwdOk;

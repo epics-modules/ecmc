@@ -20,7 +20,7 @@ ecmcDataItem::ecmcDataItem(const char *name) {
     callbackFuncs_[i] = NULL;
     callbackObjs_[i]  = NULL;
   }
-  callbackFuncsMaxIndex_     = 0;
+  callbackFuncsMaxIndex_     = -1;
   checkIntRange_             = 0;
   intMax_                    = 0;
   intMin_                    = 0;
@@ -191,12 +191,16 @@ void ecmcDataItem::deregDataUpdatedCallback(int handle) {
   }
 
   // find highest assigned index (update callbackFuncsMaxIndex_)
-  callbackFuncsMaxIndex_ = 0;
+  callbackFuncsMaxIndex_ = -1;
   for (int i = 0; i < ECMC_DATA_ITEM_MAX_CALLBACK_FUNCS; ++i) {
     if (callbackFuncs_[i]) {
       callbackFuncsMaxIndex_ = i;
     }
   }
+}
+
+bool ecmcDataItem::hasDataUpdatedCallbacks() const {
+  return callbackFuncsMaxIndex_ >= 0;
 }
 
 char * ecmcDataItem::getDataPtr() {

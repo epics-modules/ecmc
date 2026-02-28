@@ -2544,11 +2544,6 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   }
 
-  //Add axis to pvt controller
-  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
-  pC_->getPVTController()->addAxis(drvlocal.ecmcAxis);
-  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
-  
   if(profileSwitchPVTObject_) {
     // switch pvt objects
     ecmcAxisPVTSequence *pvtTempSwitch = NULL;
@@ -2562,6 +2557,11 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
     profileSwitchPVTObject_ = false;
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   }
+
+  // Add axis to pvt controller after any PVT object switch.
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
+  pC_->getPVTController()->addAxis(drvlocal.ecmcAxis);
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   
   if(drvlocal.axisPrintDbg) {
     printf("ecmcMotorRecordAxis::executeProfile()\n");

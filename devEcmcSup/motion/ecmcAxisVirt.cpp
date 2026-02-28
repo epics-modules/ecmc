@@ -62,7 +62,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
   }
 
   if (!masterOK) {
-    if (getEnabled() || getEnable()) {
+    if (getEnable()) {
       setEnable(false);
     }
     setErrorID(__FILE__,

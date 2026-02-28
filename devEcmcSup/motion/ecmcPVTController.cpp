@@ -44,7 +44,6 @@ ecmcPVTController::ecmcPVTController(ecmcAsynPortDriver *asynPortDriver,
   sampleTime_     = sampleTime;
   halfSampleTime_ = sampleTime / 2;
   nextTime_       = 0;
-  accTime_        = 0;
   endTime_        = 0;
   executeOld_     = 0;
   execute_        = 0;
@@ -53,6 +52,7 @@ ecmcPVTController::ecmcPVTController(ecmcAsynPortDriver *asynPortDriver,
   busy_           = 0;
   startPositions_.reserve(ECMC_MAX_AXES);
   axes_.reserve(ECMC_MAX_AXES);
+  pvtObjs_.reserve(ECMC_MAX_AXES);
   triggerDefined_ = 0;
   triggerEcEntryIndex_ = 0;
   triggerCount_        = 0;
@@ -76,6 +76,7 @@ ecmcPVTController::~ecmcPVTController() {
 
 void ecmcPVTController::addAxis(ecmcAxisBase* axis) {
   axes_.push_back(axis);
+  pvtObjs_.push_back(axis ? axis->getPVTObject() : NULL);
   axesBusyStateValid_ = false;
   if(axis) {
     LOGINFO4("ecmcPVTController::addAxis(%d)\n", axis->getAxisID());
@@ -88,6 +89,7 @@ void ecmcPVTController::clearPVTAxes() {
   // make sure global PVT busy is not high
   setAxesBusy(false);
   axes_.clear();
+  pvtObjs_.clear();
   startPositions_.clear();
   axesBusyStateValid_ = false;
 }
@@ -163,6 +165,7 @@ void ecmcPVTController::execute() {
         setErrorID(error);
         state_ = ECMC_PVT_ERROR;
         LOGERR("ecmcPVTController::execute(): Error: Axis in error state when trigger move to start position\n");
+        break;
       }
       setAxesBusy(true);
       state_ = ECMC_PVT_WAIT_FOR_AXES_TO_REACH_START;
@@ -173,6 +176,7 @@ void ecmcPVTController::execute() {
       if(anyAxisInterlocked()) {
         abortPVT();
         setErrorID(ERROR_PVT_CTRL_AXIS_INTERLOCK);
+        break;
       }
       axesAtStartPosition = axesAtStart();
       if(axesAtStartPosition < 0) {
@@ -185,16 +189,13 @@ void ecmcPVTController::execute() {
         nextTime_ = -sampleTime_; // Start at -1 sample
         // Set time to 0 in all PVT objects
         for(size_t i = 0; i < axisCount; i++ ) {
-          auto * const axis = axes_[i];
-          auto * const pvt = axis->getPVTObject();
+          auto * const pvt = pvtObjs_[i];
           pvt->setNextTime(0);
           pvt->setCurrTime(0);
         }    
         // get end time from first axis
-        auto * const firstPvt = axes_[0]->getPVTObject();
+        auto * const firstPvt = pvtObjs_[0];
         endTime_ = firstPvt->endTime();
-        // get acc time from first axis
-        accTime_ = firstPvt->getSegDuration(0);
         //printf("ecmcPVTController: All axes in position, trigger PVT sequence\n");
       }
       break;
@@ -205,6 +206,7 @@ void ecmcPVTController::execute() {
         setErrorID(error);
         state_ = ECMC_PVT_ERROR;
         LOGERR("ecmcPVTController::execute(): Error: Triggering of PVT objects failed\n");
+        break;
       }
       //printf("ecmcPVTController: Executing PVT sequence\n");
       state_ = ECMC_PVT_EXECUTE_PVT;      
@@ -217,6 +219,7 @@ void ecmcPVTController::execute() {
       if(anyAxisInterlocked()) {
         abortPVT();
         setErrorID(ERROR_PVT_CTRL_AXIS_INTERLOCK);
+        break;
       }
       // Increase time
       nextTime_ = nextTime_ + sampleTime_;
@@ -228,7 +231,7 @@ void ecmcPVTController::execute() {
 
       for(size_t i = 0; i < axisCount; i++ ) {
         auto * const axis = axes_[i];
-        auto * const pvt = axis->getPVTObject();
+        auto * const pvt = pvtObjs_[i];
         if(pvt->getBusy()) {
           pvt->setNextTime(nextTime_);
           if(seqDone) {
@@ -246,7 +249,7 @@ void ecmcPVTController::execute() {
     case ECMC_PVT_ABORT:
       for(size_t i = 0; i < axisCount; i++ ) {
         auto * const axis = axes_[i];
-        auto * const pvt = axis->getPVTObject();
+        auto * const pvt = pvtObjs_[i];
         pvt->setBusy(false);
         axis->getSeq()->setGlobalBusy(0);
         axis->setTargetPosToCurrSetPos();
@@ -264,7 +267,7 @@ void ecmcPVTController::execute() {
       busy_ = 0;
       for(size_t i = 0; i < axisCount; i++ ) {
         auto * const axis = axes_[i];
-        auto * const pvt = axis->getPVTObject();
+        auto * const pvt = pvtObjs_[i];
         pvt->setBusy(false);
         axis->setTargetPosToCurrSetPos();
         state_ =  ECMC_PVT_IDLE;
@@ -293,7 +296,7 @@ void ecmcPVTController::execute() {
   }
 
   // Do not trigger if in wrong state or no triggers
-  if(triggerCount_<= 0 && state_!=ECMC_PVT_EXECUTE_PVT) {
+  if(triggerCount_<= 0 || state_!=ECMC_PVT_EXECUTE_PVT) {
     return;
   }
   
@@ -315,7 +318,7 @@ void ecmcPVTController::execute() {
       refreshAsyn();
       for(size_t i = 0; i < axisCount; i++ ) {
         auto * const axis = axes_[i];
-        auto * const pvt = axis->getPVTObject();
+        auto * const pvt = pvtObjs_[i];
         pvt->setTrgDAQ();
         // Compensate with one sampleTime since this is "next time"
         LOGINFO12("axis[%d]: DAQ trigger %zu at time %lf\n",
@@ -337,12 +340,12 @@ bool  ecmcPVTController::getBusy() {
 
 int ecmcPVTController::triggMoveAxesToStart() {
   const size_t axisCount = axes_.size();
-  startPositions_.assign(axisCount, 0.0);
+  startPositions_.resize(axisCount);
   double startPosition = 0;
   int error = 0;
   for(size_t i = 0; i < axisCount; i++ ) {
     auto * const axis = axes_[i];
-    auto * const pvt = axis->getPVTObject();
+    auto * const pvt = pvtObjs_[i];
     pvt->startPosition(&startPosition);
     if(pvt->getRelMode()) {
       const double currSetpoint = axis->getCurrentPositionSetpoint();
@@ -452,7 +455,7 @@ int ecmcPVTController::abortPVT() {
   for(size_t i = 0; i < axisCount; i++ ) {
     auto * const axis = axes_[i];
     axis->stopMotion(0);
-    auto * const pvt = axis->getPVTObject();
+    auto * const pvt = pvtObjs_[i];
     pvt->setBusy(false);
   }
   setAxesBusy(false);
@@ -477,7 +480,7 @@ void ecmcPVTController::initPVT() {
   const trgMode trgModeSelect = triggerCount_ == 0 ?
                                 TRG_INT_ON_SEG_CHANGE : TRG_EXT_ON_PULSE_TRG;
   for(size_t i = 0; i < axisCount; i++ ) {
-    auto * const pvt = axes_[i]->getPVTObject();
+    auto * const pvt = pvtObjs_[i];
     pvt->setExecute(0);
     pvt->setTrgDAQMode(trgModeSelect);
   }

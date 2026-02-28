@@ -331,7 +331,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   
   interlocks.etherCatMasterInterlock = !masterOK;
 
-  if (!masterOK) {
+  if (!masterOK && statusWord.enable) {
     setEnable(false);
   }
   data_.refreshInterlocks();
@@ -349,7 +349,9 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   // Axis state machine
   switch (axisState_) {
   case ECMC_AXIS_STATE_STARTUP:
-    setEnable(false);
+    if (statusWord.enable) {
+      setEnable(false);
+    }
     seq_.setGlobalBusy(true);
     statusWord.busy = true;
     status.distToStop = 0;

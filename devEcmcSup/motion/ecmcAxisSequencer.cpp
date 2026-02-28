@@ -85,6 +85,7 @@ void ecmcAxisSequencer::execute() {
   auto &status = data_->status_;
   auto &statusWord = status.statusWord_;
   auto &control = data_->control_;
+  auto * const pvt = pvt_;
   const bool internalTrajSource =
     statusWord.trajsource == ECMC_DATA_SOURCE_INTERNAL;
   const bool internalEncSource =
@@ -93,15 +94,15 @@ void ecmcAxisSequencer::execute() {
   pvtmode_ = pvtOk_ && 
       (/*status.command == ECMC_CMD_MOVEPVTREL ||*/
        status.command == ECMC_CMD_MOVEPVTABS);
-  const bool pvtExecute = pvt_ && pvt_->getExecute();
+  const bool pvtExecute = pvt && pvt->getExecute();
   const bool pvtActive = pvtmode_ && !pvtStopping_ && pvtExecute;
 
   // Trajectory (External or internal)
   if (internalTrajSource) {
 
     if (pvtActive) {
-      status.currentPositionSetpoint = pvt_->getCurrPosition();
-      status.currentVelocitySetpoint = pvt_->getCurrVelocity();
+      status.currentPositionSetpoint = pvt->getCurrPosition();
+      status.currentVelocitySetpoint = pvt->getCurrVelocity();
     } else {
       status.currentPositionSetpoint = traj_->getNextPosSet();
       status.currentVelocitySetpoint = traj_->getNextVel();
@@ -145,9 +146,9 @@ void ecmcAxisSequencer::execute() {
   pvtStopping_ = traj_->getBusy() && pvtStopping_;
 
   // PVT
-  if (pvtOk_ && !pvtStopping_ && statusWord.execute && pvt_) {
+  if (pvtActive && statusWord.execute) {
     // Go to next pvt time step
-    if (pvt_->nextSampleStep() && pvtExecute) {
+    if (pvt->nextSampleStep()) {
       traj_->setCurrentPosSet(status.currentPositionSetpoint);
     }
   }

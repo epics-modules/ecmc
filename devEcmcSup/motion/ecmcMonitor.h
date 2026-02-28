@@ -181,8 +181,6 @@ private:
   int enableLagMon_;
   int atTargetCounter_;
   int lagMonCounter_;
-  bool hardBwdOld_;
-  bool hardFwdOld_;
   double maxVel_;
   bool enableMaxVelMon_;
   int maxVelCounterDrive_;
@@ -209,7 +207,6 @@ private:
   bool homeFilterBuffer_[ECMC_MON_SWITCHES_FILTER_CYCLES];
   bool latchOnLimit_;  // stop even if just bounce
   bool enableAlarmOnSofLimits_;
-  interlockTypes interlockStatusOld_;
   ecmcSwitchPolarity hardwareInterlockPolarity_;
   ecmcSwitchPolarity lowLimPolarity_;
   ecmcSwitchPolarity highLimPolarity_;

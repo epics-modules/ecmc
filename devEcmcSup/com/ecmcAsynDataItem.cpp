@@ -34,9 +34,6 @@ static const char *driverName = "ecmcAsynPortDriver";
 
 extern double mcuFrequency;
 extern double mcuPeriod;
-static int compar(const void *pkey, const void *pelem) {
-  return *(int *)pkey - *(int *)pelem;
-}
 
 ecmcAsynDataItem::ecmcAsynDataItem(ecmcAsynPortDriver *asynPortDriver,
                                    const char         *paramName,
@@ -492,19 +489,13 @@ int ecmcAsynDataItem::addSupportedAsynType(asynParamType type) {
 }
 
 bool ecmcAsynDataItem::asynTypeSupported(asynParamType type) {
-  std::qsort(supportedTypes_,
-             supportedTypesCounter_,
-             sizeof(supportedTypes_[0]),
-             compar);
-  asynParamType *found = (asynParamType *)std::bsearch(&type,
-                                                       supportedTypes_,
-                                                       supportedTypesCounter_,
-                                                       sizeof(supportedTypes_[0
-                                                              ]),
-                                                       compar);
-
-  if (found)return true;
-  else return false;
+  const int supportedCount = supportedTypesCounter_;
+  for (int i = 0; i < supportedCount; ++i) {
+    if (supportedTypes_[i] == type) {
+      return true;
+    }
+  }
+  return false;
 }
 
 int ecmcAsynDataItem::getSupportedAsynTypeCount() {

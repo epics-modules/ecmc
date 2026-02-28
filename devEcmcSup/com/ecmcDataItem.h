@@ -100,6 +100,7 @@ public:
   /** Deregister data updated callback by handle
   *   (retuned by regDataUpdatedCallback()) */
   void         deregDataUpdatedCallback(int handle);
+  bool         hasDataUpdatedCallbacks() const;
 
 protected:
   virtual void refresh();
