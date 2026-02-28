@@ -147,6 +147,20 @@ static char cOneCommand[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
         }\
         while (0)
 
+#define RETURN_ERROR_IF_RUNTIME_CFG_CMD(cmd_name)\
+        do {\
+          if (appModeStat == ECMC_MODE_RUNTIME) {\
+            LOGERR("%s/%s:%d: ERROR: Cfg.%s not allowed in runtime (0x%x).\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   cmd_name,\
+                   ERROR_MAIN_APP_MODE_ALREADY_RUNTIME);\
+            return ERROR_MAIN_APP_MODE_ALREADY_RUNTIME;\
+          }\
+        }\
+        while (0)
+
 #define ECMC_COMMAND_FORMAT_ERROR 0x210000;
 
 void       init_axis(int axis_no) {
@@ -681,6 +695,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("SetAppMode");
     return setAppMode(iValue);
   }
 
@@ -688,6 +703,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = strcmp(myarg_1, "ValidateConfig()");
 
   if (nvals == 0) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("ValidateConfig");
     return validateConfig();
   }
 
@@ -695,6 +711,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "SetEcStartupTimeout(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("SetEcStartupTimeout");
     return setEcStartupTimeout(iValue);
   }
 
@@ -702,6 +719,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "SetSampleRate(%lf)", &dValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("SetSampleRate");
     return setSampleRate(dValue);
   }
 
@@ -709,6 +727,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "SetSamplePeriodMs(%lf)", &dValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("SetSamplePeriodMs");
     return setSamplePeriodMs(dValue);
   }
 
@@ -716,6 +735,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "SetPVTControllerTrgDurMs(%lf)", &dValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("SetPVTControllerTrgDurMs");
     return setPVTControllerTrgDurMs(dValue);
   }
 
@@ -728,6 +748,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue4);
 
   if (nvals == 4) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("CreateAxis");
     return createAxis(iValue, iValue2, iValue3, iValue4);
   }
 
@@ -736,6 +757,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreateAxis(%d,%d,%d)", &iValue, &iValue2, &iValue3);
 
   if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("CreateAxis");
     return createAxis(iValue, iValue2, iValue3, 0);
   }
 
@@ -744,6 +766,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreateAxis(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("CreateAxis");
     return createAxis(iValue, iValue2, 0, 0);
   }
 
@@ -752,6 +775,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreateAxis(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("CreateAxis");
     return createAxis(iValue, 1, 0, 0);
   }
 
@@ -760,6 +784,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreateDefaultAxis(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("CreateDefaultAxis");
     return createAxis(iValue, 1, 0, 0);
   }
 
@@ -768,6 +793,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "AddAxisGroup(%[^)])",                
                  cIdBuffer);
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("AddAxisGroup");
     return addAxisGroup(cIdBuffer);
   }
 
@@ -778,6 +804,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  cIdBuffer,
                 &iValue2);
   if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("AddAxisToGroupByName");
     return addAxisToGroupByNameCreate(iValue,cIdBuffer,iValue2);
   }
 
@@ -787,6 +814,7 @@ static int handleCfgCommand(const char *myarg_1) {
                 &iValue,
                  cIdBuffer);
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("AddAxisToGroupByName");
     return addAxisToGroupByName(iValue,cIdBuffer);
   }
 
@@ -796,6 +824,7 @@ static int handleCfgCommand(const char *myarg_1) {
                 &iValue,
                 &iValue2);
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("AddAxisToGroupByIndex");
     return addAxisToGroupByIndex(iValue,iValue2);
   }
 
@@ -803,6 +832,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreatePLC(%d,%lf)", &iValue, &dValue);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("CreatePLC");
     return createPLC(iValue, dValue, 0);
   }
 
@@ -810,6 +840,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "CreatePLC(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("CreatePLC");
     return createPLC(iValue, 1, 0);
   }
 
@@ -817,6 +848,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "DeletePLC(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("DeletePLC");
     return deletePLC(iValue);
   }
 
@@ -838,6 +870,7 @@ static int handleCfgCommand(const char *myarg_1) {
                          cIdBuffer2);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LinkEcEntryToObject");
     return linkEcEntryToObject(cIdBuffer, cIdBuffer2);
   }
 
@@ -848,6 +881,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals         = sscanf(myarg_1, "LinkEcEntryToObject(,%[^)])", cIdBuffer2);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LinkEcEntryToObject");
     return 0;
   }
 
@@ -856,6 +890,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = strcmp(myarg_1, "LinkEcEntryToObject(,)");
 
   if (nvals == 0) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LinkEcEntryToObject");
     return 0;
   }
 
@@ -871,6 +906,7 @@ static int handleCfgCommand(const char *myarg_1) {
                         &iValue5);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LinkEcEntryToAxisEncoder");
     return linkEcEntryToAxisEnc(iValue, cIdBuffer, iValue3, iValue4, iValue5);
   }
 
@@ -888,6 +924,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   // Allow empty entryIdString and/or entrybitIndex
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LinkEcEntryToAxisDrive");
     return linkEcEntryToAxisDrv(iValue, cIdBuffer, iValue3, iValue4, iValue5);
   }
 
@@ -901,6 +938,7 @@ static int handleCfgCommand(const char *myarg_1) {
                         &iValue5);
 
   if (nvals == 4) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LinkEcEntryToAxisDrive");
     return linkEcEntryToAxisDrv(iValue, cIdBuffer, iValue3, iValue4, iValue5);
   }
 
@@ -915,6 +953,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue5);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LinkEcEntryToAxisMonitor");
     return linkEcEntryToAxisMon(iValue, cIdBuffer, iValue3, iValue4, iValue5);
   }
 
@@ -925,6 +964,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  cIdBuffer);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LinkEcEntryToEcStatusOutput");
     return linkEcEntryToEcStatusOutput(iValue, cIdBuffer);
   }
 
@@ -936,6 +976,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue2);
 
   if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LinkEcEntryToAxisStatusOutput");
     return linkEcEntryToAxisStatusOutput(iValue, cIdBuffer, iValue2);
   }
 
@@ -964,6 +1005,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcSetMaster(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSetMaster");
     return ecSetMaster(iValue);
   }
 
@@ -983,6 +1025,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue4);
 
   if (nvals == 4) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddSlave");
     return ecAddSlave(iValue, iValue2, iValue3, iValue4);
   }
 
@@ -995,6 +1038,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue3);
 
   if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSlaveConfigWatchDog");
     return ecSlaveConfigWatchDog(iValue, iValue2, iValue3);
   }
 
@@ -1008,6 +1052,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue5);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSlaveVerify");
     // Also check revisionNum
     return ecVerifySlave(iValue, iValue2, iValue3, iValue4, iValue5);
   }
@@ -1021,6 +1066,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue4);
 
   if (nvals == 4) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSlaveVerify");
     // Do not check revision number (use revisionNum=0)
     return ecVerifySlave(iValue, iValue2, iValue3, iValue4, 0);
   }
@@ -1029,6 +1075,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcAddPdo(%d,%d,0x%x)", &iValue, &iValue2, &iValue3);
 
   if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddPdo");
     return ecAddPdo(iValue, iValue2, iValue3);
   }
 
@@ -1059,6 +1106,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  cIdBuffer);
 
   if (nvals == 11) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddEntryComplete");
     return ecAddEntryComplete(iValue,
                               iValue2,
                               iValue3,
@@ -1100,6 +1148,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue10);
 
   if (nvals == 11) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddEntryComplete");
     int ret = ecAddEntryComplete(iValue,
                                  iValue2,
                                  iValue3,
@@ -1143,6 +1192,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  cIdBuffer);
 
   if (nvals == 10) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddEntryComplete");
     return ecAddEntryComplete(iValue,
                               iValue2,
                               iValue3,
@@ -1188,6 +1238,7 @@ static int handleCfgCommand(const char *myarg_1) {
                          &iValue9);
 
   if (nvals == 11) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddEntryDT");
     return ecAddEntry(iValue,
                       iValue2,
                       iValue3,
@@ -1231,6 +1282,7 @@ static int handleCfgCommand(const char *myarg_1) {
                          cIdBuffer2);
 
   if (nvals == 10) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddEntryDT");
     return ecAddEntry(iValue,
                       iValue2,
                       iValue3,
@@ -1259,6 +1311,7 @@ static int handleCfgCommand(const char *myarg_1) {
                          &u64Value);
 
   if (nvals == 4) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddSimEntry");
     return ecAddSimEntry(iValue,
                          cIdBuffer,
                          cIdBuffer2,
@@ -1282,6 +1335,7 @@ static int handleCfgCommand(const char *myarg_1) {
                          cIdBuffer2);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddSdoAsync");
     return ecAddSdoAsync(iValue,
                          iValue2,
                          iValue3,
@@ -1309,6 +1363,7 @@ static int handleCfgCommand(const char *myarg_1) {
                          cIdBuffer3);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddMemMapDT");
     return ecAddMemMapDT(cIdBuffer, (size_t)iValue2, iValue3,
                          cIdBuffer2, cIdBuffer3);
   }
@@ -1332,6 +1387,7 @@ static int handleCfgCommand(const char *myarg_1) {
                          cIdBuffer2);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddMemMap");
     return ecAddMemMap(iValue, cIdBuffer, (size_t)iValue2, iValue3,
                        cIdBuffer2);
   }
@@ -1357,6 +1413,7 @@ static int handleCfgCommand(const char *myarg_1) {
                          cIdBuffer3);
 
   if (nvals == 6) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddDataDT");
     return ecAddDataDT(cIdBuffer, (size_t)iValue2,
                        (size_t)iValue3, iValue4,
                        cIdBuffer2, cIdBuffer3);
@@ -1379,6 +1436,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue6);
 
   if (nvals == 6) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSlaveConfigDC");
     return ecSlaveConfigDC(iValue, iValue2, iValue3, iValue4, iValue5,
                            iValue6);
   }
@@ -1390,6 +1448,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcSelectReferenceDC(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSelectReferenceDC");
     return ecSelectReferenceDC(iValue, iValue2);
   }
 
@@ -1397,6 +1456,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcUseClockRealtime(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcUseClockRealtime");
     return ecUseClockRealtime(iValue);
   }
 
@@ -1413,6 +1473,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue2);
 
   if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSetEntryUpdateInRealtime");
     return ecSetEntryUpdateInRealtime(iValue, cIdBuffer, iValue2);
   }
 
@@ -1430,6 +1491,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue3);
 
   if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddSyncManager");
     return ecAddSyncManager(iValue, iValue2, iValue3);
   }
 
@@ -1444,6 +1506,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue5);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddSdo");
     return ecAddSdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
@@ -1458,6 +1521,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue5);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddSdo");
     return ecAddSdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
@@ -1475,6 +1539,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  cIdBuffer2);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddSdoDT");
     return ecAddSdoDT(iValue, iValue2, iValue3, cIdBuffer, cIdBuffer2);
   }
 
@@ -1488,6 +1553,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue3);
 
   if (nvals == 4) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddSdoComplete");
     return ecAddSdoComplete(iValue, iValue2, cIdBuffer, iValue3);
   }
 
@@ -1503,6 +1569,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue4);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddSdoBuffer");
     return ecAddSdoBuffer(iValue, iValue2, iValue3, cIdBuffer, iValue4);
   }
 
@@ -1517,6 +1584,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue5);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcWriteSdo");
     return ecWriteSdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
@@ -1531,6 +1599,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue5);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcWriteSdo");
     return ecWriteSdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
@@ -1545,6 +1614,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue5);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcVerifySdo");
     return ecVerifySdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
@@ -1559,6 +1629,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue5);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcVerifySdo");
     return ecVerifySdo(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
@@ -1578,6 +1649,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &uint64Value);
 
   if (nvals == 5) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcWriteSoE");
     return ecWriteSoE(iValue2, iValue3, iValue4, iValue5,
                       (uint8_t *)(&uint64Value));
   }
@@ -1612,11 +1684,13 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcApplyConfig(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcApplyConfig");
     return ecApplyConfig(iValue);
   }
 
   /*Cfg.EcApplyConfig()*/
   if (0 == strcmp(myarg_1, "EcApplyConfig()")) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcApplyConfig");
     return ecApplyConfig(-1);
   }
 
@@ -1638,6 +1712,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcSetSlaveNeedSDOSettings(%d,%d,%d)", &iValue, &iValue2, &iValue3);
 
   if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSetSlaveNeedSDOSettings");
     return ecSetSlaveNeedSDOSettings(iValue,iValue2,iValue3);
   }
 
@@ -1645,6 +1720,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcSetSlaveSDOSettingsDone(%d,%d,%d)", &iValue, &iValue2, &iValue3);
 
   if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSetSlaveSDOSettingsDone");
     return ecSetSlaveSDOSettingsDone(iValue,iValue2,iValue3);
   }
 
@@ -1652,6 +1728,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcSetSlaveEnableSDOCheck(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSetSlaveEnableSDOCheck");
     return ecSetSlaveEnableSDOCheck(iValue,iValue2);
   }
 
@@ -1666,6 +1743,7 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcAddDomain(%d,%d)", &iValue, &iValue2);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddDomain");
     return ecAddDomain(iValue, iValue2);
   }
 
@@ -1675,6 +1753,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSetDomainAllowOffline");
     return ecSetDomAllowOffline(iValue);
   }
 
@@ -1684,6 +1763,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSetAllowOffline");
     return ecSetEcAllowOffline(iValue);
   }
 
@@ -1691,10 +1771,11 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcSetDelayECOkAtStartup(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSetDelayECOkAtStartup");
     return ecSetDelayECOkAtStartup(iValue);
   }
 
-parse_cfg_axis_commands:
+  parse_cfg_axis_commands:
 
   if (cfgFastSetAxisEnc) {
     goto parse_cfg_setaxisenc;
@@ -1882,6 +1963,7 @@ parse_cfg_setaxisenc:
     nvals = sscanf(myarg_1, "AddAxisEnc(%d)", &iValue);
 
     if (nvals == 1) {
+      RETURN_ERROR_IF_RUNTIME_CFG_CMD("AddAxisEnc");
       return addAxisEnc(iValue);
     }
 
@@ -1896,6 +1978,7 @@ parse_cfg_setaxisenc:
     nvals = sscanf(myarg_1, "SelectAxisEncCSPDrv(%d,%d)", &iValue, &iValue2);
 
     if (nvals == 2) {
+      RETURN_ERROR_IF_RUNTIME_CFG_CMD("SelectAxisEncCSPDrv");
       return selectAxisEncCSPDrv(iValue, iValue2);
     }
 
@@ -1931,6 +2014,7 @@ parse_cfg_setaxisenc:
                                                                          &iValue3);
 
     if (nvals == 6) {
+      RETURN_ERROR_IF_RUNTIME_CFG_CMD("CreateMasterSlaveSM");
       return createMasterSlaveSM(iValue , cIdBuffer,cIdBuffer2,cIdBuffer3,iValue2,iValue3);
     }
 
@@ -1939,6 +2023,7 @@ parse_cfg_setaxisenc:
     nvals = sscanf(myarg_1, "LoadAxisEncLookupTable(%d,%[^)])", &iValue, cExprBuffer);
 
     if (nvals == 2) {
+      RETURN_ERROR_IF_RUNTIME_CFG_CMD("LoadAxisEncLookupTable");
       return loadAxisEncLookupTable(iValue , cExprBuffer);
     }
 
@@ -2975,6 +3060,7 @@ parse_cfg_setaxisdrv:
                  cExprBuffer);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("AppendAxisPLCExpr");
     cExprBuffer[0] = '\0';
   }
 
@@ -2997,6 +3083,7 @@ parse_cfg_setaxisdrv:
   nvals = sscanf(myarg_1, "SetPLCExpr(%d)=%[^\n]", &iValue, cExprBuffer);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("SetPLCExpr");
     cExprBuffer[0] = '\0';
   }
 
@@ -3019,6 +3106,7 @@ parse_cfg_setaxisdrv:
   nvals = sscanf(myarg_1, "AppendPLCExpr(%d)=%[^\n]", &iValue, cExprBuffer);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("AppendPLCExpr");
     cExprBuffer[0] = '\0';
   }
 
@@ -3042,6 +3130,7 @@ parse_cfg_setaxisdrv:
     sscanf(myarg_1, "AppendAxisPLCExpr(%d)=%[^\n]", &iValue, cExprBuffer);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("AppendAxisPLCExpr");
     cExprBuffer[0] = '\0';
   }
 
@@ -3066,6 +3155,7 @@ parse_cfg_setaxisdrv:
   nvals = sscanf(myarg_1, "LoadAxisPLCFile(%d,%[^)])", &iValue, cExprBuffer);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LoadAxisPLCFile");
     // Axis plcs is indexed "above" normal PLCs in the PLC array
     return loadPLCFile(iValue + ECMC_MAX_PLCS, cExprBuffer);
   }
@@ -3074,6 +3164,7 @@ parse_cfg_setaxisdrv:
   nvals = sscanf(myarg_1, "LoadPLCFile(%d,%[^)])", &iValue, cExprBuffer);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LoadPLCFile");
     return loadPLCFile(iValue, cExprBuffer);
   }
 
@@ -3081,6 +3172,7 @@ parse_cfg_setaxisdrv:
   nvals = sscanf(myarg_1, "LoadPLCLibFile(%d,%[^)])", &iValue, cExprBuffer);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LoadPLCLibFile");
     return loadPLCLibFile(iValue, cExprBuffer);
   }
 
@@ -3088,6 +3180,7 @@ parse_cfg_setaxisdrv:
   nvals = sscanf(myarg_1, "ClearPLCExpr(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("ClearPLCExpr");
     return clearPLCExpr(iValue);
   }
 
@@ -3095,6 +3188,7 @@ parse_cfg_setaxisdrv:
   nvals = sscanf(myarg_1, "CompilePLC(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("CompilePLC");
     return compilePLCExpr(iValue);
   }
 
@@ -3102,6 +3196,7 @@ parse_cfg_setaxisdrv:
   nvals = sscanf(myarg_1, "CompileAxisPLC(%d)", &iValue);
 
   if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("CompileAxisPLC");
     return compileAxisPLCExpr(iValue);
   }
 
@@ -3134,6 +3229,7 @@ parse_cfg_setaxisdrv:
                  cIdBuffer2);
 
   if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LoadPlugin");
     return loadPlugin(iValue, cIdBuffer, cIdBuffer2);
   }
 
@@ -3144,6 +3240,7 @@ parse_cfg_setaxisdrv:
                  cIdBuffer2);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LoadSafetyPlugin");
     return loadSafetyPlugin(cIdBuffer, cIdBuffer2);
   }
 
@@ -3151,6 +3248,7 @@ parse_cfg_setaxisdrv:
   nvals = sscanf(myarg_1, "LoadPlugin(%d,%[^)])", &iValue, cIdBuffer);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LoadPlugin");
     return loadPlugin(iValue, cIdBuffer, "");
   }
 
@@ -3225,6 +3323,7 @@ parse_cfg_setaxisdrv:
                  &iValue3);
 
   if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("CreateStorage");
     return createDataStorage(iValue, iValue2, iValue3);
   }
 
@@ -3265,6 +3364,7 @@ parse_cfg_setaxisdrv:
   nvals = sscanf(myarg_1, "LoadLUTFile(%d,%[^)])", &iValue, cExprBuffer);
 
   if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("LoadLUTFile");
     return loadLUT(iValue, cExprBuffer);
   }
 
