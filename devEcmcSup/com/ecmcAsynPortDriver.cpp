@@ -1917,7 +1917,7 @@ int formatIsDouble(const char *format) {
   }
 
   if (strlen(format) >= (ECMC_CMD_MAX_SINGLE_CMD_LENGTH - 1)) {
-    printf("Format string to long (max length %d).\n",
+    printf("Format string too long (max length %d).\n",
            ECMC_CMD_MAX_SINGLE_CMD_LENGTH);
     return -1;
   }
@@ -2102,7 +2102,7 @@ int ecmcEpicsEnvSetCalc(const char *envVarName,
   }
 
   if (charCount >= sizeof(buffer) - 1) {
-    printf("Write buffer size exceeded, format results in a to long string.\n");
+    printf("Write buffer size exceeded, format results in a too long string.\n");
     return asynError;
   }
 
@@ -2670,7 +2670,7 @@ int ecmcGetSlaveIdFromEcPath(const char *ec_path, const char *env_var_str) {
                              "%d",
                              slaveId);
     if (charCount >= sizeof(resultBuffer) - 1) {
-      printf("Write buffer size exceeded, format results in a to long string.\n");
+      printf("Write buffer size exceeded, format results in a too long string.\n");
    
       return asynError;
     }

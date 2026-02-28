@@ -147,7 +147,7 @@ int CMDwriteIt(const char *inbuf, size_t inlen) {
 
   if (inlen >= ECMC_CMD_BUFFER_SIZE) {
     LOGERR(
-      "%s/%s:%d: ERROR: asynOctet command to long and will be discarded.\n",
+      "%s/%s:%d: ERROR: asynOctet command too long and will be discarded.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__

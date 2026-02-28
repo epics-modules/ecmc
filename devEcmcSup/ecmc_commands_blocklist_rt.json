@@ -62,8 +62,6 @@
     "Cfg.EcVerifySdo(<slaveBusPosition>,0x<sdoIndex>,0x<sdoSubIndex>,<byteSize>,<verValue>)",
     "Cfg.EcWriteSdo(<slaveBusPosition>,0x<sdoIndex>,0x<sdoSubIndex>,0x<value>,<byteSize>)",
     "Cfg.EcWriteSdo(<slaveBusPosition>,0x<sdoIndex>,0x<sdoSubIndex>,<value>,<byteSize>)",
-    "Cfg.EcWriteSdoComplete(<int>,0x<hex>,0x<hex>,<int>)",
-    "Cfg.EcWriteSdoComplete(<int>,0x<hex>,<int>,<int>)",
     "Cfg.EcWriteSoE(<slaveBusPosition>,<driveNo>,<idn>,<byteSize>,%",
     "Cfg.LinkEcEntryToAxisDrive(<slaveBusPosition>,,<entryIdString>,<axisIndex>,<driveEntryIndex>)",
     "Cfg.LinkEcEntryToAxisDrive(<slaveBusPosition>,<entryIdString>,<axisIndex>,<driveEntryIndex>,<entryBitIndex>)",

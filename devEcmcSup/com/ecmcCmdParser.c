@@ -161,7 +161,7 @@ static char cOneCommand[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
         }\
         while (0)
 
-#define ECMC_COMMAND_FORMAT_ERROR 0x210000;
+#define ECMC_COMMAND_FORMAT_ERROR 0x210000
 
 void       init_axis(int axis_no) {
 }
@@ -1653,32 +1653,6 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecWriteSoE(iValue2, iValue3, iValue4, iValue5,
                       (uint8_t *)(&uint64Value));
   }
-
-  /*Cfg.EcWriteSdoComplete(uint16_t slave_position,uint16_t sdo_index,
-  uint8_t sdo_subindex,uint32_t value,int byteSize)*/
-  /*nvals = sscanf(myarg_1,
-                 "EcWriteSdoComplete(%d,0x%x,%d,%d)",
-                 &iValue,
-                 &iValue2,
-                 &iValue3,
-                 &iValue4);
-
-  if (nvals == 4) {
-    return ecWriteSdoComplete(iValue, iValue2, iValue3, iValue4);
-  }*/
-
-  /*Cfg.EcWriteSdoComplete(uint16_t slave_position,uint16_t sdo_index,
-  uint8_t sdo_subindex,uint32_t value,int byteSize)*/
-  /*nvals = sscanf(myarg_1,
-                 "EcWriteSdoComplete(%d,0x%x,0x%x,%d)",
-                 &iValue,
-                 &iValue2,
-                 &iValue3,
-                 &iValue4);
-
-  if (nvals == 4) {
-    return ecWriteSdoComplete(iValue, iValue2, iValue3, iValue4);
-  }*/
 
   /*Cfg.EcApplyConfig(int nMasterIndex)*/
   nvals = sscanf(myarg_1, "EcApplyConfig(%d)", &iValue);
@@ -3759,7 +3733,7 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
   // Check Command length
   if (strlen(myarg_1) >= ECMC_CMD_MAX_SINGLE_CMD_LENGTH - 1) {
-    LOGERR("%s/%s:%d: Command to long. Command buffer size %d :(0x%x).\n",
+    LOGERR("%s/%s:%d: Command too long. Command buffer size %d :(0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
