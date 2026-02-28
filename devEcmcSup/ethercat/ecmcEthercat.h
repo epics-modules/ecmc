@@ -997,7 +997,7 @@ int readEcSlaveIndex(int  slavePosition,
  *
  * Fast access of EtherCAT data from EPICS records is possible by linking an
  * EtherCAT memory map to an ASYN parameter. The memory map objects is most
- * usefull for acquire arrays of data (waveforms).This function is called by
+ * useful for acquire arrays of data (waveforms).This function is called by
  * the iocsh command"ecmcAsynPortDriverAddParameter()". For more information
  * see documentation of ecmcAsynPortDriverAddParameter(), ecAddMemMap(),
  * readEcMemMap() and ecSetEntryUpdateInRealtime().\n
@@ -1122,8 +1122,8 @@ int ecEnablePrintouts(int value);
 
 /** \brief Delay ethercat OK status for a time
  *
- * This can be usefull to allow extra time foir DC clocks to syncronize or\n
- * for slave that do not report correct data directlly when enter OP.\n
+ * This can be useful to allow extra time for DC clocks to synchronize or\n
+ * for slave that do not report correct data directly when entering OP.\n
  *
  *
  * \param[in] milliseconds Delay time for ecOK status at startup (after slaves in OP).\n
@@ -1177,11 +1177,11 @@ int ecPrintSlaveConfig(int slaveIndex);
 int linkEcEntryToEcStatusOutput(int   slaveIndex,
                                 char *entryIDString);
 
-/** \brief Verfy slave at position
+/** \brief Verify slave at position
  *
- *  The command verifys that the actual slave at a certain position\
+ *  The command verifies that the actual slave at a certain position\
  *  have the correct alias, position, vendor id, product code and revision number.\n
- *  Check of slave revsion number will be skipped if set to 0.\n
+ *  Check of slave revision number will be skipped if set to 0.\n
  *
  *  \param[in] alias Alias of slave. Set to zero to disable.\n
  *  \param[in] slaveIn Position of the EtherCAT slave on the bus.\n
@@ -1191,15 +1191,15 @@ int linkEcEntryToEcStatusOutput(int   slaveIndex,
  *    vendorId = 0x48554B: Kendrion Kuhnke Automation GmbH.\n
  *  \param productCode Product identification code.\n
  *    productCode=0x13ed3052: EL5101 incremental encoder input.\n
- *  \param revisionNum Product revision number. The revsion number of the\n
+ *  \param revisionNum Product revision number. The revision number of the\n
  *    actual slave needs to equal or newer than that of the configuration.\n
- *    if revisionNum==0 then this function will not check revsionNum of \n
+ *    if revisionNum==0 then this function will not check revisionNum of \n
 *     the slave.
  *    revisionNum=0x04000000: EL5101 incremental encoder input.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Verify that slave 3 is an EL5101 with a revsion >= 0x04000000\n
+ * \note Example: Verify that slave 3 is an EL5101 with a revision >= 0x04000000\n
  *   "Cfg.EcVerifySlave(0,3,0x2,0x13ed3052,0x04000000)" //Command string to ecmcCmdParser.c\n
  */
 int ecVerifySlave(uint16_t alias,  /**< Slave alias. */

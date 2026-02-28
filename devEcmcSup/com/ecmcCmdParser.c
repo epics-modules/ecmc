@@ -756,7 +756,7 @@ static int handleCfgCommand(const char *myarg_1) {
   }
 
   /// "Cfg.CreateDefaultAxis(axisIndex)"
-  // Defaults as real axis with stepper drive and trapetzoidal traj generator
+  // Defaults as real axis with stepper drive and trapezoidal traj generator
   nvals = sscanf(myarg_1, "CreateDefaultAxis(%d)", &iValue);
 
   if (nvals == 1) {
@@ -1008,7 +1008,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue5);
 
   if (nvals == 5) {
-    // Also check revsionNum
+    // Also check revisionNum
     return ecVerifySlave(iValue, iValue2, iValue3, iValue4, iValue5);
   }
 
@@ -1021,7 +1021,7 @@ static int handleCfgCommand(const char *myarg_1) {
                  &iValue4);
 
   if (nvals == 4) {
-    // Do not check revsion number (use revsionNum=0)
+    // Do not check revision number (use revisionNum=0)
     return ecVerifySlave(iValue, iValue2, iValue3, iValue4, 0);
   }
 

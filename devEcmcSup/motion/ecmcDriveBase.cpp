@@ -366,7 +366,7 @@ void ecmcDriveBase::writeEntries() {
     cycleCounterBase_++;
 
     if (cycleCounterBase_ > stateMachineTimeoutCycles_) {
-      // Enable cmd timeout (not recived enable within time period)
+      // Enable cmd timeout (not received enable within time period)
       cycleCounterBase_      = 0;
       data_->status_.statusWord_.enable = false;
       enableAmpCmd_          = false;

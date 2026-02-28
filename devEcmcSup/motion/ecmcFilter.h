@@ -36,7 +36,7 @@ public:
   int    initFilter(double pos);
   double getFiltVelo(double input);
 
-  // Need to compensate for modulo range in postion filter
+  // Need to compensate for modulo range in position filter
   double getFiltPos(double pos,
                     double modRange);
 

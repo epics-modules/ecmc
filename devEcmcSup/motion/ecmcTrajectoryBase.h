@@ -168,7 +168,7 @@ public:
   motionDirection getCurrSetDir();
   motionDirection checkDirection(double oldPos,
                                  double newPos);
-  // Possability to set a reduced velo from external ecmc_plugin_safety 
+  // Possibility to set a reduced velo from external ecmc_plugin_safety 
   void setExternalMaxVelo(double veloLimit,
                           int active);
 protected:

@@ -1,6 +1,6 @@
-# ECMC knowledgebase:
+# ECMC knowledgebase
 
-## Error codes (quick guide):
+## Error codes (quick guide)
 Item | Error | Error Id | When | Description
 --- | --- | --- | --- | --- |
 1   | ERROR_EC_MAIN_DOMAIN_DATA_FAILED | 0x2600c | At "Cfg.SetAppMode(1)" | No hardware configured. Missing "addSlave.cmd" or missing "Cfg.EcApplyConfig(1)"
@@ -13,7 +13,7 @@ Item | Error | Error Id | When | Description
 
 
 ## Lost frames, lost slaves, ECMC in error state
-### Issues: 
+### Issues
 * EtherCAT frames are lost resulting in ecmc alarm state.
 * Connection to slaves are lost resulting in ecmc alarm state
 * Error codes:
@@ -23,36 +23,36 @@ Item | Error | Error Id | When | Description
   * ERROR_EC_SLAVE_NOT_ONLINE (0x24012)
   * ERROR_EC_LINK_DOWN (0x26011)
 
-Note: These error codes always appear when starting ecmc. This is because it can take up to 30s untill the bus in syncronized and stable. After this startup you should see a printout stating "NO_ERROR". If any of the above error appear after the system have been started up then please see below for suggestions.
+Note: These error codes always appear when starting ecmc. This is because it can take up to 30s until the bus is synchronized and stable. After startup you should see a printout stating "NO_ERROR". If any of the above errors appear after startup, see the suggestions below.
 
-### Remedy:
-1. Check cabling. There have also been cases where cabling have failed resulting in intermittent failures.
+### Remedy
+1. Check cabling. There have also been cases where cabling has failed, resulting in intermittent failures.
 2. Make sure you run rt-patch (for more info see repo: https://github.com/icshwi/realtime-config)
-3. Check NIC perfromance (with "iperf"). There have been cases where NIC have been broken which took a significat time to find.
+3. Check NIC performance (with "iperf"). There have been cases where NIC hardware was faulty, which took significant time to identify.
 4. Measure ecmc jitter:
   * camonitor ${P}MCU-thread-latency-max | tee jitter.log
-  * Unit of jitter in log file is nano seconds
-  * Jitter above 100 micro seconds is to be considered to be high and should be avoided.
+  * Unit of jitter in log file is nanoseconds
+  * Jitter above 100 microseconds is considered high and should be avoided.
 
 ## Slaves in error state, strange behaviour when using ethercat slaves, ethercat rescan
-### Issues: 
+### Issues
 * Errors in dmesg, 
   * Problem reading SII, 
   * Timeouts
   * Much more.....
 * Slaves stuck in "INIT E" 
-* Somtimes succeded when ethercat rescan but not consistent failed again.
+* Sometimes recovery succeeded after EtherCAT rescan, but failures returned inconsistently.
 * Slaves in error state
 * A few times the bus was failing soon again.
 
-### Remedy:
-* Seemed issue was fundamental, so needed complete reinstall (Centos, realtime-config etherlabmaster, e3)
+### Remedy
+* The issue appeared fundamental, and needed a complete reinstall (CentOS, realtime-config, etherlabmaster, e3)
 * Did not work with only reinstall of etherlabmaster
 * After reinstall everything worked properly.
 
 ## Fast callbacks on waveforms
 
-If excpetced callbacks are failing it could usefull to read the below text:
+If expected callbacks are failing, it could be useful to read the text below:
 
 From EPICS tech talk 2014: https://epics.anl.gov/tech-talk/2014/msg00284.php
 

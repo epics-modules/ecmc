@@ -1219,7 +1219,7 @@ asynStatus ecmcMotorRecordController::profileValidateTime() {
     }
   }
 
-  // Trigegring time between
+  // Triggering time between
   if(pulseCount <= 1) {
     pulseTimeBetween = 0;  // Only one trigger
     pulseEndTime = pulseStartTime;

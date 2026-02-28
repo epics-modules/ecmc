@@ -73,7 +73,7 @@ void updateAsynParams(int force) {
   int errorCode =
     mainAsynParams[ECMC_ASYN_MAIN_PAR_LATENCY_MIN_ID]->refreshParamRT(force);
 
-  if (errorCode == 0) { // Reset after successfull write
+  if (errorCode == 0) { // Reset after successful write
     threadDiag.latency_min_ns = 0xffffffff;
   }
   errorCode =

@@ -160,7 +160,7 @@ private:
   int                setStopAtBothLimits(bool stop);
   bool enable_;
 
-  // Tolnoerance for reached target. Example 0.1 deg
+  // Tolerance for reached target. Example 0.1 deg
   double atTargetTol_;
 
   // Number of cycles the position error needs to be below dInTargetTol before

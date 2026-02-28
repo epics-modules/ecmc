@@ -353,7 +353,7 @@ asynStatus asynWriteReset(void         *data,
 }
 
 int ecmcAddDefaultAsynParams() {
-  // Add test params.. Uncomment to get a few parameters usefull for testing
+  // Add test params.. Uncomment to get a few parameters useful for testing
   // ecmcAddTestParams();
 
   LOGINFO4("%s/%s:%d\n",

@@ -31,7 +31,7 @@ Example:
 ecmcConfig "Cfg.EcAddSimEntry(3,NEW,U8,255)"
 will give you a 8bit parameter named ec0.s3.NEW initialized to 255.
 ```
-* Add plc varaible `plc<id>.dbg` for controlling debug printouts. Accessible through a PV in the generic plc panel (accessible from ecmcMain.ui). NOTE: This bit should not be used for other purposes (it should alwasy be safe to toggle this bit from a panel).
+* Add plc variable `plc<id>.dbg` for controlling debug printouts. Accessible through a PV in the generic plc panel (accessible from ecmcMain.ui). NOTE: This bit should not be used for other purposes (it should always be safe to toggle this bit from a panel).
 * Add plc functions to read clock/time related info:
 ```
   1. retvalue = ec_get_time_frm_src(
@@ -203,7 +203,7 @@ ${M}.s${BO_SID=2}.binaryOutput02:=not(${M}.s${BO_SID=2}.binaryOutput02);
 * Add tweak commands in axis control word (target position value will be used as tweak value):
    - bit 11: tweak bwd cmd
    - bit 12: tweak fwd cmd
-* Add support for setting homing velocity through motor record HVEL field. The functionality must be enabled by setting PREFIX:MOTOR-HomUseHVEL to 1 (and HVEL field to a resonable velocity). NOTE: This is NOT the preferred way of homing an motor. The prefered way is using the parameters saved in the encoder object. The velocity will be used if the defined homing sequence is not set to 14. If set to 14 the encoder paramteres stored in the encoder object will be used.
+* Add support for setting homing velocity through motor record HVEL field. The functionality must be enabled by setting PREFIX:MOTOR-HomUseHVEL to 1 (and HVEL field to a reasonable velocity). NOTE: This is NOT the preferred way of homing a motor. The preferred way is using the parameters saved in the encoder object. The velocity will be used if the defined homing sequence is not set to 14. If set to 14 the encoder parameters stored in the encoder object will be used.
 
 ## Breaking changes
 Removed:
@@ -449,16 +449,16 @@ Cfg.SetAxisEncDelayCyclesAndEnable(1,2.5,1)"
 #     measured by counting cycles between busy high edge to\n
 #     busy low edge (normally when trajectory generator is busy),\n
 #     see "Cfg.SetAxisMonStallTimeFactor()".\n
-#  If the timeout caluclated based on the movement duration is\n
+#  If the timeout calculated based on the movement duration is\n
 #  longer than the minimum timeout, then this time will be used.\n 
 #  A stalled axis will be disabled.\n
 #  
-#  Only enabled when attarget monitoing is also enabled.\n
+#  Only enabled when attarget monitoring is also enabled.\n
 #  Example: 
-#   1. The duriation of the last movement is 1500 cycles (1.5s in 1kHz rate).\n
+#   1. The duration of the last movement is 1500 cycles (1.5s in 1kHz rate).\n
 #   2. Time factor has default value of 10.0\n
 #   3. The minimum timeout is set to 10s\n
-#   4. The axis must be attargget after 15s\n
+#   4. The axis must be at target after 15s\n
 #      if not, the drive will be disabled.\n
 #
 #  Params:\n
@@ -467,16 +467,16 @@ Cfg.SetAxisEncDelayCyclesAndEnable(1,2.5,1)"
 #
 #  returns 0 if success or otherwise an error code.\n
 #
-#  Example: Enable funtionallity for axis 7.\n
+#  Example: Enable functionality for axis 7.\n
  ecmcConfigOrDie "Cfg.SetAxisMonEnableStallMon(7,1)" //Command string to ecmcCmdParser.c.\n
  
 
-#  Set stall monitong time factor.\n
+#  Set stall monitoring time factor.\n
 # 
 #  See setAxisMonEnableStallMon()\n
 #  This function sets a time factor.\n
 # 
-#  Only enabled when attarget monitoing is also enabled.\n
+#  Only enabled when attarget monitoring is also enabled.\n
 
 #  Params:\n
 #    axisIndex  Axis index.\n
@@ -489,12 +489,12 @@ Cfg.SetAxisEncDelayCyclesAndEnable(1,2.5,1)"
 ecmcConfigOrDie "Cfg.SetAxisMonStallTimeFactor(7,100)"
 
 
-#  Set stall monitong minimum time out.\n
+#  Set stall monitoring minimum time out.\n
 # 
 #  See setAxisMonEnableStallMon()\n
 #  This function sets a minimum timeout.\n
 #  
-#  Only enabled when attarget monitoing is also enabled.\n
+#  Only enabled when attarget monitoring is also enabled.\n
 #
 #  Params:\n
 #    axisIndex  Axis index.\n
@@ -561,7 +561,7 @@ mc_grp_sync_act_set(<grpIndex>,<sync>);
 * Add command: "Cfg.WriteEcEntryEcPath(<ec_path>,<value>)"
 
 ## Add PLC function libs:
-Add possability to load function library to a plc object:
+Add possibility to load function library to a plc object:
 ```
 ${SCRIPTEXEC} ${ECMC_CONFIG_ROOT}loadPLCLib.cmd,     "FILE=./plc/test.plc_lib, PLC_MACROS='OFFSET=3'"
 ```
@@ -579,9 +579,9 @@ function <name>() {
 ```
 * For syntax of the "code body", check the exprtk website.
 * Several functions can be defined in the same file.
-* The parameters aswell as the return value must be scalars, however, local vectors can be defined and used in calculations (initiations of vector can be done with MACROS, constants or parameters).
+* The parameters as well as the return value must be scalars, however, local vectors can be defined and used in calculations (initiations of vector can be done with MACROS, constants or parameters).
 * "#" as a first char in a line is considered a comment (the line will be removed before compile).
-* MSI: The lib file will be parsed through MSI allowing macro expansion, "include" and "subsitute" commands. For more info check the msi documentation/help.
+* MSI: The lib file will be parsed through MSI allowing macro expansion, "include" and "substitute" commands. For more info check the msi documentation/help.
 
 ### Can be used in a function:
 1. The parameters
@@ -662,7 +662,7 @@ ax<id>.traj.extsetpos
 2.  mc_grp_get_any_traj_src_ext(
                                  <grp_id>, : Group index
                                );
-    Returns true if atleast one axis in the group have trajectory source set to external.
+    Returns true if at least one axis in the group have trajectory source set to external.
 ```
 
 * Add group function to set allow encoder/trajectory source change when axis is enabled;
@@ -712,7 +712,7 @@ Groups are configured by the following commands:
                      <grp_id>,         : Group index
                      );
    
-   Returns true if atleast one axis in the group has the enable bit set, else false.
+   Returns true if at least one axis in the group has the enable bit set, else false.
 
 3.  mc_grp_get_enabled(
                      <grp_id>,         : Group index
@@ -724,7 +724,7 @@ Groups are configured by the following commands:
                      <grp_id>,         : Group index
                      );
    
-   Returns true if atleast one axis in the group is in enabled state, else false.
+   Returns true if at least one axis in the group is in enabled state, else false.
 
 5.  mc_grp_get_busy(
                      <grp_id>,         : Group index
@@ -736,13 +736,13 @@ Groups are configured by the following commands:
                      <grp_id>,         : Group index
                      );
    
-   Returns true if atleast one axis in the group is in busy state, else false.
+   Returns true if at least one axis in the group is in busy state, else false.
 
 7.  mc_grp_get_any_error_id(
                      <grp_id>,         : Group index
                      );
    
-   Returns error id if atleast one axis in the group is in error state, else zero.
+   Returns error id if at least one axis in the group is in error state, else zero.
 
 8.  mc_grp_set_enable(
                      <grp_id>,         : Group index
@@ -895,14 +895,14 @@ If expression evaluates to false:
 1. IF_TRUE="#-"      Block execution of a line of code
 2. IF_FALSE= ""      Allows execution of a line of code
 
-Note: These macros is the default names for the macros (but can be changed by assignment of the 2 last params in call to ecmcIf()):
+Note: These macros are the default names (but can be changed by assignment of the last two params in the call to ecmcIf()):
 1. IF_TRUE for true
 2. IF_FALSE for false
 
 ### ecmcEndIf(\<optional true macro\>,\<optional false macro\>)
-The ecmcEndIf() command unsets the last used macros (for true and false), if differnt names are passed as arguments then then these macros are unset (for nested if statements).
+The ecmcEndIf() command unsets the last used macros (for true and false). If different names are passed as arguments, those macros are unset (for nested if statements).
 
-### Example of of syntax
+### Example syntax
 Example 1:
 ```
 ecmcIf("<expression>")
@@ -971,7 +971,7 @@ m2m_ioc_ec_ok(<master_index>)  : ioc/master ethercat status ok/operational. 1==o
 m2m_ioc_run(<master_index>)    : ioc/master running (negative master id is ioc:s without ec master)
 ```
 ## Add extra set of controller parameters
-Use different controller parameters depending on distance to target. This can be usefull in for instance systemes with backlash.
+Use different controller parameters depending on distance to target. This can be useful in for instance systems with backlash.
 
 The command to configure this is:
 ```
@@ -1006,13 +1006,13 @@ encoder:
   absOffset: 82.801    # Encoder offset in eng units (for absolute encoders)
   position: ec0.s4.positionActual01  # Ethercat entry for act-pos (encoder)
 ```
-For more info on extra encoders read futher down in this file.
+For more info on extra encoders, read further down in this file.
 
 # ECMC 9.0.0
 * Fixes to brake control
-* Add asynparameter command to set encoder position (ax.setencpos). Usefull for save restore
+* Add asynparameter command to set encoder position (ax.setencpos). Useful for save/restore
 * Block "Cfg.CreateAxis()" for already created axis 
-* Add command for delaying the OK status for the ethercat bus at startup. Could be usefull to allow dc clocks to stabilize or for slaves that not report correct data even though reporting OP:
+* Add command for delaying the OK status for the ethercat bus at startup. Could be useful to allow dc clocks to stabilize or for slaves that not report correct data even though reporting OP:
 ```
 "Cfg.EcSetDelayECOkAtStartup(<milliseconds>)"
 ```
@@ -1067,7 +1067,7 @@ ec<masterid>.s<slaveid>.sdo.<alias>.busy
 
 The "addEcSdoRT.cmd" ecmccfg comand can be used to register a async SDO and generate PVs. Example for drive voltage setting if an EL7031 drive:
 ```
-# Add RT SDO for reading writing voltage seting in terminal
+# Add RT SDO for reading writing voltage setting in terminal
 ${SCRIPTEXEC} ${ecmccfg_DIR}addEcSdoRT.cmd, "SLAVE_ID=${DRV},INDEX=0x8010,SUBINDEX=0x3,DT=U16,NAME=DrvVlt"
 ```
 
@@ -1083,7 +1083,7 @@ c6025a:m0s004-SDO-DrvVlt-Bsy
 ## Multi encoder support
 
 ### General
-Support for multiple encoders for axis objects added, max 8 encoders/axis. The follwing commands added to ecmc:
+Support for multiple encoders for axis objects added, max 8 encoders/axis. The following commands added to ecmc:
 ```
 * "Cfg.AddAxisEnc(${ECMC_AXIS_NO})"
 * "Cfg.SelectAxisEncPrimary($(ECMC_AXIS_NO),${ECMC_ENC_PRIMARY_ID=-1})"
@@ -1107,13 +1107,13 @@ ecmcConfigOrDie "Cfg.SelectAxisEncPrimary(1,2)"
 ### Homing / referencing
 The encoder used for homing can be defined with the command "Cfg.SelectAxisEncHome()", defaults to encoder index 0.
 
-If the primary and homing encoder are not the same, then during homing a tempoerarty swicth of encoder will occur. This can result in a step in actual position value. After homing control will be switched back to the primnary encoder.
+If the primary and homing encoder are not the same, then during homing a temporary switch of encoder will occur. This can result in a step in actual position value. After homing control will be switched back to the primary encoder.
 
 Example: Use encoder with index 3 for homing of axis 1
 ```
 ecmcConfigOrDie "Cfg.SelectAxisEncHome(1,3)"
 ```
-Encoders can be referenced to the value of antother encoder at startup. Could be usefull if one encoder is absolute and one is incremental, to refernce the incremnetal to the value of the absolute encoder. This nfeature is configured by the "Cfg.SetAxisEncRefToOtherEncAtStartup()" command.
+Encoders can be referenced to the value of another encoder at startup. Could be useful if one encoder is absolute and one is incremental, to reference the incremental to the value of the absolute encoder. This feature is configured by the "Cfg.SetAxisEncRefToOtherEncAtStartup()" command.
 
 Example: Reference encoder 2 to the value of encoder 1 for axis 3
 ```
@@ -1124,7 +1124,7 @@ ecmcConfigOrDie "Cfg.SetAxisEncRefToOtherEncAtStartup(3,1)"
 ```
 Encoders can also be referenced to the value of other encoders after a successful homing sequence (of any encoder). This feature can be enabled by the "Cfg.SetAxisEncEnableRefAtHome()" command:
 
-Example: Allow referencing of encoder 1 after successfull homing axis 3
+Example: Allow referencing of encoder 1 after successful homing axis 3
 ```
 # Select encoder to configure
 ecmcConfigOrDie "Cfg.SelectAxisEncConfig(3,1)"
@@ -1146,7 +1146,7 @@ ecmcConfigOrDie "Cfg.SetAxisEncMaxDiffToPrimEnc(4,0.1)"
 
 For complete example see: "ecmccfg/examples/test/multi_encoder/"
 
-The simplest way to create an additional encoder is to use the ecmccfg command addEncoder.cmd directlly after configuration of the axis:
+The simplest way to create an additional encoder is to use the ecmccfg command addEncoder.cmd directly after configuration of the axis:
 ```
 epicsEnvSet("DEV",      "$(IOC)")
 $(SCRIPTEXEC) ($(ecmccfg_DIR)configureAxis.cmd, CONFIG=./cfg/linear_1.ax)
@@ -1169,7 +1169,7 @@ epicsEnvSet("ECMC_EC_ENC_ALARM_1",             "")                         # Err
 epicsEnvSet("ECMC_EC_ENC_ALARM_2",             "")                         # Error 2 (if no encoder error bit then leave empty)
 epicsEnvSet("ECMC_EC_ENC_WARNING",             "")                         # Warning (if no encoder warning bit then leave empty)
 
-# This encoder (enc 1) will be refenced to encoder 0 at startup (set to -1 to not change setting)
+# This encoder (enc 1) will be referenced to encoder 0 at startup (set to -1 to not change setting)
 epicsEnvSet("ECMC_ENC_REF_TO_ENC_AT_STARTUP_ID",  "-1")
 
 # Encoder index for closed loop control (set to -1 to not change setting)
@@ -1191,11 +1191,11 @@ epicsEnvSet("ECMC_ENC_MAX_DIFF_TO_PRIM_ENC",  "0.05")
 # ECMC 8.0.0
 
 * Add support for jerk limited trajectories based on ruckig (https://github.com/pantor/ruckig).
-  Trapetzoidal trajectories still supported and default in ecmccfg. Ruckig module is now a dependency.
+  Trapezoidal trajectories still supported and default in ecmccfg. Ruckig module is now a dependency.
   
-  Note S-curve trajectory restrictions: On the fly velocity target changes not allowed when posiitoning (blocked).
+  Note S-curve trajectory restrictions: On the fly velocity target changes not allowed when positioning (blocked).
   
-* Update of trajectory generator to allow "on the fly" update of target postion and target velocity (trapetz).
+* Update of trajectory generator to allow "on the fly" update of target position and target velocity (trapetz).
   
 * Ensure that master is not scanning slaves at startup. If scanning then wait until scan is finished (with timeout).  
 
@@ -1241,7 +1241,7 @@ ecmccfg/examples/test/motionWithoutMotorRecord/
 # ECMC 7.0.0
 * New release to match ecmccfg 7.0.0
 * Add functionality to move to a position after success full homing procedure.
-  The functionality is configuerd by the follwing two commands:
+  The functionality is configured by the following two commands:
   ```
   1. ecmcConfigOrDie "Cfg.SetAxisHomePostMoveEnable(<axis_id>, <enable>)"                 # default disabled
   2. ecmcConfigOrDie "Cfg.SetAxisHomePostMoveTargetPosition(<axis_id>,<target position>)" # default 0.0
@@ -1272,9 +1272,9 @@ ecmccfg/examples/test/motionWithoutMotorRecord/
 
 ## Migration  guide (6.x.x to 7.0.0)
 
-Version 7 of ecmc and ecmccfg is intended to be more flexible in PV naming making it possible to follow for instance the ESS naming standard. At the same time a more systematic/genric approach to naming have been implemneted making use of macros easier. Because of these changes v7 is not compatible with v6. The last version of ecmc and ecmccfg with the old naming is v6.3.3.
+Version 7 of ecmc and ecmccfg is intended to be more flexible in PV naming making it possible to follow for instance the ESS naming standard. At the same time a more systematic/generic approach to naming has been implemented making use of macros easier. Because of these changes v7 is not compatible with v6. The last version of ecmc and ecmccfg with the old naming is v6.3.3.
 
-### What have changed
+### What has changed
 The changes are described in detail in this file: [Naming Convention](https://github.com/icshwi/ecmccfg/blob/master/namingConvention.md)
 
 These changes will mainly affect:
@@ -1283,7 +1283,7 @@ These changes will mainly affect:
 
 #### 1. PV names
 Updated PV names affects:
-1. Local databases accesing data from ecmc PV:s
+1. Local databases accessing data from ecmc PV:s
 2. OPIs accessing data from ecmc PVs
 3. Archiving configuration 
 
@@ -1297,8 +1297,8 @@ IOC_TEST:m0s006-Enc01-PosAct
 ```
 
 #### 2. ecmc parameter names
-Updated ecmc paramter names affects:
-1. Local databases accesing data directlly from ecmc parameters
+Updated ecmc parameter names affects:
+1. Local databases accessing data directly from ecmc parameters
 2. EtherCAT variables in ecmc PLC:s
 3. Motion configuration links to hardware (in both normal *.ax files and sync files. *.sax)
 
@@ -1335,7 +1335,7 @@ Also update the motion copnfiguration files with the new functionalities in ecmc
 
 #### Drive and Encoder Alarms, Warning and reset linked to motor record
 
-Since ecmc 6.3.3 the follwing can be linked to the motion axis:
+Since ecmc 6.3.3 the following can be linked to the motion axis:
 * 3 drive hardware alarms
 * 1 drive reset error bit
 * 1 drive warning bit
@@ -1345,7 +1345,7 @@ Since ecmc 6.3.3 the follwing can be linked to the motion axis:
  
 Alarms:
 
-If any of the alarm bits is going high the axis will stop and and an alarm meassage will be propagated to motor record (if used).
+If any of the alarm bits is going high the axis will stop and an alarm message will be propagated to motor record (if used).
 
 Reset:
 
@@ -1357,7 +1357,7 @@ The warning bit will at the moment just result in a printout in the iocsh log. S
 
 Variables:
 
-In order to use the new alarm and reset functionality some new varaibles need to be set in the motion configuration files.
+In order to use the new alarm and reset functionality some new variables need to be set in the motion configuration files.
 
 Example EL7037 and EL5002:
 ```
@@ -1411,17 +1411,17 @@ The bits can be linked to any ethercat entries.
   Note: Any of these new links can be left unused/blank.
 
 * Add plc function mc_home_pos():
-  Reference encoder to a postion (same as mc_home but with an extra argument for position, so no need to set home position with ax<id>.enc.homepos). 
+  Reference encoder to a position (same as mc_home but with an extra argument for position, so no need to set home position with ax<id>.enc.homepos). 
 
 * Add plc function mc_move_ext_pos():
-  Plc function will move axis to the current external plc setpoint. Inteded to be used to move a slave axis to it's start position before allowing external setpoints.
+  Plc function will move axis to the current external plc setpoint. Intended to be used to move a slave axis to its start position before allowing external setpoints.
 
 * Add variables:
 
   - ax<id>.enc.extactpos  (ro): Current external plc calculated actual position (ax<id>.enc.actpos can be used for writing).
   - ax<id>.traj.extsetpos (ro):  Current external plc calculated setpoint position(ax<id>.enc.setpos can be used for writing).
 
-* Position setpoint is syncronized with actual position when axis is disabled. Setpoint is updated once at positive edge of enable command. Note: The position setpoint is synced with actual position before first enable.
+* Position setpoint is synchronized with actual position when axis is disabled. Setpoint is updated once at positive edge of enable command. Note: The position setpoint is synced with actual position before first enable.
 
 # ECMC 6.3.2
 * Add command to enable/disable motion functions (all are by default enabled):
@@ -1474,9 +1474,9 @@ Cfg.SetAxisDisableAtErrorReset(<axis id>, disable)
 ecmcConfigOrDie "Cfg.LinkEcEntryToObject(ec1.s3.SET_POSITION,"ax1.drv.position")"
 ecmcConfigOrDie "Cfg.LinkEcEntryToObject("","ax1.drv.velocity")"
 ```
-NOTE: The ecmc position control loop parameters will not have any effect in CSP mode (since position loop is distributed to the drive). Control parameters need to be set directlly in the drive (by SDO):
+NOTE: The ecmc position control loop parameters will not have any effect in CSP mode (since position loop is distributed to the drive). Control parameters need to be set directly in the drive (by SDO):
 ```
-# These commands will not have any effect in CSP mode (set to 0, or you will get a warning meassage):
+# These commands will not have any effect in CSP mode (set to 0, or you will get a warning message):
 ecmcConfigOrDie "Cfg.SetAxisCntrlKp(${ECMC_AXIS_NO},${ECMC_CNTRL_KP})"
 ecmcConfigOrDie "Cfg.SetAxisCntrlKi(${ECMC_AXIS_NO},${ECMC_CNTRL_KI})"
 ecmcConfigOrDie "Cfg.SetAxisCntrlKd(${ECMC_AXIS_NO},${ECMC_CNTRL_KD})"
@@ -1484,10 +1484,10 @@ ecmcConfigOrDie "Cfg.SetAxisCntrlKff(${ECMC_AXIS_NO},${ECMC_CNTRL_KFF})"
 ...
 ```
 * Update to DS402 timeout unit to seconds (before it was cycles).
-* Add possabilty to verify actual ec slave revision vs config revsion with "Cfg.EcSlaveVerify()" command.
-  The slave revision number must be higher or equal (>=) comapred to the config revsion number in order to be approved.
-  Note: Comparsion is only made if the supplied config revsion number >= 0.
-  Note: "Cfg.EcSlaveVerify()" can still be used without revsion number and then the revsion chesk will not be performed.
+* Add possibility to verify actual ec slave revision vs config revision with "Cfg.EcSlaveVerify()" command.
+  The slave revision number must be higher or equal (>=) compared to the config revision number in order to be approved.
+  Note: Comparison is only made if the supplied config revision number >= 0.
+  Note: "Cfg.EcSlaveVerify()" can still be used without revision number and then the revision check will not be performed.
 * Add encoder position averaging lp-filter:
   * Cfg.SetAxisEncPosFilterSize(<axis_id>,<filter_size>)
   * Cfg.SetAxisEncPosFilterEnable(<axis_id>,<enable>)
@@ -1511,8 +1511,8 @@ ecmcConfigOrDie "Cfg.SetAxisCntrlKff(${ECMC_AXIS_NO},${ECMC_CNTRL_KFF})"
 * Update to support autosave of motor position
 
 # ECMC 6.2.1
-* Add exprtk support for plc functions with stings as args  (need ess-exprtk 1.2.1)
-* Add possabilty ti use plc-functions with strings a sarguments in plugins
+* Add exprtk support for plc functions with strings as args  (need ess-exprtk 1.2.1)
+* Add possibility to use plc-functions with strings as arguments in plugins
 * Expose ecmc epics ioc state to plugins
 * Add plugin for pvAccess in ecmc plc:s: https://github.com/anderssandstrom/e3-ecmcPlugin_Utils
 
@@ -1533,7 +1533,7 @@ ecmc plugins (shared libs) can be loaded into ecmc. Plugins can:
   * At plugin load
   * At plugin unload
   * At enter realtime
-  * At exit realtine
+  * At exit realtime
 * Implement custom ecmc plc functions
 * Implement custom ecmc plc constants
 
@@ -1576,7 +1576,7 @@ Can be used for stopping execution when a configuration error occurs.
 ```
 
 ### Add iocsh command to execute for loop
-Usefull for:
+Useful for:
 * Large systems with many similar sub systems
 * Configuring hardware with many PDOs (oversampling)
 
@@ -1613,14 +1613,14 @@ TESTING=50
 ```
 where "loopStep.cmd" file looks like this (note the use of "ECMC_LOOP_IDX"):
 ```
-#- Commands tp execute in each loop of example ecmcForLoop.script
+#- Commands to execute in each loop of example ecmcForLoop.script
 ecmcEpicsEnvSetCalc("TESTING",${ECMC_LOOP_IDX}*10)
 epicsEnvShow("TESTING")
 
 ```
 
 ### Add iocsh command to check if a file exist
-Usefull for checking that configuration files really exist and then can be loaded.
+Useful for checking that configuration files really exist and can be loaded.
 ```
 ecmcFileExist(<filename>, <die>, <check EPICS dirs>, <dirs>)" to check if a file exists.
               <filename>          : Filename to check.
@@ -1667,7 +1667,7 @@ ecmcConfigOrDie "Cfg.SetSampleTimeMs(2)"
 ```
 
 Note: The commands "Cfg.SetSampleRate()" or "Cfg.SetSampleTimeMs()" needs to be executed before any ecmc configuration 
-is performed but of cource after the "require ecmc" statement. Therefore the parameter EC_RATE is the prefereed way to handle changed sample rates.
+is performed but of course after the "require ecmc" statement. Therefore the parameter EC_RATE is the preferred way to handle changed sample rates.
 
 Example and doc in: ecmccfg/examples/test/changeSampleRate/
 
@@ -1698,8 +1698,8 @@ ECMC_CONFIG_RETURN_VAL=1024
 ```
 
 ### Add "ecmcEpicsEnvSetCalcTernary()" 
-Used for evaluating expressions and set EPCIS environment variables to different strings.
-depending on if the expression evaluates to "true" or "false". Can be usefull for:
+Used for evaluating expressions and setting EPICS environment variables to different strings.
+depending on if the expression evaluates to "true" or "false". Can be useful for:
 * Choose different files to load like plc-files, axis configurations, db-files or..
 * making conditional ecmc settings
 * ...
@@ -1750,9 +1750,9 @@ result=no_use_this_file.cfg
 ```
 
 ### Add "ecmcEpicsEnvSetCalc()"
-iocsh command for evaluating expressions and setting epics environment variables. Usefull for calculate:
+iocsh command for evaluating expressions and setting epics environment variables. Useful for calculating:
   * slave offsets
-  * sdo/pdo adresses (also in hex)
+  * sdo/pdo addresses (also in hex)
   * scalings in motion
   * record fields
   * ...
@@ -1871,8 +1871,8 @@ ecmcMotorRecordCreateAxis(controllerPortName,     // Same as portName for contro
     1. "Cfg.SetAxisMonLatchLimit(<axis_no>,<enable>)"
     2. "GetAxisMonLatchLimit(<axis_no>)"
     
-  Currentlly it's a bit unclear how this will affect syncronized axes.
-  If issues then the functionality can be disabled of with:
+  Currently it's a bit unclear how this will affect synchronized axes.
+  If issues then the functionality can be disabled with:
   "Cfg.SetAxisMonLatchLimit(<axis_no>, 0)"
 
 * Make cmd parser more effichent (runtime commands eval first).
@@ -1883,7 +1883,7 @@ ecmcMotorRecordCreateAxis(controllerPortName,     // Same as portName for contro
 * ECMC tested with macros in plc code:
     * Same syntax as other iocsh macros (code parsed with msi)
     * Handled in ecmccfg loadPLCFile.cmd. 
-    * Usefull for writing generic code
+    * Useful for writing generic code
 * Tested with analog output oversampling cards (100kHz) (EL4732).
 * Added PLC-functions:
     1. ec_wrt_bits(<val>,<val_to_write>,<start_bit>,<stop_bit>):
@@ -2035,7 +2035,7 @@ Please use ecmctrainig version 6.0.0 for configuration
         
 * Add time stamp in ECMC layer:
     * Time stamp source can be chosen by setting record TSE-field
-        * TSE =  0 EPCIS timestamp
+        * TSE =  0 EPICS timestamp
         * TSE = -2 ECMC timestamp, 
 * Update sample rates from skip cycles to rate in ms
 

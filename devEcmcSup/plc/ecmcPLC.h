@@ -188,7 +188,7 @@ int setPLCExpr(int   index,
  *   33. ax<id>.mon.ilockfwd          motion interlock fwd dir         (rw)\n
  *                                    ax<id>.mon.ilockfwd=1: motion allowed\n
  *                                    ax<id>.mon.ilockfwd=0: motion not allowedn
- *   34. ax<id>.mon.attarget          axis at taget                    (ro)\n
+ *   34. ax<id>.mon.attarget          axis at target                    (ro)\n
  *   35. ax<id>.mon.lowlim            low limit switch                 (ro)\n
  *   36. ax<id>.mon.highlim           high limit switch                (ro)\n
  *   37. ax<id>.mon.homesensor        home sensor                      (ro)\n
@@ -207,14 +207,14 @@ int setPLCExpr(int   index,
  *  PLC variables:
  *   1.  plc<id>.enable               plc enable                       (rw)\n
  *                                    (end exe with "plc<id>.enable:=0#"\n
- *                                    Could be usefull for startup\n
+ *                                    Could be useful for startup\n
  *                                    sequences)\n
  *   2.  plc<id>.error                plc error                        (rw)\n
  *                                    Will be forwarded to user as\n
  *                                    controller error.\n
  *   3.  plc<id>.scantime             plc sample time in seconds       (ro)\n
  *   4.  plc<id>.firstscan            true during first plc scan only  (ro)\n
- *                                    usefull for initiations of variables\n
+ *                                    useful for initiations of variables\n
  *
  *  Data Storage variables:
  *   1.  ds<id>.size                  Set/get size of data storage     (rw)\n
@@ -378,7 +378,7 @@ int setPLCExpr(int   index,
  *   10. retvalue = ds_push_asyn(
  *                           <dsIndex>,       : Data storage index\n
  *                           );
- *      Push data array to epics. (usefull if asyn param sample time\n
+ *      Push data array to epics. (useful if asyn param sample time\n
  *      is set to -1).\n
  *
  *   11. retvalue = ds_get_avg(
@@ -403,7 +403,7 @@ int setPLCExpr(int   index,
  * "ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0\n
  * "Cfg.AppendPLCExpr(5,ec0.s1.OUTPIN_1.0=ec0.s2.INPIN_3.0|)" //Command string to ecmcCmdParser.c.\n
  *
- * \note Example: Add code by plc file to PLC 5 (prefered solution, the ";" can\n
+ * \note Example: Add code by plc file to PLC 5 (preferred solution, the ";" can\n
  * be used):\n
  * "Cfg.LoadPLCFile(5,<filename with path>)" //Command string to ecmcCmdParser.c.\n
  */

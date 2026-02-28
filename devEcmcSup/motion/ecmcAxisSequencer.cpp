@@ -654,7 +654,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
     } else if(!data_->status_.statusWord_.execute){
       errorCode = pvt_->setExecute(0);
       setGlobalBusy(false);
-      // needed since this is evaluated in trajectoy which is not in use
+      // needed since this is evaluated in trajectory which is not in use
       data_->interlocks_.noExecuteInterlock = true;            
     }
     data_->refreshInterlocks();

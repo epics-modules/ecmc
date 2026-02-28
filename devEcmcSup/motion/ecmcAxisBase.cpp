@@ -2958,7 +2958,7 @@ int ecmcAxisBase::selectConfigEncoder(int index) {
   return 0;
 }
 
-// unfortenatelly starts from 1... why did I do like this..
+// unfortunately starts from 1... why did I do like this..
 int ecmcAxisBase::getConfigEncoderIndex() {
   return data_.control_.cfgEncIndex + 1;
 }

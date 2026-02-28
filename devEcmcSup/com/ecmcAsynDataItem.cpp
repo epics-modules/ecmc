@@ -1370,7 +1370,7 @@ asynStatus ecmcAsynDataItem::getRecordInfoFromDrvInfo(const char *drvInfo) {
  * \param[in/out] paramInfo Parameter information structure.
  * \return asynSuccess or asynError.
  * Methods checks if input or output ('?' or '=') and parses options:
- * - "ADSPORT" (Ams port for varaible)\n
+ * - "ADSPORT" (Ams port for variable)\n
  * - "TS_MS" (sample time ms)\n
  * - "TIMEBASE" ("PLC" or "EPICS")\n
  * Also supports the following commands:

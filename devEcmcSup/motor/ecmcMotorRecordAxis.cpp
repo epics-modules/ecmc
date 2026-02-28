@@ -1800,7 +1800,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 //
   //  if (bytes >= sizeof(drvlocal.sErrorMessage) - 1) {
   //    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-  //              "Warning: Error message trucated (%s)\n", sErrorMessage);
+  //              "Warning: Error message truncated (%s)\n", sErrorMessage);
   //  }
 //
   //  /* The poller will update the MsgTxt field */
@@ -2884,7 +2884,7 @@ void ecmcMotorRecordAxis::updateError() {
   drvlocal.bErrorOld = drvlocal.status_.errorCode > 0;                   
 }
 
-// Make sure new data is polled after new command is recived (for setting DMOV)
+// Make sure new data is polled after new command is received (for setting DMOV)
 void ecmcMotorRecordAxis::newCmd() {
 
   drvlocal.moveReady = false;
@@ -2896,7 +2896,7 @@ void ecmcMotorRecordAxis::newCmd() {
   // latch and comapre when setting DMOV
   ecmcCycleCounterAtNewCmd_ = drvlocal.status_.cycleCounter;
 
-  //printf("Axis[%d]: New command recived!\n", axisNo_);
+  //printf("Axis[%d]: New command received!\n", axisNo_);
 }
 
 bool ecmcMotorRecordAxis::dataIsSampledAfterNewCmd() {

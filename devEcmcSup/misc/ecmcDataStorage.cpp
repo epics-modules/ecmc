@@ -233,7 +233,7 @@ int ecmcDataStorage::setData(double *data, int size) {
 }
 
 int ecmcDataStorage::appendDataNormal(double *data, int size) {
-  // Fill untill buffer is full. Discard other data
+  // Fill until buffer is full. Discard other data
 
   int sizeToCopy = size;
 
@@ -276,7 +276,7 @@ int ecmcDataStorage::appendDataRing(double *data, int size) {
                       ERROR_DATA_STORAGE_SIZE_TO_SMALL);
   }
 
-  // Fill untill buffer is full. Start over in beginning
+  // Fill until buffer is full. Start over in beginning
   int sizeToCopy = size;
 
   if (sizeToCopy > bufferSize_) {

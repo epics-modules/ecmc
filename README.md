@@ -36,15 +36,15 @@ git submodule update --init --reference ./
         * Ethercat I/O
         * Ethercat bus health
     * Trajectories:
-        * Trapetzoidal
+        * Trapezoidal
         * Jerk limited (ruckig, see below)
         * Custom:
             * Calculated in ecmc plc
             * Buffered positions from array (data storage)
     * Advanced features
-        * Virtuel and normal axis
+        * Virtual and normal axis
         * Modulo movements
-        * Syncronization (to axis or any I/O) Handled through expressions
+        * Synchronization (to axis or any I/O) Handled through expressions
             * Example slaving  "ax2.traj.setpos:=ax1.enc.actpos;"
             * Example sync     "ax2.traj.setpos:=ax1.traj.setpos;"
             * Example phasing  "ax2.traj.setpos:=ax1.traj.setpos+100;"
@@ -53,7 +53,7 @@ git submodule update --init --reference ./
             * Enable amps      "ax2.drv.enable:=ax1.drv.enable;"
             * Interlocks       "ax2.mon.ilockfwd:=ec0.s1.INPUT_1 or ax1.enc.actpos < 100;"
     * Data acquisition
-        * Supoort of many different analog and digital slaves
+        * Support of many different analog and digital slaves
         * Up to 100kHz analog and 1Mhz digital (oversampling slaves)      
     * Control
         * PLC objects can be created with custom sample rate where logic (including motion) can be handled in realtime.
@@ -81,7 +81,7 @@ ECMC is configured via EPICS-iocsh:
         * ecmcConfigOrDie \<ecmc ASCII command>
     * Configure ECMC application.
         * ecmcConfig \<ecmc ASCII command> 
-    * Print availabe asyn parameters and other info:
+    * Print available asyn parameters and other info:
         * ecmcReport \<detail> 
         * asynReport \<detail>. Same as ecmcReport but also calls asynReport in other modules.
 
@@ -135,7 +135,7 @@ Plugins with extra functionality that can be loaded during startup:
 * Raspi wiringPi support:                           https://github.com/anderssandstrom/e3-ecmc_plugin_raspi
 * PVA support from ecmc-plc:                        https://github.com/anderssandstrom/e3-ecmc_plugin_pva
 * Simple scope for ethercat dc slaves:              https://github.com/anderssandstrom/e3-ecmc_plugin_scope
-* DAQ plugon                                        https://github.com/paulscherrerinstitute/ecmc_plugin_daq
+* DAQ plugin                                        https://github.com/paulscherrerinstitute/ecmc_plugin_daq
 
 # Issues/bug report
 

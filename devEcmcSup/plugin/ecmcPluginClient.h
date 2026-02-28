@@ -8,7 +8,7 @@
 *  Created on: Mar 21, 2020
 *      Author: anderssandstrom
 *
-* This file contains usefull functions for use in plugins
+* This file contains useful functions for use in plugins
 *
 \*************************************************************************/
 

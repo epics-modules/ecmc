@@ -50,7 +50,7 @@ typedef void (*ecmcDataUpdatedCallback)(uint8_t *,
 
 /**
 *  Class for generic access to all registered data items in ecmc (base class to asynDataItem).
-*  All ecmc related information is handled in tgis class. All asyn related
+*  All ecmc related information is handled in this class. All asyn related
 *  is handled in class ecmcAsynDataItem
 */
 class ecmcDataItem {

@@ -179,7 +179,7 @@ public:
  *  for drive terminals called by ecmccfg.addSlave.cmd calls "setNeedSDOSettings()"
  *  to tell ecmc that SDO settings are needed for this slave. The ecmccfg functions
  *  configureSlave.cmd, applySlaveConfig.cmd and ecmccomp.applyComponent.cmd then calls
- *  "setSDOSettingsDone()" after successfull sdo configuration to tell ecmc that
+ *  "setSDOSettingsDone()" after successful sdo configuration to tell ecmc that
  *  configuration for a certain channel has been performed. 
  *  At validation, before going to runtime, ecmc checks that the slave SDO settings 
  *  have been performed, if not, ecmc exits. IMPORTANT: the check is only applied if 

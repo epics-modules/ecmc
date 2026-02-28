@@ -1412,7 +1412,7 @@ int ecmcEncoder::setInvHwReady(int invert) {
   return 0;
 }
 
-// Cfgs for homing for thsi type of encoder
+// Cfgs for homing for this type of encoder
 int ecmcEncoder::getHomeParamsValid() {
   return homeParamsValid_;
 }

@@ -1061,7 +1061,7 @@ const char* getAxisEncTransExpr(int  axisIndex,
  *
  * The axis sync PLC expression is used for enabling and executing of\n
  * axes based on mathematical expressions. This is useful when synchronizing\n
- * axes i.e. a slave axis could recive an custom trajatory, other enabled based\
+ * axes i.e. a slave axis could receive a custom trajectory, or be enabled based\
  * on other axes or ethercat data in the form of mathematical expressions.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -1251,7 +1251,7 @@ int setAxisCmdData(int axisIndex,
 int setAxisEnable(int axisIndex,
                   int value);
 
-/** \brief Set axis auto amplifier enable timout time.\n
+/** \brief Set axis auto amplifier enable timeout time.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] timeS  Timeout [[s].\n
@@ -1794,14 +1794,14 @@ int axisErrorReset(int axisIndex,
 
 /** \brief Enables/disables velocity filter of external setpoint.\n
  *
- *  This filter is needed in order to have a smoth feedforward value when\n
- *  reciving setpoints form an PLC. If filter is disabled the velocity will\n
- *  be calculated based on the last two postion values recived from PLC. In many\n
- *  cases this will result in a "unstable signal" depending onresoltions of the\n
- *  values involved in the calculation. Using a filter will smoth the velocity\n
+ *  This filter is needed in order to have a smooth feedforward value when\n
+ *  receiving setpoints from a PLC. If filter is disabled the velocity will\n
+ *  be calculated based on the last two position values received from PLC. In many\n
+ *  cases this will result in a "unstable signal" depending on resolutions of the\n
+ *  values involved in the calculation. Using a filter will smooth the velocity\n
  *  feed forward value and will thereby result in a smoother motion.\n
  *
- * \note: This filter is only enabled when the axis recives setpoin ts from an PLC.\n
+ * \note: This filter is only enabled when the axis receives setpoints from a PLC.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] enable enable filter.\n
@@ -1819,14 +1819,14 @@ int setAxisPLCTrajVelFilterEnable(int axisIndex,
 /** \brief Set size of external trajectory velocity filter.\n
  *
  *  Sets the size of the filter for velocity from "external" PLC code.\n
- *  This filter is needed in order to have a smoth feedforward value when\n
- *  reciving setpoints form an PLC. If filter is disabled the velocity will\n
- *  be calculated based on the last two postion values recived from PLC. In many\n
- *  cases this will result in a "unstable signal" depending onresoltions of the\n
- *  values involved in the calculation. Using a filter will smoth the velocity\n
- *  feed forward value and will thereby rresult in a smoother motion.\n
+ *  This filter is needed in order to have a smooth feedforward value when\n
+ *  receiving setpoints from a PLC. If filter is disabled the velocity will\n
+ *  be calculated based on the last two position values received from PLC. In many\n
+ *  cases this will result in a "unstable signal" depending on resolutions of the\n
+ *  values involved in the calculation. Using a filter will smooth the velocity\n
+ *  feed forward value and will thereby result in a smoother motion.\n
  *
- * \note: This filter is only enabled when the axis recives setpoin ts from an PLC.\n
+ * \note: This filter is only enabled when the axis receives setpoints from a PLC.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] size       Size of filter (default 100).\n
@@ -1843,7 +1843,7 @@ int setAxisPLCTrajVelFilterSize(int axisIndex,
 
 /** \brief Enables/disables velocity filter of external actual value.\n
  *
- * NOTE: This filter is currentlly not used.\n
+ * NOTE: This filter is currently not used.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] enable enable filter.\n
@@ -1860,7 +1860,7 @@ int setAxisPLCEncVelFilterEnable(int axisIndex,
 
 /** \brief Set size of external encoder velocity filter.\n
  *
- * NOTE: This filter is currentlly not used.\n
+ * NOTE: This filter is currently not used.\n
  *
  *  Sets the size of the filter for velocity from "external" PLC code.\n
  * \param[in] axisIndex  Axis index.\n
@@ -2133,7 +2133,7 @@ int selectAxisEncPrimary(int axisIndex,
 /** \brief Select encoder to be used by ecmc drive object for CSP control.\n
  *
  *  Select an encoder to use by drive for CSP (default functionality is disabled).\n
- *  This will allow for CSP with the ecmc postion controller enabled (normally in \n
+ *  This will allow for CSP with the ecmc position controller enabled (normally in \n
  *  the PID controller is disabled). One use case could be a servo motor axis in \n
  *  CSP mode but that there's a need for outer position loop on for instance a linear \n
  *  encoder. In this case the (rotary) encoder that is linked to the servo drive needs\n
@@ -2225,7 +2225,7 @@ int getAxisEncConfigIndex(int  axisIndex,
 /** \brief Reference this encoder to other encoder at startup.\n
  *
  *  For axes with multiple encoders an encoder can be referenced to other\n
- *  encoder at startup. This is typically usefull for referencing a \n
+ *  encoder at startup. This is typically useful for referencing a \n
  *  relative encoder to an absolute encoder.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -2264,7 +2264,7 @@ int setAxisEncMaxDiffToPrimEnc(int    axisIndex,
  * \return 0 if success or otherwise an error code.\n
  *
  * \note Example: Set axis 3 delay time to 2.5 cycles and enable compensation\n
- *  for the encoder that currentlly is being configured\n
+ *  for the encoder that currently is being configured\n
  * "Cfg.SetAxisEncDelayCyclesAndEnable(3,2.5,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEncDelayCyclesAndEnable(int axisIndex, double timeMs, int enable);
@@ -2425,7 +2425,7 @@ int setAxisCntrlDeadband(int    axisIndex,
 /** \brief Set PID-controller deadband time filter.\n
  *
  * \param[in] axisIndex  Axis index.\n
- * \param[in] value deadband cycles to be withing tolerance.\n
+ * \param[in] value deadband cycles to be within tolerance.\n
  *
  * \return 0 if success or otherwise an error code.\n
  *
@@ -2435,7 +2435,7 @@ int setAxisCntrlDeadband(int    axisIndex,
 int setAxisCntrlDeadbandTime(int axisIndex,
                              int value);
 
-/** \brief Use a differnt set of pid parameters if within a certain distance of target
+/** \brief Use a different set of pid parameters if within a certain distance of target
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] kp         Prop gain.\n
@@ -2564,8 +2564,8 @@ int setAxisDrvScaleDenom(int    axisIndex,
 
 /** \brief Set drive raw velocity offset.\n
  *
- *  Can be used to offset the velocity drive range. can be usefull\n
- *  if "0" doeas not correspont to 0 speed. basically this value is\n
+ *  Can be used to offset the velocity drive range. can be useful\n
+ *  if "0" does not correspond to 0 speed. basically this value is\n
  *  added to the raw velocity setpoint just before sent to the slave.\n
  *  The value should be specified in raw units.\n
  *
@@ -2746,7 +2746,7 @@ int setAxisMonAtTargetTol(int    axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Enable funtionallity for axis 7.\n
+ * \note Example: Enable functionality for axis 7.\n
  * "Cfg.SetAxisMonEnableEncsDiff(7,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisEnableCheckEncsDiff(int axisIndex,
@@ -2803,7 +2803,7 @@ int setAxisHomeSwitchPLCOverride(int axisIndex,
 /** \brief Enable use of home sensor
  *
  *   Enable use of home sensor\n
- *   Will be automatically enabled if an etehrcat entry is linked\n
+ *   Will be automatically enabled if an ethercat entry is linked\n
  * 
  * \param[in] axisIndex  Axis index.\n
  * \param[in] enableset to 1 to enable\n
@@ -2825,17 +2825,17 @@ int setAxisHomeSwitchEnable(int axisIndex,
  *     measured by counting cycles between busy high edge to\n
  *     busy low edge (normally when trajectory generator is busy),\n
  *     see "Cfg.SetAxisMonStallTimeFactor()".\n
- *  If the timeout caluclated based on the movement duration is\n
+ *  If the timeout calculated based on the movement duration is\n
  *  longer than the minimum timeout, then this time will be used.\n 
  *  A stalled axis will be disabled.\n
  *  
- *  \note Only enabled when attarget monitoing is also enabled.\n
+ *  \note Only enabled when attarget monitoring is also enabled.\n
  *
  * Example: 
- *   1. The duriation of the last movement is 1500 cycles (1.5s in 1kHz rate).\n
+ *   1. The duration of the last movement is 1500 cycles (1.5s in 1kHz rate).\n
  *   2. Time factor has default value of 10.0\n
  *   3. The minimum timeout is set to 10s\n
- *   4. The axis must be attargget after 15s\n
+ *   4. The axis must be at target after 15s\n
  *      if not, the drive will be disabled.\n
  * 
  * \param[in] axisIndex  Axis index.\n
@@ -2843,7 +2843,7 @@ int setAxisHomeSwitchEnable(int axisIndex,
  *
  * \return 0 if success or otherwise an error code.\n
  *
- * \note Example: Enable funtionallity for axis 7.\n
+ * \note Example: Enable functionality for axis 7.\n
  * "Cfg.SetAxisMonEnableStallMon(7,1)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisMonEnableStallMon(int axisIndex,
@@ -2852,12 +2852,12 @@ int setAxisMonEnableStallMon(int axisIndex,
 int getAxisMonEnableStallMon(int  axisIndex,
                              int *value);
 
-/** \brief Set stall monitong time factor.\n
+/** \brief Set stall monitoring time factor.\n
  * 
  *  See setAxisMonEnableStallMon()\n
  *  This function sets a time factor.\n
  * 
- *  Only enabled when attarget monitoing is also enabled.\n
+ *  Only enabled when attarget monitoring is also enabled.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] timeFactor Time factor (default value 
@@ -2874,12 +2874,12 @@ int setAxisMonStallTimeFactor(int axisIndex,
 int getAxisMonStallTimeFactor(int     axisIndex,
                               double *value);
 
-/** \brief Set stall monitong minimum time out.\n
+/** \brief Set stall monitoring minimum time out.\n
  * 
  *  See setAxisMonEnableStallMon()\n
  *  This function sets a minimum timeout.\n
  *  
- *  Only enabled when attarget monitoing is also enabled.\n
+ *  Only enabled when attarget monitoring is also enabled.\n
  *
  * \param[in] axisIndex  Axis index.\n
  * \param[in] timeCycles Minimum timeout (default value 
@@ -3284,7 +3284,7 @@ int setAxisHomeDec(int    axisIndex,
 
 /** \brief Set homing post movement enable
  *
- * After successfull homing sequence an absolute positioning command can be executed.\n
+ * After successful homing sequence an absolute positioning command can be executed.\n
  * If enabled the axis will issue an motion command to the target position defined by\n
  * setAxisHomePostMoveTargetPosition()
  *
@@ -3301,7 +3301,7 @@ int setAxisHomePostMoveEnable(int axisIndex,
 
 /** \brief Set homing post movement target position
  *
- * After successfull homing sequence an absolute positioning command can be executed.\n
+ * After successful homing sequence an absolute positioning command can be executed.\n
  * If enabled the axis will issue an motion command to the target position defined by\n
  * by this function
  *
@@ -3730,7 +3730,7 @@ int compileAxisPLCExpr(int axisIndex);
  *   type = 0 : Simple drive (stepper).\n
  *   type = 1 : DS402 drive.\n
  * \param[in] trajType Type of trajectory generator.\n
- *   type = 0 : Trapetzoidal.\n
+ *   type = 0 : Trapezoidal.\n
  *   type = 1 : Jerk limited (s-curve, ruckig).\n
   *
  * \return 0 if success or otherwise an error code.\n
@@ -4202,7 +4202,7 @@ int getAxisValid(int axisIndex);
  * The system just tries to ramp down.\n
  * The real safety must be handled in a safety PLC.\n
  *
- * \note See ecmc_plugin_safety for more infoirmation
+ * \note See ecmc_plugin_safety for more information
  * 
  * \param[in] axisIndex  Axis index.\n
  * \param[in] stop  stop axis.\n
@@ -4212,7 +4212,7 @@ int setAxisEmergencyStopInterlock(int axisIndex,
 
 /** \brief Set external max velo limit for an axis
  *
- * \note See ecmc_plugin_safety for more infoirmation
+ * \note See ecmc_plugin_safety for more information
  * 
  * \param[in] axisIndex  Axis index.\n
  * \param[in] veloLimit  Velocity limit.\n 

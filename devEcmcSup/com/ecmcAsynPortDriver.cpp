@@ -2290,7 +2290,7 @@ int ecmcFileExist(const char *filename,
     return asynSuccess;
   }
 
-  // Check filename directlly
+  // Check filename directly
   int fileExist = access(filename, 0) == 0;
 
   if (!fileExist && checkEpicsDirs) {
@@ -2510,14 +2510,14 @@ void ecmcIfPrintHelp() {
  *  Evaluates an expression and sets an EPICS environment variables:
  *   IF_TRUE: to "" if expression is true otherwise "#-"
  *   IF_FALSE: to "#-" if expression is true otherwise ""
- * Inteded use (in iocsh):
+ * Intended use (in iocsh):
  * ecmcIf(€{X}>${Y})
  * ${IF_TRUE} epicsEnvSet("RESULT", "X>Y")
  * ${IF_FALSE} epicsEnvSet("RESULT", "Y>=X")
  * ecmcEndIf()
 */
 
-// the most current varaibles
+// the most current variables
 const char *env_if   = "";
 const char *env_else = "";
 
@@ -2586,7 +2586,7 @@ static void initCallFunc_13(const iocshArgBuf *args) {
  *  Resets env macros used by ecmcIf
  *   IF_TRUE: to "" if expression is true otherwise "#-"
  *   IF_FALSE: to "#-" if expression is true otherwise ""
- * Inteded use (in iocsh):
+ * Intended use (in iocsh):
  * ecmcIf(€{X}>${Y})
  * ${IF_TRUE} epicsEnvSet("RESULT", "X>Y")
  * #-else
@@ -2638,7 +2638,7 @@ static void initCallFunc_14(const iocshArgBuf *args) {
 void ecmcGetSlaveIdFromEcPathHelp() {
   printf("\n");
   printf("       Use \"ecmcGetSlaveIdFromEcPath(<ec_path>,<var_result_slave_id>)\" to get the slave id from a ec-path\n");
-  printf("          <ec_path>             : path to a etehrcat entry (ec<masterid>.s<slaveid>.<text>)\n");
+  printf("          <ec_path>             : path to a ethercat entry (ec<masterid>.s<slaveid>.<text>)\n");
   printf("          <var_result_slave_id> : result will be stored in this env variable.\n");
   printf("\n");
   printf("       If the slave id cannot be identified then \"<var_result_slave_id\"> will be set to \"-2\".\n");
