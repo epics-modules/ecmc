@@ -226,6 +226,8 @@ public:
   int        selectConfigEncoder(int index);
   int        getPrimaryEncoderIndex();                  // Control (PID)
   int        getConfigEncoderIndex();                   // Config
+  int        getDrvMode();
+  int        getCSPDriveEncoderIndex();
   double     getExtSetPos();
   double     getExtActPos();
   int        setAllowSourceChangeWhenEnabled(bool allow);

@@ -2808,6 +2808,20 @@ int getAxisDrvVelSetRaw(int axisIndex, int *value) {
   return 0;
 }
 
+int getAxisDrvMode(int axisIndex, int *value) {
+  CHECK_AXIS_DRIVE_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getDrvMode();
+
+  // Differentiate CSP with ecmc outer position control enabled.
+  if ((*value == ECMC_DRV_MODE_CSP) &&
+      (axes[axisIndex]->getCSPDriveEncoderIndex() >= 0)) {
+    *value = 2;  // CSP-PC
+  }
+
+  return 0;
+}
+
 // Drv SET
 int setAxisDrvScaleNum(int axisIndex, double value) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",

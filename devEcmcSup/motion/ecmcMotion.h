@@ -2532,6 +2532,21 @@ int getAxisDrvScaleDenom(int     axisIndex,
 int getAxisDrvVelSetRaw(int  axisIndex,
                         int *value);
 
+/** \brief Get actual axis drive/control mode.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[out] value Mode value.\n
+ * value = 0: CSV.\n
+ * value = 1: CSP.\n
+ * value = 2: CSP-PC (CSP with ecmc outer position control).\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: "GetAxisDrvMode(3)" //Command string to ecmcCmdParser.c.\n
+ */
+int getAxisDrvMode(int axisIndex,
+                   int *value);
+
 /** \brief Set drive output scale numerator.\n
  *
  * \param[in] axisIndex  Axis index.\n

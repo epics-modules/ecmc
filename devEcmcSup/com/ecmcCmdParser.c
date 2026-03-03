@@ -4697,6 +4697,14 @@ parse_getaxisenc:
 
 parse_getaxisdrv:
   if (!strncmp(myarg_1, "GetAxisDrv", 10)) {
+    /*int GetAxisDrvMode(int axis_no);*/
+    nvals = sscanf(myarg_1, "GetAxisDrvMode(%d)", &motor_axis_no);
+
+    if (nvals == 1) {
+      SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisDrvMode(motor_axis_no,
+                                                         &iValue));
+    }
+
     /*int GetAxisDrvScaleNum(int axis_no);*/
     nvals = sscanf(myarg_1, "GetAxisDrvScaleNum(%d)", &motor_axis_no);
 

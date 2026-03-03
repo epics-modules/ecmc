@@ -2970,6 +2970,14 @@ int ecmcAxisBase::getPrimaryEncoderIndex() {
   return data_.control_.primaryEncIndex + 1;
 }
 
+int ecmcAxisBase::getDrvMode() {
+  return static_cast<int>(data_.control_.drvMode);
+}
+
+int ecmcAxisBase::getCSPDriveEncoderIndex() {
+  return data_.control_.cspDrvEncIndex;
+}
+
 bool ecmcAxisBase::getHwReady() {
 
   /* Only check prim encoder (allow encoders to be in error state 
