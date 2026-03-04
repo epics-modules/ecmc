@@ -143,6 +143,7 @@ private:
   void         initStop();
   void         latchPosLagMonStateBeforeSeq();
   void         restorePosLagMonAfterSeq();
+  void         checkAndSetFallbackHomingParams();
 
   int seqState_;
   int seqStateOld_;

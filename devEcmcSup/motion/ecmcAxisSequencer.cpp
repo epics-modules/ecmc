@@ -619,8 +619,11 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         // Use the parameters defined in encoder object
         if (control.cmdData == ECMC_SEQ_HOME_USE_ENC_CFGS) {
           readHomingParamsFromEnc();
+        } else {
+          checkAndSetFallbackHomingParams();
         }
-
+   
+        
         if (control.cmdData == ECMC_SEQ_HOME_NOT_VALID) {
           // Homing not allowed
           return setErrorID(__FILE__,
@@ -2363,6 +2366,8 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
         double currPos =
           getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
+        printf("currPos %lf = getPrimEnc()->getActPos() %lf - homePosLatch1_ %lf + homePosition_ %lf\n",
+        currPos,getPrimEnc()->getActPos(),homePosLatch1_, homePosition_);
         finalizeHomingSeq(currPos);
       }
     }
@@ -2523,6 +2528,8 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
           getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
         finalizeHomingSeq(currPos);
+        printf("currPos %lf = getPrimEnc()->getActPos() %lf - homePosLatch1_ %lf + homePosition_ %lf\n",
+        currPos,getPrimEnc()->getActPos(),homePosLatch1_, homePosition_);
       }
     }
     break;
@@ -3275,6 +3282,62 @@ void ecmcAxisSequencer::readHomingParamsFromEnc() {
 
   if (homeDec_ <= 0) {
     homeDec_ = homeAcc_;
+  }
+}
+
+void ecmcAxisSequencer::checkAndSetFallbackHomingParams() {
+  bool issueWarning = false;
+  auto * const primEnc = getPrimEnc();
+  // fallback to prim encoder params
+  if(homeAcc_ <= 0) {
+    homeAcc_ = primEnc->getHomeAcc();
+    issueWarning = true;
+  }
+
+  if(homeDec_ <= 0) {
+    homeDec_ = primEnc->getHomeDec();
+    issueWarning = true;
+  }
+
+  if (homeVelTowardsCam_ <= 0) {
+    homeVelTowardsCam_= primEnc->getHomeVelTowardsCam();
+    issueWarning = true;
+  }
+
+   if (homeVelOffCam_ <= 0) {
+    homeVelOffCam_= primEnc->getHomeVelOffCam();
+    issueWarning = true;
+  }
+
+  homeVelTowardsCam_ = primEnc->getHomeVelTowardsCam();
+
+  if (std::abs(homeVelTowardsCam_) == 0) {
+    homeVelTowardsCam_ = data_->status_.currentVelocityTarget;
+    issueWarning = true;
+  }
+
+  // fallback to axis param
+  if (homeAcc_ <= 0) {
+    homeAcc_ = data_->control_.accelerationTarget;
+    issueWarning = true;
+  }
+
+  if (homeDec_ <= 0) {
+    homeDec_ = data_->control_.decelerationTarget;
+    issueWarning = true;
+  }
+
+  if (homeVelTowardsCam_ <= 0) {
+    homeVelTowardsCam_ = data_->status_.currentVelocityTarget;
+    issueWarning = true;
+  }
+  
+  if (homeVelOffCam_ <= 0) {
+    homeVelOffCam_ = data_->status_.currentVelocityTarget;
+    issueWarning = true;
+  }
+  if(issueWarning) {
+    setWarningID(WARNING_SEQ_MISSING_HOME_PARAMS);
   }
 }
 
