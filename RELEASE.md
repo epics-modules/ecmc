@@ -1,19 +1,21 @@
 Release Notes
 ===
-# 11.0.3_RC
-* Slave auto disable in MasterSlave state machine now default disabled. However if no auto disable is configured for all the slave axes, auto disable will still be executede (for slaved axes).
-* Allow startup with faulty or not-ready encoder.
+# 11.0.3_RC3
+* Slave auto-disable in the MasterSlave state machine is now disabled by default. However, if auto-disable is not configured for all slave axes, auto-disable is still executed for slaved axes.
+* Allow startup with a faulty or not-ready encoder.
 * Fix busy state after PVT abort.
 * Also allow `plc<id>` in PLC variable declarations (see "Support for variable declarations in plc code" below).
 * Fix PVT trigger validation.
-* Add several getter and setter commands in the command parser to allow runtime changes of values through asyn records with readback.
+* Add several getter and setter commands in the command parser to allow runtime value changes through asyn records with readback.
 * Add axis command that stops motion if any limit is engaged (useful for commissioning).
-* Auto-enable stall monitoring of motion. If the axis is not at target after 10 s or 15 times the duration of the last trajectory-busy motion, motion is stopped with an error.
+* Auto-enable stall monitoring. If the axis is not at target after 10 s or 15 times the duration of the last trajectory-busy motion, motion is stopped with an error.
 * Better synchronization of motor record polling and commands.
 * Remove `OK` printout after successful commands (saves rows in iocsh log).
-* Wait for at-target before auto-disable timer starts.
+* Wait for at-target before the auto-disable timer starts.
 * Minor tweaks to master/slave state machine.
-* Add command to disable automatic error reset. By default, some errors are reset when enabling.
+* Add a command to disable automatic error reset. By default, some errors are reset when enabling.
+* Improved motor DMOV handling
+
 
 # 11.0.2
 ## Add datatypes 
