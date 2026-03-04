@@ -405,3 +405,14 @@ void ecmcAxisGroup::setBlocked(bool blocked) {
 bool ecmcAxisGroup::getBlocked() {
   return blocked_;
 }
+
+bool ecmcAxisGroup::getAxisAutoDisableEnabled() {
+  bool autoDisable = true;
+  for (auto *axis : axes_) {
+    autoDisable = autoDisable && axis->getEnableAutoDisable();
+    if (!autoDisable) {
+      return false;
+    }
+  }
+  return autoDisable;
+}

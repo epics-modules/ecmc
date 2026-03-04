@@ -203,10 +203,11 @@ int ecmcMasterSlaveStateMachine::stateSlave(){
   const ecmcAxisGroupStatusSummary masterStatus = masterGrp_->getStatusSummary(false);
   const bool anySlaveBusy = slaveStatus.anyBusy;
 
-  // Maybe add atTarget here?!
+  // Maybe add atTarget here?! 
+  // Keep like this since this can be handled by adding diableTimout in slave axes and autoDisableSlaves=false
   if(!anySlaveBusy) {
-
-    if(control_.autoDisableSlaves) {
+    // Auto disable also if the axis has no cfg to auto disable
+    if(control_.autoDisableSlaves || (!slaveGrp_->getAxisAutoDisableEnabled())) {
       slaveGrp_->setEnable(0);
       //slaveGrp_->setMRCnen(0);     
     }

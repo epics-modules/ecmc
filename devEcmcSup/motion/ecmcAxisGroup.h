@@ -113,6 +113,8 @@ class ecmcAxisGroup : public ecmcError {
     void setAxisIsWithinCtrlDBExtTraj(bool within);
     // get "atTarget"
     bool getAxisIsWithinCtrlDB();
+    // get all axes configured with auto disable enabled
+    bool getAxisAutoDisableEnabled();
     // Collect common group state in one scan (for RT usage).
     ecmcAxisGroupStatusSummary getStatusSummary(bool includeMonFields = true);
 
