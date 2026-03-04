@@ -182,6 +182,8 @@ public:
   double     getAutoDisableAfterTime();
   int        setEnableAutoEnable(bool enable);
   int        setEnableAutoDisable(bool enable);
+  int        getEnableAutoEnable();
+  int        getEnableAutoDisable();
   asynStatus axisAsynWriteCmd(void         *data,
                               size_t        bytes,
                               asynParamType asynParType);

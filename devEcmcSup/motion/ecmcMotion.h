@@ -1259,6 +1259,7 @@ int setAxisEnable(int axisIndex,
  * "Cfg.SetAxisAutoEnableTimeout(3,10.0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisAutoEnableTimeout(int axisIndex, double timeS);
+int setAxisEnableAutoEnable(int axisIndex, int enable);
 
 /** \brief Set axis auto amplifier disable after a defined idle time (axis not busy).\n
  *
@@ -1271,6 +1272,7 @@ int setAxisAutoEnableTimeout(int axisIndex, double timeS);
  * "Cfg.SetAxisAutoDisableAfterTime(3,10.0)" //Command string to ecmcCmdParser.c.\n
  */
 int setAxisAutoDisableAfterTime(int axisIndex, double timeS);
+int setAxisEnableAutoDisable(int axisIndex, int enable);
 
 /** \brief Set enable of motion functions.\n
  *
@@ -1306,6 +1308,10 @@ int getAxisAutoEnableTimeout(int axisIndex,
                              double *value);
 int getAxisAutoDisableAfterTime(int axisIndex,
                                 double *value);
+int getAxisEnableAutoEnable(int axisIndex,
+                            int *value);
+int getAxisEnableAutoDisable(int axisIndex,
+                             int *value);
 int getAxisTweakDist(int axisIndex,
                      double *value);
 

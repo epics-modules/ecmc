@@ -1794,6 +1794,16 @@ static int handleCfgCommand(const char *myarg_1) {
     return setAxisAutoEnableTimeout(iValue, dValue);
   }
 
+  /*int Cfg.SetAxisEnableAutoEnable(int axis_no, int enable);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEnableAutoEnable(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEnableAutoEnable(iValue, iValue2);
+  }
+
   /*int Cfg.SetAxisAutoDisableAfterTime(int axis_no, double timeS);*/
   nvals = sscanf(myarg_1,
                  "SetAxisAutoDisableAfterTime(%d,%lf)",
@@ -1802,6 +1812,16 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 2) {
     return setAxisAutoDisableAfterTime(iValue, dValue);
+  }
+
+  /*int Cfg.SetAxisEnableAutoDisable(int axis_no, int enable);*/
+  nvals = sscanf(myarg_1,
+                 "SetAxisEnableAutoDisable(%d,%d)",
+                 &iValue,
+                 &iValue2);
+
+  if (nvals == 2) {
+    return setAxisEnableAutoDisable(iValue, iValue2);
   }
 
   /*int Cfg.SetAxisEmergDeceleration(int traj_no, double value);*/
@@ -4845,12 +4865,28 @@ parse_getaxisdrv:
                                            motor_axis_no, &fValue));
   }
 
+  /*int GetAxisEnableAutoEnable(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisEnableAutoEnable(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableAutoEnable(
+                                        motor_axis_no, &iValue));
+  }
+
   /*int GetAxisAutoDisableAfterTime(int axis_no);*/
   nvals = sscanf(myarg_1, "GetAxisAutoDisableAfterTime(%d)", &motor_axis_no);
 
   if (nvals == 1) {
     SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisAutoDisableAfterTime(
                                            motor_axis_no, &fValue));
+  }
+
+  /*int GetAxisEnableAutoDisable(int axis_no);*/
+  nvals = sscanf(myarg_1, "GetAxisEnableAutoDisable(%d)", &motor_axis_no);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(getAxisEnableAutoDisable(
+                                        motor_axis_no, &iValue));
   }
 
   /*int GetAxisTweakDist(int axis_no);*/

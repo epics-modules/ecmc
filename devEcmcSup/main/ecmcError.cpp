@@ -268,8 +268,12 @@ const char * ecmcError::convertWarningIdToString(int warningId) {
     return "WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION";
 
     break;
-  }
 
+  case 0x114D02: // Seq
+    return "WARNING_SEQ_MISSING_HOME_PARAMS";
+
+    break;
+  }
   return "NO_WARNING";
 }
 

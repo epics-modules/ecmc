@@ -3279,6 +3279,10 @@ int ecmcAxisBase::setEnableAutoEnable(bool enable) {
   return 0;
 }
 
+int ecmcAxisBase::getEnableAutoEnable() {
+  return static_cast<int>(enableAutoEnable_);
+}
+
 int ecmcAxisBase::setAutoDisableAfterTime(double timeS) {
   autoDisableAfterS_ = timeS;
   enableAutoDisable_ = timeS > 0;
@@ -3296,6 +3300,10 @@ int ecmcAxisBase::setEnableAutoDisable(bool enable) {
   
   enableAutoDisable_ = enable;
   return 0;
+}
+
+int ecmcAxisBase::getEnableAutoDisable() {
+  return static_cast<int>(enableAutoDisable_);
 }
 
 ecmcAxisDataStatus* ecmcAxisBase::getAxisStatusDataPtr() {

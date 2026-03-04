@@ -273,6 +273,20 @@ int setAxisAutoEnableTimeout(int axisIndex, double timeS) {
   return axes[axisIndex]->setAutoEnableTimeout(timeS);
 }
 
+int setAxisEnableAutoEnable(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+
+  return axes[axisIndex]->setEnableAutoEnable(enable);
+}
+
 int setAxisAutoDisableAfterTime(int axisIndex, double timeS) {
   LOGINFO4("%s/%s:%d axisIndex=%d timeS=%lf\n",
            __FILE__,
@@ -285,6 +299,20 @@ int setAxisAutoDisableAfterTime(int axisIndex, double timeS) {
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
   return axes[axisIndex]->setAutoDisableAfterTime(timeS);
+}
+
+int setAxisEnableAutoDisable(int axisIndex, int enable) {
+  LOGINFO4("%s/%s:%d axisIndex=%d enable=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           enable);
+
+  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
+
+  return axes[axisIndex]->setEnableAutoDisable(enable);
 }
 
 int setAxisCmdData(int axisIndex, int value) {
@@ -625,6 +653,18 @@ int getAxisAutoEnableTimeout(int axisIndex, double *value) {
 int getAxisAutoDisableAfterTime(int axisIndex, double *value) {
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   *value = axes[axisIndex]->getAutoDisableAfterTime();
+  return 0;
+}
+
+int getAxisEnableAutoEnable(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getEnableAutoEnable();
+  return 0;
+}
+
+int getAxisEnableAutoDisable(int axisIndex, int *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+  *value = axes[axisIndex]->getEnableAutoDisable();
   return 0;
 }
 
