@@ -1,6 +1,6 @@
 Release Notes
 ===
-# 11.0.3_RC3
+# 11.0.3
 * Slave auto-disable in the MasterSlave state machine is now disabled by default. However, if auto-disable is not configured for all slave axes, auto-disable is still executed for slaved axes.
 * Allow startup with a faulty or not-ready encoder.
 * Fix busy state after PVT abort.
@@ -15,7 +15,6 @@ Release Notes
 * Minor tweaks to master/slave state machine.
 * Add a command to disable automatic error reset. By default, some errors are reset when enabling.
 * Improved motor DMOV handling
-
 
 # 11.0.2
 ## Add datatypes 
