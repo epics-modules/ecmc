@@ -4399,6 +4399,22 @@ parse_getaxismon:
                                                                        &fValue));
     }
 
+    /*GetAxisMonStallTimeAct(int nAxis)*/
+    nvals = sscanf(myarg_1, "GetAxisMonStallTimeAct(%d)", &motor_axis_no);
+
+    if (nvals == 1) {
+      SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisMonStallTime(motor_axis_no,
+                                                                 &fValue));
+    }
+
+    /*GetAxisMonStallAtTime(int nAxis)*/
+    nvals = sscanf(myarg_1, "GetAxisMonStallAtTime(%d)", &motor_axis_no);
+
+    if (nvals == 1) {
+      SEND_RESULT_OR_ERROR_AND_RETURN_DOUBLE(getAxisMonStallAtTime(motor_axis_no,
+                                                                    &fValue));
+    }
+
     if (fastGetAxisMon) {
       return 0;
     }

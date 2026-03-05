@@ -3192,6 +3192,24 @@ int getAxisMonStallMinTimeOut(int axisIndex,
   return 0;
 }
 
+int getAxisMonStallTime(int axisIndex,
+                        double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getStallTime();
+  return 0;
+}
+
+int getAxisMonStallAtTime(int axisIndex,
+                          double *value) {
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex);
+  CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex);
+
+  *value = axes[axisIndex]->getMon()->getStallAtTime();
+  return 0;
+}
+
 int setAxisMonStallMinTimeOut(int axisIndex,
                              double timeCycles) {
   LOGINFO4("%s/%s:%d axisIndex=%d cycles=%lf\n",

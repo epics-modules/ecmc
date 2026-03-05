@@ -1462,6 +1462,14 @@ double ecmcMonitor::getStallMinTimeOut() {
   return stallMinTimeoutCycles_;
 }
 
+double ecmcMonitor::getStallTime() {
+  return maxStallCounter_;
+}
+
+double ecmcMonitor::getStallAtTime() {
+  return stallCheckAtTargetAtCycle_;
+}
+
 int ecmcMonitor::setLimitSwitchFwdPLCOverride(bool overrideSwitch) {
   limitSwitchFwdPLCOverride_ = overrideSwitch;
   return 0;

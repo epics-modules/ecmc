@@ -2899,7 +2899,7 @@ int getAxisMonStallTimeFactor(int     axisIndex,
  *  Only enabled when attarget monitoring is also enabled.\n
  *
  * \param[in] axisIndex  Axis index.\n
- * \param[in] timeCycles Minimum timeout (default value 
+ * \param[in] timeCycles Minimum timeout (default value
  *                       in ecmc is 0.0)\n
  *
  * \return 0 if success or otherwise an error code.\n
@@ -2912,6 +2912,12 @@ int setAxisMonStallMinTimeOut(int axisIndex,
 
 int getAxisMonStallMinTimeOut(int     axisIndex,
                               double *value);
+
+int getAxisMonStallTime(int     axisIndex,
+                        double *value);
+
+int getAxisMonStallAtTime(int     axisIndex,
+                          double *value);
 
 /** \brief Get "at target" monitoring time (cycles).\n
  * \param[in] axisIndex  Axis index.\n

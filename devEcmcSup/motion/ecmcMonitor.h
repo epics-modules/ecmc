@@ -135,6 +135,8 @@ public:
   void               setStallTimeFactor(double timeFactor);
   bool               getEnableStallMon();
   double             getStallTimeFactor();
+  double             getStallTime();
+  double             getStallAtTime();
   int                setLimitSwitchFwdPLCOverride(bool overrideSwitch);
   int                setLimitSwitchBwdPLCOverride(bool overrideSwitch);
   int                setHomeSwitchPLCOverride(bool overrideSwitch);
