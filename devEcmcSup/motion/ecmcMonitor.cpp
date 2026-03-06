@@ -900,14 +900,14 @@ int  ecmcMonitor::checkStall() {
   }
   
   // Measure time of last move, busy high to busy low.
-  if (statusWord.busy) {
+  if (statusWord.localBusy) {
     stallLastMotionCmdCycles_++;
-    if (!statusOldWord.busy) {
+    if (!statusOldWord.localBusy) {
       stallLastMotionCmdCycles_ = 0;
     }
     return 0;
   } else {
-    if (statusOldWord.busy) {
+    if (statusOldWord.localBusy) {
       stallCheckAtTargetAtCycle_ = stallLastMotionCmdCycles_ * stallTimeFactor_;
       // Ensure a minimum time window 
       if (stallCheckAtTargetAtCycle_ < stallMinTimeoutCycles_) {
@@ -919,7 +919,7 @@ int  ecmcMonitor::checkStall() {
                 stallCheckAtTargetAtCycle_,
                 stallTimeFactor_,
                 stallMinTimeoutCycles_);
-      }      
+      }
     }
   }
 
