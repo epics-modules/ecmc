@@ -699,6 +699,8 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   if (execRisingEdge) {
     // write mode if entry is linked
+    data_->clearLatchedInterlock();
+
     if (modeSetEntry_) {
       modeSetEntry_->writeValue((uint64_t)modeSet);
     }
@@ -3589,6 +3591,7 @@ int ecmcAxisSequencer::setTrajDataSourceTypeInternal(dataSource refSource,
   if (refSource != ECMC_DATA_SOURCE_INTERNAL) {
     data_->interlocks_.noExecuteInterlock = false;
     data_->refreshInterlocks();
+    data_->clearLatchedInterlock();
     data_->status_.statusWord_.localBusy = true;
     data_->control_.controlWord_.executeCmd = true;
     data_->status_.statusWord_.execute = true;
