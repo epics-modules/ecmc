@@ -175,7 +175,8 @@ stopMode ecmcAxisData::refreshInterlocks() {
   stopMode stop = refreshInterlocksInternal();
 
   // Latch the first interlock seen for the current motion command.
-  if ((interlocks_.interlockStatus != ECMC_INTERLOCK_NONE) &&
+  if ((interlocks_.interlockStatus != ECMC_INTERLOCK_NONE) && 
+      (interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE) &&
       (interlocks_.lastActiveInterlock == ECMC_INTERLOCK_NONE)) {
     interlocks_.lastActiveInterlock = interlocks_.interlockStatus;
   }
