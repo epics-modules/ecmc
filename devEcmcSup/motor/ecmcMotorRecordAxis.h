@@ -151,10 +151,13 @@ private:
                             const char *name);
   asynStatus readBackSoftLimits(void);
   asynStatus readBackSoftLimits(bool updateMotor);
+  int        applyMotorSoftLimitChange(bool   updateFwd,
+                                       double value);
   asynStatus syncEcmcSoftLimits();
   asynStatus syncEcmcSoftLimits(bool force, bool updateParams);
   asynStatus syncMotorSoftLimits();
   asynStatus syncMotorSoftLimits(bool force, bool updateParams);
+  asynStatus syncSoftLimitInterfaces(bool updateParams);
   asynStatus readScaling(int axisID);
   asynStatus readMonitoring(int axisID);
   asynStatus readBackVelocities(int axisID);

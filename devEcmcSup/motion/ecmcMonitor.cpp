@@ -657,7 +657,15 @@ double ecmcMonitor::getVelDiffMaxDifference() {
 }
 
 int ecmcMonitor::setEnableSoftLimitBwd(bool enable) {  
+  const bool oldEnable = data_->control_.controlWord_.enableSoftLimitBwd;
   data_->control_.controlWord_.enableSoftLimitBwd = enable;
+  if (enable) {
+    const int error = validateSoftLimitConfigForEnabledLimits();
+    if (error) {
+      data_->control_.controlWord_.enableSoftLimitBwd = oldEnable;
+      return error;
+    }
+  }
   data_->status_.statusWord_.softlimbwdena = enable;
   data_->axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
   data_->axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
@@ -665,7 +673,15 @@ int ecmcMonitor::setEnableSoftLimitBwd(bool enable) {
 }
 
 int ecmcMonitor::setEnableSoftLimitFwd(bool enable) {
+  const bool oldEnable = data_->control_.controlWord_.enableSoftLimitFwd;
   data_->control_.controlWord_.enableSoftLimitFwd = enable;
+  if (enable) {
+    const int error = validateSoftLimitConfigForEnabledLimits();
+    if (error) {
+      data_->control_.controlWord_.enableSoftLimitFwd = oldEnable;
+      return error;
+    }
+  }
   data_->status_.statusWord_.softlimfwdena = enable;
   data_->axAsynParams_[ECMC_ASYN_AX_STATUS_ID]->refreshParamRT(1);
   data_->axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
@@ -673,12 +689,45 @@ int ecmcMonitor::setEnableSoftLimitFwd(bool enable) {
 }
 
 int ecmcMonitor::setSoftLimitBwd(double limit) {
+  const double oldLimit = data_->control_.softLimitBwd;
   data_->control_.softLimitBwd = limit;
+  const int error = validateSoftLimitConfigForEnabledLimits();
+  if (error) {
+    data_->control_.softLimitBwd = oldLimit;
+    return error;
+  }
   return 0;
 }
 
 int ecmcMonitor::setSoftLimitFwd(double limit) {
+  const double oldLimit = data_->control_.softLimitFwd;
   data_->control_.softLimitFwd = limit;
+  const int error = validateSoftLimitConfigForEnabledLimits();
+  if (error) {
+    data_->control_.softLimitFwd = oldLimit;
+    return error;
+  }
+  return 0;
+}
+
+int ecmcMonitor::validateSoftLimitConfigForEnabledLimits() {
+  const bool bwdEnabled = data_->control_.controlWord_.enableSoftLimitBwd;
+  const bool fwdEnabled = data_->control_.controlWord_.enableSoftLimitFwd;
+  if (bwdEnabled && fwdEnabled &&
+      (data_->control_.softLimitBwd >= data_->control_.softLimitFwd)) {
+    LOGERR("%s/%s:%d: ERROR: Invalid soft-limit configuration for axis %d. "
+           "Backward soft limit (%lf) must be below forward soft limit (%lf).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           data_->status_.axisId,
+           data_->control_.softLimitBwd,
+           data_->control_.softLimitFwd);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_MON_TOL_OUT_OF_RANGE);
+  }
   return 0;
 }
 
@@ -776,7 +825,7 @@ int ecmcMonitor::checkLimits() {
   if (checkSoftLimits && statusWord.softlimbwdena) {
     const bool virtSoftlimitBwd =
       (status.currentPositionSetpoint < control.softLimitBwd) ||
-      (control.positionTarget < control.softLimitBwd);
+      (status.currentTargetPosition < control.softLimitBwd);
     if (virtSoftlimitBwd) {
       interlocks.bwdSoftLimitInterlock = true;
       if (warningId != WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
@@ -801,7 +850,7 @@ int ecmcMonitor::checkLimits() {
   if (checkSoftLimits && statusWord.softlimfwdena) {
     const bool virtSoftlimitFwd =
       (status.currentPositionSetpoint > control.softLimitFwd) ||
-      (control.positionTarget > control.softLimitFwd);
+      (status.currentTargetPosition > control.softLimitFwd);
     if (virtSoftlimitFwd) {
       interlocks.fwdSoftLimitInterlock = true;
       if (warningId != WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK) {
