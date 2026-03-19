@@ -40,78 +40,28 @@ USR_LDFLAGS  += -lethercat
 USR_LDFLAGS  += -Wl,-rpath=$(SDKTARGETSYSROOT)/usr/lib/etherlab
 endif
 
+USR_LDFLAGS += -L$(RUCKIG)/build/ -lruckig
+USR_LDFLAGS += -Wl,-rpath,'$(RUCKIG)/build/'
 
-SRC_DIRS  += $(ECMC)/plc
-ecmc_SRCS += ecmcPLC.cpp
-ecmc_SRCS += ecmcPLCTask.cpp
-ecmc_SRCS += ecmcPLCDataIF.cpp
-ecmc_SRCS += ecmcPLCMain.cpp
+SRC_DIRS += ${ECMC}/main
+SRC_DIRS += ${ECMC}/ethercat
+SRC_DIRS += ${ECMC}/com
+SRC_DIRS += ${ECMC}/motion
+SRC_DIRS += ${ECMC}/motor
+SRC_DIRS += ${ECMC}/plc
+SRC_DIRS += ${ECMC}/plugin
+SRC_DIRS += ${ECMC}/misc
 
+ecmc_SRCS += $(notdir $(foreach d,$(SRC_DIRS),$(wildcard $d/*.c)))
+ecmc_SRCS += $(notdir $(foreach d,$(SRC_DIRS),$(wildcard $d/*.cpp)))
+DBD += $(notdir $(foreach d,$(SRC_DIRS),$(wildcard $d/*.dbd)))
 
-SRC_DIRS  += $(ECMC)/misc
-ecmc_SRCS += ecmcMisc.cpp 
-ecmc_SRCS += ecmcEvent.cpp 
-ecmc_SRCS += ecmcEventConsumer.cpp 
-ecmc_SRCS += ecmcDataRecorder.cpp 
-ecmc_SRCS += ecmcDataStorage.cpp 
-ecmc_SRCS += ecmcCommandList.cpp 
-
-SRC_DIRS  += $(ECMC)/main
-ecmc_SRCS += ecmcGeneral.cpp 
-ecmc_SRCS += ecmcError.cpp 
-ecmc_SRCS += ecmcMainThread.cpp
-ecmc_SRCS += gitversion.c
-
-
-
-SRC_DIRS  += $(ECMC)/ethercat
-ecmc_SRCS += ecmcEthercat.cpp 
-ecmc_SRCS += ecmcEc.cpp 
-ecmc_SRCS += ecmcEcEntry.cpp 
-ecmc_SRCS += ecmcEcPdo.cpp 
-ecmc_SRCS += ecmcEcSDO.cpp 
-ecmc_SRCS += ecmcEcSlave.cpp 
-ecmc_SRCS += ecmcEcSyncManager.cpp 
-ecmc_SRCS += ecmcEcEntryLink.cpp 
-ecmc_SRCS += ecmcAsynLink.cpp 
-ecmc_SRCS += ecmcEcMemMap.cpp
-
-
-SRC_DIRS  += $(ECMC)/com
-DBD       += ecmcController.dbd
-ecmc_SRCS += ecmcCom.cpp
-ecmc_SRCS += ecmcOctetIF.c
-ecmc_SRCS += ecmcCmdParser.c 
-ecmc_SRCS += ecmcAsynPortDriver.cpp 
-ecmc_SRCS += ecmcAsynPortDriverUtils.cpp 
-ecmc_SRCS += ecmcAsynDataItem.cpp 
-
-SRC_DIRS  += $(ECMC)/motion
-ecmc_SRCS += ecmcMotion.cpp 
-ecmc_SRCS += ecmcAxisBase.cpp 
-ecmc_SRCS += ecmcAxisReal.cpp 
-ecmc_SRCS += ecmcAxisVirt.cpp 
-ecmc_SRCS += ecmcDriveBase.cpp 
-ecmc_SRCS += ecmcDriveStepper.cpp 
-ecmc_SRCS += ecmcDriveDS402.cpp 
-ecmc_SRCS += ecmcEncoder.cpp 
-ecmc_SRCS += ecmcFilter.cpp 
-ecmc_SRCS += ecmcMonitor.cpp 
-ecmc_SRCS += ecmcPIDController.cpp
-ecmc_SRCS += ecmcAxisSequencer.cpp
-ecmc_SRCS += ecmcTrajectoryTrapetz.cpp 
-ecmc_SRCS += ecmcAxisData.cpp
-
-SRC_DIRS  += $(ECMC)/motor
-DBD       += ecmcMotorRecordSupport.dbd
-ecmc_SRCS += ecmcMotorRecordController.cpp
-ecmc_SRCS += ecmcMotorRecordAxis.cpp
-
+$(info ===== ECMC_SRCS =====)
+$(info $(ecmc_SRCS))
+$(info =====================)
 
 ecmc_LIBS += exprtkSupport
 ecmc_LIBS += $(EPICS_BASE_IOC_LIBS)
-
-
 
 include $(TOP)/configure/RULES
 #----------------------------------------
