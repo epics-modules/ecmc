@@ -74,6 +74,7 @@ extern ecmcAsynPortDriver *asynPort;
 #define ecmcMotorRecordTRIGGSYNCString            "TRIGG_SYNC"
 
 #define ecmcMotorRecordMCUErrMsgString            "MCUErrMsg"
+#define ecmcMotorRecordIlockMsgString             "IlockMsg"
 #define ecmcMotorRecordDbgStrToMcuString          "StrToMCU"
 #define ecmcMotorRecordDbgStrToLogString          "StrToLOG"
 
@@ -183,6 +184,7 @@ protected:
   /* Add parameters here */
   int ecmcMotorRecordErrRst_;
   int ecmcMotorRecordMCUErrMsg_;
+  int ecmcMotorRecordIlockMsg_;
   int ecmcMotorRecordDbgStrToMcu_;
   int ecmcMotorRecordDbgStrToLog_;
   int ecmcMotorRecordVelAct_;

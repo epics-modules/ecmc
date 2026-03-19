@@ -28,6 +28,61 @@
 static ecmcMotorRecordController *pC;
 extern asynUser *pPrintOutAsynUser;
 
+static const char *ecmcInterlockToString(int interlock) {
+  switch (interlock) {
+  case ECMC_INTERLOCK_NONE:
+    return "";
+  case ECMC_INTERLOCK_SOFT_BWD:
+    return "Soft limit backward";
+  case ECMC_INTERLOCK_SOFT_FWD:
+    return "Soft limit forward";
+  case ECMC_INTERLOCK_HARD_BWD:
+    return "Hard limit backward";
+  case ECMC_INTERLOCK_HARD_FWD:
+    return "Hard limit forward";
+  case ECMC_INTERLOCK_NO_EXECUTE:
+    return "No execute";
+  case ECMC_INTERLOCK_POSITION_LAG:
+    return "Position lag";
+  case ECMC_INTERLOCK_BOTH_LIMITS:
+    return "Both limits";
+  case ECMC_INTERLOCK_EXTERNAL:
+    return "External interlock";
+  case ECMC_INTERLOCK_TRANSFORM:
+    return "Transform interlock";
+  case ECMC_INTERLOCK_MAX_SPEED:
+    return "Max speed";
+  case ECMC_INTERLOCK_CONT_HIGH_LIMIT:
+    return "Controller high limit";
+  case ECMC_INTERLOCK_CONT_OUT_INCREASE_AT_LIMIT_SWITCH:
+    return "Control output increase at limit";
+  case ECMC_INTERLOCK_AXIS_ERROR_STATE:
+    return "Axis error state";
+  case ECMC_INTERLOCK_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR:
+    return "Unexpected limit switch behaviour";
+  case ECMC_INTERLOCK_VELOCITY_DIFF:
+    return "Velocity difference";
+  case ECMC_INTERLOCK_ETHERCAT_MASTER_NOT_OK:
+    return "EtherCAT master not OK";
+  case ECMC_INTERLOCK_PLC_NORMAL:
+    return "PLC interlock";
+  case ECMC_INTERLOCK_PLC_BWD:
+    return "PLC interlock backward";
+  case ECMC_INTERLOCK_PLC_FWD:
+    return "PLC interlock forward";
+  case ECMC_INTERLOCK_ENC_DIFF:
+    return "Encoder difference";
+  case ECMC_INTERLOCK_ANALOG:
+    return "Analog interlock";
+  case ECMC_INTERLOCK_SAFETY:
+    return "Safety interlock";
+  case ECMC_INTERLOCK_STALL:
+    return "Stall";
+  default:
+    return "Unknown interlock";
+  }
+}
+
 /**
  * Option strings
 */
@@ -1699,6 +1754,11 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 
   syncSoftLimitInterfaces(false);
 
+  if (drvlocal.statusOld_.statusWord_.lastilock !=
+      drvlocal.status_.statusWord_.lastilock) {
+    updateIlockTxtFromDriver(drvlocal.status_.statusWord_.lastilock);
+  }
+
   setIntegerParam(pC_->motorStatusHomed_,
                   (drvlocal.status_.
                    statusWord_.homed > 0));
@@ -2243,6 +2303,11 @@ void ecmcMotorRecordAxis::updateMsgTxtFromDriver(const char *value) {
 }
 
 #endif // ifndef motorMessageTextString
+
+void ecmcMotorRecordAxis::updateIlockTxtFromDriver(int lastInterlock) {
+  setStringParam(pC_->ecmcMotorRecordIlockMsg_,
+                 ecmcInterlockToString(lastInterlock));
+}
 
 /** Set the high limit position of the motor.
   * \param[in] highLimit The new high limit position that should be set in the hardware. Units=steps.*/

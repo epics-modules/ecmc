@@ -176,6 +176,9 @@ ecmcMotorRecordController::ecmcMotorRecordController(const char *portName,
               asynParamOctet,
               &ecmcMotorRecordMCUErrMsg_);
 #endif // ifndef motorMessageTextString
+  createParam("MOTOR_ILOCK_TEXT",
+              asynParamOctet,
+              &ecmcMotorRecordIlockMsg_);
   createParam(ecmcMotorRecordDbgStrToMcuString,
               asynParamOctet,
               &ecmcMotorRecordDbgStrToMcu_);

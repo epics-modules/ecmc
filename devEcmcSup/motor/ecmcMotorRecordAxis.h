@@ -179,6 +179,7 @@ private:
 #ifndef motorMessageTextString
   void       updateMsgTxtFromDriver(const char *value);
 #endif // ifndef motorMessageTextString
+  void       updateIlockTxtFromDriver(int lastInterlock);
 
   asynStatus setPGain(double pGain);
   asynStatus setIGain(double iGain);
