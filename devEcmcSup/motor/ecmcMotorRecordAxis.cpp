@@ -83,6 +83,61 @@ static const char *ecmcInterlockToString(int interlock) {
   }
 }
 
+static const char *ecmcInterlockToShortString(int interlock) {
+  switch (interlock) {
+  case ECMC_INTERLOCK_NONE:
+    return "";
+  case ECMC_INTERLOCK_SOFT_BWD:
+    return "SftBwd";
+  case ECMC_INTERLOCK_SOFT_FWD:
+    return "SftFwd";
+  case ECMC_INTERLOCK_HARD_BWD:
+    return "HrdBwd";
+  case ECMC_INTERLOCK_HARD_FWD:
+    return "HrdFwd";
+  case ECMC_INTERLOCK_NO_EXECUTE:
+    return "NoExec";
+  case ECMC_INTERLOCK_POSITION_LAG:
+    return "PosLag";
+  case ECMC_INTERLOCK_BOTH_LIMITS:
+    return "BothLim";
+  case ECMC_INTERLOCK_EXTERNAL:
+    return "ExtIL";
+  case ECMC_INTERLOCK_TRANSFORM:
+    return "TrnsIL";
+  case ECMC_INTERLOCK_MAX_SPEED:
+    return "MaxSpd";
+  case ECMC_INTERLOCK_CONT_HIGH_LIMIT:
+    return "CntHi";
+  case ECMC_INTERLOCK_CONT_OUT_INCREASE_AT_LIMIT_SWITCH:
+    return "CntInc";
+  case ECMC_INTERLOCK_AXIS_ERROR_STATE:
+    return "AxErr";
+  case ECMC_INTERLOCK_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR:
+    return "LimSw";
+  case ECMC_INTERLOCK_VELOCITY_DIFF:
+    return "VelDif";
+  case ECMC_INTERLOCK_ETHERCAT_MASTER_NOT_OK:
+    return "ECat";
+  case ECMC_INTERLOCK_PLC_NORMAL:
+    return "PLC";
+  case ECMC_INTERLOCK_PLC_BWD:
+    return "PLCBwd";
+  case ECMC_INTERLOCK_PLC_FWD:
+    return "PLCFwd";
+  case ECMC_INTERLOCK_ENC_DIFF:
+    return "EncDif";
+  case ECMC_INTERLOCK_ANALOG:
+    return "Analog";
+  case ECMC_INTERLOCK_SAFETY:
+    return "Safety";
+  case ECMC_INTERLOCK_STALL:
+    return "Stall";
+  default:
+    return "Unkn";
+  }
+}
+
 /**
  * Option strings
 */
@@ -1757,6 +1812,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   if (drvlocal.statusOld_.statusWord_.lastilock !=
       drvlocal.status_.statusWord_.lastilock) {
     updateIlockTxtFromDriver(drvlocal.status_.statusWord_.lastilock);
+    updateIlockShortTxtFromDriver(drvlocal.status_.statusWord_.lastilock);
   }
 
   setIntegerParam(pC_->motorStatusHomed_,
@@ -2307,6 +2363,11 @@ void ecmcMotorRecordAxis::updateMsgTxtFromDriver(const char *value) {
 void ecmcMotorRecordAxis::updateIlockTxtFromDriver(int lastInterlock) {
   setStringParam(pC_->ecmcMotorRecordIlockMsg_,
                  ecmcInterlockToString(lastInterlock));
+}
+
+void ecmcMotorRecordAxis::updateIlockShortTxtFromDriver(int lastInterlock) {
+  setStringParam(pC_->ecmcMotorRecordIlockShortMsg_,
+                 ecmcInterlockToShortString(lastInterlock));
 }
 
 /** Set the high limit position of the motor.
