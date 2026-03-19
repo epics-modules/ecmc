@@ -149,6 +149,7 @@ public:
   bool               getAxisIsWithinCtrlDB();
 
 private:
+  int                disableSoftLimitsForZeroRange();
   int                validateSoftLimitConfigForEnabledLimits();
   int                checkLimits();
   int                checkAtTarget();
