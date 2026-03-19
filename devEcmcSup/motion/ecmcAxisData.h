@@ -168,6 +168,7 @@ public:
   ~ecmcAxisData();
   stopMode refreshInterlocks();
   void     clearInterlocks();
+  void     clearLatchedInterlock();
   ecmcAxisDataCommand control_;
   ecmcAxisDataCommand controlOld_;  // last cycle
   ecmcAxisDataStatus status_;       // last cycle

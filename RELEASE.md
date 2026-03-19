@@ -1,5 +1,8 @@
 Release Notes
 ===
+# 11.0.4
+* Last Ilock now latches the first iLock of the last move command (excluding stop).
+
 # 11.0.3
 * Slave auto-disable in the MasterSlave state machine is now disabled by default. However, if auto-disable is not configured for all slave axes, auto-disable is still executed for slaved axes.
 * Allow startup with a faulty or not-ready encoder.
