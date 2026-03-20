@@ -2717,10 +2717,10 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
   // Return < 0 progress (negation of current seq state returned)
   // Return = 0 ready
   // State 0 set parameters and trigger motion in nHomeDirection, speed =HomeVelTowardsCam
-  // State 1 Wait for positive edge of bwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
+  // State 1 Wait for negative edge of fwd limit switch sensor then stop motion. Velocity changed to HomeVelOffCam
   // State 2 Wait for stop and trigger motion in negative direction
-  // State 3 Wait for leaving limit switch.
-  // State 4 Wait for over/underflow of absolute encoder bits.
+  // State 3 Wait for a flank on the fwd limit switch when leaving the switch.
+  // State 4 Wait for stop and calculate reference position from absolute encoder bits.
   // State 5 Wait for standstill before rescale of encoder. Keep encoder absolute bits
 
   int retValue = traj_->getErrorID();  // Abort if error from trajectory
@@ -2830,10 +2830,11 @@ int ecmcAxisSequencer::seqHoming22() {  // nCmdData==22 Resolver homing (keep ab
       return retValue;
     }
 
-    if (hwLimitSwitchBwd_ != hwLimitSwitchBwdOld_) {
+    if (hwLimitSwitchFwd_ != hwLimitSwitchFwdOld_) {
       traj_->setExecute(0);
       seqState_ = 4;
     }
+    break;
 
   // Wait for over/under-flow of absolute bits of encoder
   case 4:
