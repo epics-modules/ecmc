@@ -860,8 +860,7 @@ int setAxisEnableSoftLimitBwd(int axisIndex, int value) {
 
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getMon()->setEnableSoftLimitBwd(value);
-  return 0;
+  return axes[axisIndex]->getMon()->setEnableSoftLimitBwd(value);
 }
 
 int setAxisEnableSoftLimitFwd(int axisIndex, int value) {
@@ -875,8 +874,7 @@ int setAxisEnableSoftLimitFwd(int axisIndex, int value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getMon()->setEnableSoftLimitFwd(value);
-  return 0;
+  return axes[axisIndex]->getMon()->setEnableSoftLimitFwd(value);
 }
 
 int setAxisEnableAlarmAtSoftLimit(int axisIndex,
@@ -906,8 +904,7 @@ int setAxisSoftLimitPosBwd(int axisIndex, double value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getMon()->setSoftLimitBwd(value);
-  return 0;
+  return axes[axisIndex]->getMon()->setSoftLimitBwd(value);
 }
 
 int setAxisSoftLimitPosFwd(int axisIndex, double value) {
@@ -921,8 +918,7 @@ int setAxisSoftLimitPosFwd(int axisIndex, double value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_MON_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getMon()->setSoftLimitFwd(value);
-  return 0;
+  return axes[axisIndex]->getMon()->setSoftLimitFwd(value);
 }
 
 int getAxisSoftLimitPosBwd(int axisIndex, double *value) {

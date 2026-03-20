@@ -149,6 +149,9 @@ public:
   bool               getAxisIsWithinCtrlDB();
 
 private:
+  void               refreshSoftLimitAsynParams();
+  bool               hasInvalidSoftLimitRange() const;
+  bool               hasInvalidSoftLimitConfigForEnabledLimits() const;
   int                disableSoftLimitsForZeroRange();
   int                validateSoftLimitConfigForEnabledLimits();
   int                checkLimits();
@@ -239,6 +242,7 @@ private:
   bool enableHomeSensor_;
   bool axisIsWithinCtrlDBExtTraj_;
   bool stopAtAnyLimit_;
+  bool softLimitReenablePending_;
 };
 
 #endif  // ifndef MOTIONMONITOR_H

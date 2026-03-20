@@ -531,7 +531,8 @@ int ecmcMotorRecordAxis::applyMotorSoftLimitChange(bool   updateFwd,
       if (!errorCode) {
         errorCode = drvlocal.ecmcAxis->getMon()->setEnableSoftLimitFwd(0);
       }
-    } else if (oldBwd == 0.0 && oldFwd == 0.0) {
+    } else if (oldBwd == 0.0 && oldFwd == 0.0 &&
+               currentBwd < currentFwd) {
       errorCode = drvlocal.ecmcAxis->getMon()->setEnableSoftLimitBwd(1);
       if (!errorCode) {
         errorCode = drvlocal.ecmcAxis->getMon()->setEnableSoftLimitFwd(1);
@@ -570,15 +571,10 @@ asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits(bool force, bool updateParams
   enabledFwd = drvlocal.ecmcAxis->getMon()->getEnableSoftLimitFwd();
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
 
-  if(!enabledBwd && !enabledFwd) {
-    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
-    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
-  } else {
-    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
-    asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDLLM_, fValueBwd);
-    asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
-    asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDHLM_, fValueFwd);
-  }
+  asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDLLM_En_, enabledBwd);
+  asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDLLM_, fValueBwd);
+  asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordCfgDHLM_En_, enabledFwd);
+  asynMotorAxis::setDoubleParam(pC_->ecmcMotorRecordCfgDHLM_, fValueFwd);
 
   if(updateParams) {
     callParamCallbacks();
