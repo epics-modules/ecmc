@@ -1,148 +1,177 @@
-ECMC Motion Control Module for EPICS 
-==
+# ecmc
 
-ECMC is a motion control and data acquisition module for use with EPICS system.
+`ecmc` is an EPICS-based motion control and data acquisition module for EtherCAT systems.
+It combines axis control, realtime PLC logic, data acquisition, and runtime extensions in one IOC-oriented package.
 
-# Initialize
+This repository contains the core `ecmc` module, example IOC files, and the EPICS build integration needed to build it into an IOC application.
 
-```
+## What ecmc provides
+
+- Motion control for stepper, servo, pulse-direction, and analog drives
+- EtherCAT integration based on the open Etherlab master
+- Realtime PLC tasks with expression-based logic and access to motion and I/O data
+- Built-in trajectory generators, including trapezoidal and jerk-limited motion
+- Custom motion through PLC expressions or buffered position arrays
+- EPICS motor record integration
+- Runtime plugin support for optional functionality such as CNC, DAQ, FFT, CAN, and safety-related extensions
+
+## Main capabilities
+
+### Motion control
+
+- Absolute positioning
+- Relative positioning
+- Constant-velocity motion
+- Homing with multiple reference sequences
+- Virtual and physical axes
+- Modulo motion
+- Synchronization and phasing through expressions
+- Motion interlocks, including following error, speed limits, EtherCAT I/O, and bus health
+
+### Trajectories
+
+- Trapezoidal trajectory generation
+- Jerk-limited trajectory generation based on `ruckig`
+- Custom trajectories calculated in `ecmc` PLC logic
+- Buffered trajectories from data storage objects
+
+### Realtime control and acquisition
+
+- PLC objects running at configurable sample rates
+- Access to axis, PLC, and EtherCAT data from EPICS
+- High-rate acquisition support for suitable EtherCAT terminals
+- Integration of custom functions and constants through plugins
+
+## Repository layout
+
+- `devEcmcSup/`: core `ecmc` library sources
+- `ecmcExampleTop/`: example IOC application and boot files
+- `configure/`: EPICS build configuration
+- `documentation/`: Doxygen configuration and generated-documentation inputs
+- `tools/`: helper scripts and utilities
+
+## Requirements
+
+`ecmc` is intended for EPICS environments with EtherCAT and realtime support.
+
+### Runtime environment
+
+- EPICS Base
+- Linux system with realtime support recommended
+- Etherlab EtherCAT master
+- IOC shell-based configuration workflow
+
+### Build dependencies
+
+- `EPICS_BASE`
+- `asyn`
+- `motor`
+- `exprtkSupport`
+- Etherlab user library
+- `ruckig`
+
+### Configuration tooling
+
+- `ecmccfg`
+
+The easiest way to configure a working system is through the scripts and examples in:
+
+https://github.com/paulscherrerinstitute/ecmccfg
+
+### Optional modules
+
+- `ecmccomp`
+
+## Build
+
+Initialize submodules first:
+
+```sh
 git submodule update --init --reference ./
 ```
 
-# Features
+Set external module paths in [configure/RELEASE](configure/RELEASE) or a local override file such as `configure/RELEASE.local`.
+The sample files in this repository show the expected EPICS module layout.
 
-* Motion Control
-    * Motor record
-        * Absolute Positioning
-        * Relative Positioning
-        * Constant velocity
-        * Evaluation of limit and reference switches
-        * Homing (several different sequences available)
-            * Low limit (refId = 1)
-            * High limit (refId = 2)
-            * Ref. sensor via low limit (refId = 3)
-            * Ref. sensor via high limit (refId = 4)
-            * Ref. sensor center via low limit (refId = 5)
-            * Ref. sensor center via high limit (refId = 6)
-            * Encoder index via low limit (refId = 11)
-            * Encoder index via high limit (refId = 12)
-            * Set position dedicated for auto restore (refId = 15)
-            * Single turn abs encoder (resolver) ref via low limit (refId = 21)
-            * Single turn abs encoder (resolver) ref via high limit (refId = 22)
-            * Set position (refId = 25)
-    * Interlocks
-        * Following error
-        * Max speed
-        * Ethercat I/O
-        * Ethercat bus health
-    * Trajectories:
-        * Trapezoidal
-        * Jerk limited (ruckig, see below)
-        * Custom:
-            * Calculated in ecmc plc
-            * Buffered positions from array (data storage)
-    * Advanced features
-        * Virtual and normal axis
-        * Modulo movements
-        * Synchronization (to axis or any I/O) Handled through expressions
-            * Example slaving  "ax2.traj.setpos:=ax1.enc.actpos;"
-            * Example sync     "ax2.traj.setpos:=ax1.traj.setpos;"
-            * Example phasing  "ax2.traj.setpos:=ax1.traj.setpos+100;"
-            * Example phasing  "ax2.traj.setpos:=ax1.traj.setpos+ax3.traj.setpos;"
-            * Advanced         "ax2.traj.setpos:=ax1.traj.setpos*sin(ax3.traj.setpos/100)+ec0.s2.VALUE;"
-            * Enable amps      "ax2.drv.enable:=ax1.drv.enable;"
-            * Interlocks       "ax2.mon.ilockfwd:=ec0.s1.INPUT_1 or ax1.enc.actpos < 100;"
-    * Data acquisition
-        * Support of many different analog and digital slaves
-        * Up to 100kHz analog and 1Mhz digital (oversampling slaves)      
-    * Control
-        * PLC objects can be created with custom sample rate where logic (including motion) can be handled in realtime.
-        (more info here: https://paulscherrerinstitute.github.io/ecmccfg/manual/plc_cfg/)
-        * Same syntax as for synchronization:
-            * "ec0.s45.VALUE:=static.gain*77+ax2.traj.setpos/10;"                        
-        * PLC variables can be accessed from EPICS.        
-    * Hardware support: 
-        * Drives: stepper, servo, pulse direction and analog
-        * I/O: Several analog and digital terminals
-        * Other: bus-couplers, system terminals
-        * Current list: https://github.com/paulscherrerinstitute/ecmccfg/tree/master/hardware
+Build the module from the repository root:
 
-# How do I get set up?
+```sh
+make
+```
 
-Fastest and easiest way to get started is by using the configuration scripts accessible in
-ecmccfg repository: https://github.com/paulscherrerinstitute/ecmccfg
+This builds the support library, example IOC application, and boot files through the standard EPICS build system.
 
-ECMC is configured via EPICS-iocsh:
+## Quick start
 
-* iocsh commands:
-    * Create an ECMC application:
-        * ecmcAsynPortDriverConfigure \<portName>,\<paramTableSize>, \<prio>, \<disableAutoConnect>, \<defaultSampleRateMS>
-    * Configure ECMC application. Exit ECMC if returns error: 
-        * ecmcConfigOrDie \<ecmc ASCII command>
-    * Configure ECMC application.
-        * ecmcConfig \<ecmc ASCII command> 
-    * Print available asyn parameters and other info:
-        * ecmcReport \<detail> 
-        * asynReport \<detail>. Same as ecmcReport but also calls asynReport in other modules.
+For a real system, start with `ecmccfg` examples rather than building a full configuration manually.
 
-* ASCII-cmds (see doxygen documentation for more information):
-    * Motion configs. Example:
-        * ecmcConfigOrDie "Cfg.CreateAxis(\<axisid>,1,\<type>)"
-        * ecmcConfigOrDie "Cfg.SetAxisCntrlKp(\<axisid>,\<kp>)"    
-        * ...
-    * Ethercat bus configs. Example:
-        * ecmcConfigOrDie "Cfg.EcAddEntryComplete(\<slaveid>,\<vendorid>,\<productid>,\<dir>,\<smid>,\<pdoid>,\<entryid>,\<entrysubid>,\<bits>,\<name>)"  
-        * ...
-    * Ethercat slave configs (SDO,SoE). Example set max motor current for EL7037 to 1500mA:
-        * ecmcConfigOrDie "Cfg.EcAddSdo(\<slaveid>,0x8010,0x1,1500,2)"
-    * PLC configuration:
-        * ecmcConfigOrDie "Cfg.CreatePLC(\<plcid>,\<sample rate ms>)"
-        * ecmcConfigOrDie "Cfg.LoadPLCFile(\<plcid>,\<filename>)"
-        * ecmcConfigOrDie "Cfg.AppendPLCExpr(\<plcid>)=ax1.enc.homepos:=25#"
-        * ...
+Typical workflow:
 
-# Documentation
+1. Build `ecmc` and verify that your external module paths are correct.
+2. Use `ecmccfg` to generate or reuse startup scripts for your hardware.
+3. Create an IOC and configure an `ecmc` application with `ecmcAsynPortDriverConfigure`.
+4. Load EtherCAT, axis, and PLC configuration through `ecmcConfigOrDie` or `ecmcConfig`.
+5. Start the IOC and verify axis and EtherCAT status from EPICS.
 
-[Manual](https://paulscherrerinstitute.github.io/ecmccfg/manual/)
+Example IOC files are included under [ecmcExampleTop/](ecmcExampleTop/).
 
-[Examples](https://github.com/paulscherrerinstitute/ecmccfg/tree/master/examples/PSI/best_practice)
+## Configuration model
 
-# Environment
-ECMC runs best under certain conditions:
+`ecmc` is configured primarily through EPICS IOC shell commands and `ecmc` ASCII commands.
 
-* PSI require (or ESS-e3)
-* RT-patch
-* configuration by ecmccfg: https://github.com/paulscherrerinstitute/ecmccfg
+### IOC shell entry points
 
-# Needed EPICS modules
+- `ecmcAsynPortDriverConfigure(<portName>,<paramTableSize>,<prio>,<disableAutoConnect>,<defaultSampleRateMS>)`
+- `ecmcConfigOrDie "<ecmc ASCII command>"`
+- `ecmcConfig "<ecmc ASCII command>"`
+- `ecmcReport <detail>`
+- `asynReport <detail>`
 
-* Open source ethercat master:      https://etherlab.org/
-* ExprTK:                           https://github.com/paulscherrerinstitute/exprtk-ecmc
-* Motor:                            https://github.com/EuropeanSpallationSource/motor
-* Asyn driver:                      https://github.com/epics-modules/asyn
-* ecmccfg                           https://github.com/paulscherrerinstitute/ecmccfg
-* ruckig                            https://github.com/anderssandstrom/ruckig
+### Common configuration areas
 
-# Optional modules
+- Axis creation and controller setup
+- EtherCAT bus, PDO, and SDO configuration
+- PLC creation and PLC file loading
+- Plugin loading
 
-* ecmccomp                          https://github.com/paulscherrerinstitute/ecmccomp
+Examples:
 
-# Plugins
-Plugins with extra functionality that can be loaded during startup:
-* CNC g-code support by grbl:                       https://github.com/anderssandstrom/ecmc_plugin_grbl
-* SocketCAN support (inc. reduced CANOpen support): https://github.com/anderssandstrom/e3-ecmc_plugin_socketcan
-* FFTs by kissfft:                                  https://github.com/paulscherrerinstitute/ecmc_plugin_fft
-* Raspi wiringPi support:                           https://github.com/anderssandstrom/e3-ecmc_plugin_raspi
-* PVA support from ecmc-plc:                        https://github.com/anderssandstrom/e3-ecmc_plugin_pva
-* Simple scope for ethercat dc slaves:              https://github.com/anderssandstrom/e3-ecmc_plugin_scope
-* DAQ plugin                                        https://github.com/paulscherrerinstitute/ecmc_plugin_daq
+```iocsh
+ecmcConfigOrDie "Cfg.CreateAxis(<axisid>,1,<type>)"
+ecmcConfigOrDie "Cfg.EcAddEntryComplete(<slaveid>,<vendorid>,<productid>,<dir>,<smid>,<pdoid>,<entryid>,<entrysubid>,<bits>,<name>)"
+ecmcConfigOrDie "Cfg.CreatePLC(<plcid>,<sample rate ms>)"
+ecmcConfigOrDie "Cfg.LoadPLCFile(<plcid>,<filename>)"
+ecmcConfigOrDie "Cfg.AppendPLCExpr(<plcid>)=ax1.enc.homepos:=25#"
+```
 
-# Issues/bug report
+## Plugins and extensions
 
-https://github.com/epics-modules/ecmc/issues
+Optional plugins can be loaded at startup to extend `ecmc` with extra functionality.
 
-# Support
+Current plugin examples:
 
-* ECMC                                 : Anders Sandström, anders.sandstroem@psi.ch
-* Motor Record                         : Torsten Bögershausen, torsten.bogershausen@esss.se
-  * ecmcMotorRecord model 3 driver (preferred) : Anders Sandström, anders.sandstroem@psi.ch
+- CNC G-code support by grbl: https://github.com/anderssandstrom/ecmc_plugin_grbl
+- SocketCAN support, including reduced CANopen support: https://github.com/anderssandstrom/e3-ecmc_plugin_socketcan
+- FFT support by kissfft: https://github.com/paulscherrerinstitute/ecmc_plugin_fft
+- Raspberry Pi wiringPi support: https://github.com/anderssandstrom/e3-ecmc_plugin_raspi
+- PVA support from `ecmc-plc`: https://github.com/anderssandstrom/e3-ecmc_plugin_pva
+- Scope plugin for EtherCAT DC slaves: https://github.com/anderssandstrom/e3-ecmc_plugin_scope
+- DAQ plugin: https://github.com/paulscherrerinstitute/ecmc_plugin_daq
+
+## Documentation and examples
+
+- Manual: https://paulscherrerinstitute.github.io/ecmccfg/manual/
+- Configuration examples: https://github.com/paulscherrerinstitute/ecmccfg/tree/master/examples/PSI/best_practice
+- Hardware definitions: https://github.com/paulscherrerinstitute/ecmccfg/tree/master/hardware
+
+## Environment notes
+
+`ecmc` works best in environments that already follow the PSI or ESS `e3` style of EPICS deployment and use a realtime Linux setup.
+The exact external module paths and EtherCAT user-library paths depend on your site packaging and target platform.
+
+## Support
+
+- Issues: https://github.com/epics-modules/ecmc/issues
+- `ecmc`: Anders Sandstrom, anders.sandstroem@psi.ch
+- Motor record: Torsten Bogershausen, torsten.bogershausen@esss.se
+- `ecmcMotorRecord` model 3 driver: Anders Sandstrom, anders.sandstroem@psi.ch
