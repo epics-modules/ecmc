@@ -61,6 +61,7 @@ extern int ecTimeoutSeconds;
 extern double mcuFrequency;
 extern double mcuPeriod;
 extern int    sampleRateChangeAllowed;
+extern int    blockCmdParserInRt;
 extern int    pluginsError;
 extern int    safetypluginError;
 extern int    shmInitError;

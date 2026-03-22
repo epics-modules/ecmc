@@ -59,6 +59,7 @@ int ecTimeoutSeconds             = EC_START_TIMEOUT_S;
 double mcuFrequency              = MCU_FREQUENCY;
 double mcuPeriod                 = MCU_PERIOD_NS;
 int    sampleRateChangeAllowed   = 1;
+int    blockCmdParserInRt        = 0;
 int    pluginsError              = 0;
 int    safetypluginError         = 0;
 int    shmInitError              = 0;

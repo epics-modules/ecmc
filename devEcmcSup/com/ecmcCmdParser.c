@@ -36,6 +36,8 @@
 #include "ecmcPlugin.h"
 #include <iocsh.h>
 
+extern int blockCmdParserInRt;
+
 typedef struct
 {
   int      command_no;
@@ -685,6 +687,26 @@ static int handleCfgCommand(const char *myarg_1) {
                         !strncmp(myarg_1, "SelectAxisEnc", 13) ||
                         !strncmp(myarg_1, "LoadAxisEncLookupTable", 22) ||
                         !strncmp(myarg_1, "CreateMasterSlaveSM", 19);
+
+  /// "Cfg.SetBlockCfgCmdsInRuntime(block)"
+  nvals = sscanf(myarg_1, "SetBlockCfgCmdsInRuntime(%d)", &iValue);
+
+  if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("SetBlockCfgCmdsInRuntime");
+    blockCmdParserInRt = iValue ? 1 : 0;
+    return 0;
+  }
+
+  if ((appModeStat == ECMC_MODE_RUNTIME) &&
+      blockCmdParserInRt) {
+    LOGERR("%s/%s:%d: ERROR: Cfg.%s blocked in runtime (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           myarg_1,
+           ERROR_MAIN_PARSER_CMD_BLOCKED_IN_RUNTIME);
+    return ERROR_MAIN_PARSER_CMD_BLOCKED_IN_RUNTIME;
+  }
 
   // Fast path: jump directly to axis-set command region for heavy groups.
   if (cfgFastSetAxisCntrl || cfgFastSetAxisMon || cfgFastSetAxisDrv || cfgFastSetAxisEnc) {
@@ -3820,6 +3842,12 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
   fastGetAxisMon   = !strncmp(myarg_1, "GetAxisMon", 10);
   fastGetAxisDrv   = !strncmp(myarg_1, "GetAxisDrv", 10);
   fastGetAxisEnc   = !strncmp(myarg_1, "GetAxisEnc", 10);
+
+  /* GetBlockCfgCmdsInRuntime() */
+  if (!strcmp(myarg_1, "GetBlockCfgCmdsInRuntime()")) {
+    cmd_buf_printf(buffer, "%d", blockCmdParserInRt);
+    return 0;
+  }
 
   // Fast path: jump directly to GetAxis parser region.
   if (fastGetAxisAny) {

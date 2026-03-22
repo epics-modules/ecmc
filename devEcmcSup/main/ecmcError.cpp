@@ -2393,6 +2393,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x20063:
+    return "ERROR_MAIN_PARSER_CMD_BLOCKED_IN_RUNTIME";
+
+    break;
+
   case 0x20100:   // Data Recorder
     return "ERROR_DATA_RECORDER_BUFFER_NULL";
 
