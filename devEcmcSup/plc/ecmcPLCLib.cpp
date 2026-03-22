@@ -70,38 +70,49 @@ void ecmcPLCLib::parseFile(std::string filename) {
 
   std::stringstream code;
   code << plcLibFile.rdbuf();
-  std::vector<std::string> function_names;
-  std::vector<std::string> parameter_lists;
-  std::vector<std::string> function_bodies;
- 
-  // Remove #
-  code.str(removeLinesStartingWithHash(code.str()));
+  const std::string codeStr = removeLinesStartingWithHash(code.str());
 
   size_t pos = 0;
-  while ((pos = code.str().find(ECMC_PLC_FUNC_CALL_STR, pos)) != std::string::npos) {
+  while ((pos = codeStr.find(ECMC_PLC_FUNC_CALL_STR, pos)) != std::string::npos) {
 
     // Extract function name
     size_t nameStart = pos + 8;
-    size_t nameEnd = code.str().find('(', nameStart);
-    std::string function_name = ecmcPLCLibFunc::trim(code.str().substr(nameStart, nameEnd - nameStart));
+    size_t nameEnd = codeStr.find('(', nameStart);
+    if (nameEnd == std::string::npos) {
+      throw std::runtime_error("PLC-lib parse error: missing '(' after function name.");
+    }
+    std::string function_name = ecmcPLCLibFunc::trim(codeStr.substr(nameStart, nameEnd - nameStart));
+    if (function_name.empty()) {
+      throw std::runtime_error("PLC-lib parse error: empty function name.");
+    }
 
     // Extract parameters
     size_t paramsStart = nameEnd + 1;
-    size_t paramsEnd = code.str().find(')', paramsStart);
-    std::string parameters = ecmcPLCLibFunc::trim(code.str().substr(paramsStart, paramsEnd - paramsStart));
+    size_t paramsEnd = codeStr.find(')', paramsStart);
+    if (paramsEnd == std::string::npos) {
+      throw std::runtime_error("PLC-lib parse error: missing ')' in parameter list.");
+    }
+    std::string parameters = ecmcPLCLibFunc::trim(codeStr.substr(paramsStart, paramsEnd - paramsStart));
 
     // Extract function body
-    size_t bodyStart = code.str().find('{', paramsEnd);
-    std::string function_body = extractFunctionBody(code.str(), bodyStart);
+    size_t bodyStart = codeStr.find('{', paramsEnd);
+    if (bodyStart == std::string::npos) {
+      throw std::runtime_error("PLC-lib parse error: missing '{' before function body.");
+    }
+    std::string extractedBody = extractFunctionBody(codeStr, bodyStart);
+    if (extractedBody.empty()) {
+      throw std::runtime_error("PLC-lib parse error: missing closing '}' for function body.");
+    }
 
     // Remove first and last {}
+    std::string function_body = extractedBody;
     function_body = removeBraces(function_body);
 
     ecmcPLCLibFunc * func= new ecmcPLCLibFunc(function_name,parameters,function_body);
     funcs_.push_back(func); 
     counter_ ++;
 
-    pos = bodyStart + function_body.length();
+    pos = bodyStart + extractedBody.length();
   }
   
   return;

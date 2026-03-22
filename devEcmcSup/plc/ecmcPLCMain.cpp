@@ -125,7 +125,7 @@ int ecmcPLCMain::setDataStoragePointer(ecmcDataStorage *ds, int index) {
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
-                      ERROR_PLCS_AXIS_INDEX_OUT_OF_RANGE);
+                      ERROR_PLCS_DATA_STORAGE_INDEX_OUT_OF_RANGE);
   }
   ds_[index] = ds;
   return 0;
@@ -1343,7 +1343,7 @@ int ecmcPLCMain::addPLCDefaultVariable(int             plcIndex,
 }
 
 int ecmcPLCMain::setPluginPointer(ecmcPluginLib *plugin, int index) {
-  if ((index < 0) && (index >= ECMC_MAX_PLUGINS)) {
+  if ((index < 0) || (index >= ECMC_MAX_PLUGINS)) {
     return ERROR_PLCS_PLUGIN_INDEX_OUT_OF_RANGE;
   }
 

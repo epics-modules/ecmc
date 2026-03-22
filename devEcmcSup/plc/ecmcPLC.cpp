@@ -161,8 +161,20 @@ int loadPLCLibFile(int   index,
            index,
            fileName);
   CHECK_PLCS_RETURN_IF_ERROR();
-  
-  return plcs->addLib(index, new ecmcPLCLib(fileName));
+
+  try {
+    return plcs->addLib(index, new ecmcPLCLib(fileName));
+  }
+  catch (const std::exception& e) {
+    LOGERR("%s/%s:%d: Invalid PLC-lib file %s: %s (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           fileName,
+           e.what(),
+           ERROR_PLCS_LIB_FILE_INVALID);
+    return ERROR_PLCS_LIB_FILE_INVALID;
+  }
 }
 
 int clearPLCExpr(int index) {

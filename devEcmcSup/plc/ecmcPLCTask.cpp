@@ -1087,7 +1087,7 @@ void ecmcPLCTask::updateAsyn() {
 }
 
 int ecmcPLCTask::setPluginPointer(ecmcPluginLib *plugin, int index) {
-  if ((index < 0) && (index >= ECMC_MAX_PLUGINS)) {
+  if ((index < 0) || (index >= ECMC_MAX_PLUGINS)) {
     return ERROR_PLC_PLUGIN_INDEX_OUT_OF_RANGE;
   }
 

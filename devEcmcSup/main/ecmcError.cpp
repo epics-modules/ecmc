@@ -2728,6 +2728,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x2070B:
+    return "ERROR_PLCS_LIB_FILE_INVALID";
+
+    break;
+
   case 0x20800:
     return "ERROR_PLC_EC_LIB_BITS_OUT_OF_RANGE";
 
