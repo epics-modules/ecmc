@@ -74,6 +74,10 @@ int getControllerError() {
     return pluginsError;
   }
 
+  if (shmAccessError) {
+    return shmAccessError;
+  }
+
   return 0;
 }
 
@@ -112,6 +116,7 @@ int controllerErrorReset() {
 
   // Plugin RTfunc retrun errors
   pluginsError = 0;
+  shmAccessError = 0;
 
   // PLCs
   if (plcs) {

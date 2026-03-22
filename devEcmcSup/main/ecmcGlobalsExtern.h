@@ -63,6 +63,8 @@ extern double mcuPeriod;
 extern int    sampleRateChangeAllowed;
 extern int    pluginsError;
 extern int    safetypluginError;
+extern int    shmInitError;
+extern int    shmAccessError;
 extern int    currentMasterSlaveSMIndex;
 extern int    allowCallbackEpicsState;
 extern int    epicsHookState;

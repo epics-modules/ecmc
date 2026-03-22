@@ -55,6 +55,33 @@ static struct timespec masterActivationTimeRealtime  = {};
 
 /*****************************************************************************/
 
+static inline void setShmAccessErrorIfNeeded(int errorCode) {
+  if (!shmAccessError) {
+    shmAccessError = errorCode;
+  }
+}
+
+static inline bool writeMasterStatus(int masterId, char status) {
+  if (!shmObj.valid) {
+    setShmAccessErrorIfNeeded(shmInitError ? shmInitError : ERROR_SHM_NULL);
+    return false;
+  }
+
+  if ((masterId >= ECMC_SHM_MAX_MASTERS) ||
+      (masterId <= -ECMC_SHM_MAX_MASTERS)) {
+    setShmAccessErrorIfNeeded(ERROR_SHM_INDEX_OUT_OF_RANGE);
+    return false;
+  }
+
+  if (masterId >= 0) {
+    shmObj.mstPtr[masterId] = status;
+  } else {
+    shmObj.simMstPtr[-masterId + ECMC_SHM_MAX_MASTERS] = status;
+  }
+
+  return true;
+}
+
 void printStatus() {
   // Print axis diagnostics to screen
   if (PRINT_STDOUT_BIT12() && (axisDiagIndex < ECMC_MAX_AXES) &&
@@ -267,7 +294,6 @@ void cyclic_task(void *usr) {
   const struct timespec cycletime = { 0, (long int)mcuPeriod };
   int masterId                    = ec->getMasterIndex();
   const bool hasRealMaster        = masterId >= 0;
-  const int simMasterIndex        = -masterId + ECMC_SHM_MAX_MASTERS;
   int axisDiagFreqCached          = -1;
   int slowCycleInterval           = 1;
   int activeAxisCount             = 0;
@@ -278,9 +304,8 @@ void cyclic_task(void *usr) {
   int activePluginCount           = 0;
   ecmcPluginLib *activePlugins[ECMC_MAX_PLUGINS] = {};
 
-  int writeToShm = shmObj.valid &&
-                   masterId <= ECMC_SHM_MAX_MASTERS &&
-                   masterId >= -ECMC_SHM_MAX_MASTERS;
+  int writeToShm = masterId < ECMC_SHM_MAX_MASTERS &&
+                   masterId > -ECMC_SHM_MAX_MASTERS;
 
   offsetStartTime.tv_nsec = MCU_NSEC_PER_SEC / 10;
   offsetStartTime.tv_sec  = 0;
@@ -396,9 +421,9 @@ void cyclic_task(void *usr) {
     // Master to master coms
     if (writeToShm) {
       if (hasRealMaster) {
-        shmObj.mstPtr[masterId] = 1 + ecStat;  // ec OK
+        writeMasterStatus(masterId, 1 + ecStat);  // ec OK
       } else {   // NO ec master
-        shmObj.simMstPtr[simMasterIndex] = 1;
+        writeMasterStatus(masterId, 1);
       }
     }
 
@@ -480,10 +505,8 @@ void cyclic_task(void *usr) {
   appModeStat = ECMC_MODE_CONFIG;
 
   // Write to SHM the this ioc closes down
-  if (masterId >= 0) {
-    shmObj.mstPtr[masterId] = 0;
-  } else {   // NO ec master
-    shmObj.simMstPtr[-masterId + ECMC_SHM_MAX_MASTERS] = 0;
+  if (writeToShm) {
+    writeMasterStatus(masterId, 0);
   }
 }
 
@@ -530,7 +553,13 @@ int ecmcInitThread(void) {
 
   // Create SHM for master 2 master communication
   memset(&shmObj, 0, sizeof(ecmcShm));
-  createShm();
+  shmInitError   = createShm();
+  shmAccessError = 0;
+
+  if (shmInitError) {
+    LOGERR("WARNING: Shared memory unavailable at startup (0x%x).\n",
+           shmInitError);
+  }
 
   plcs = NULL;
 
@@ -611,6 +640,12 @@ int lockMem(int size) {
   int   i;
   char *buffer;
   buffer = (char *)malloc(size);
+
+  if (!buffer) {
+    LOGERR("ERROR: Failed to allocate RT memory pre-touch buffer (0x%x).\n",
+           ERROR_MAIN_RT_MEMORY_ALLOC_FAILED);
+    return ERROR_MAIN_RT_MEMORY_ALLOC_FAILED;
+  }
 
   for (i = 0; i < size; i += sysconf(_SC_PAGESIZE)) {
     /* Each write to this buffer will generate a pagefault.
@@ -789,12 +824,7 @@ int setAppModeRun(int mode) {
   }
 
   int masterId = ec->getMasterIndex();
-
-  if (masterId >= 0) {
-    shmObj.mstPtr[masterId] = 1;
-  } else {   // NO ec master
-    shmObj.simMstPtr[-masterId + ECMC_SHM_MAX_MASTERS] = 1;
-  }
+  writeMasterStatus(masterId, 1);
 
   return 0;
 }
