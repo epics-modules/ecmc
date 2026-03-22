@@ -612,6 +612,16 @@ asynStatus ecmcAsynPortDriver::checkParamNameAndId(int         paramIndex,
                                                    const char *functionName) {
   const char *paramName;
 
+  if ((paramIndex < 0) || (paramIndex >= paramTableSize_)) {
+    asynPrint(pasynUserSelf,
+              ASYN_TRACE_ERROR,
+              "%s:%s: Error: Parameter index out of range for function %d.\n",
+              driverName,
+              functionName,
+              paramIndex);
+    return asynError;
+  }
+
   /* Fetch the parameter string name for possible use in debugging */
   getParamName(paramIndex, &paramName);
 

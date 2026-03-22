@@ -20,6 +20,7 @@
 #include <sys/shm.h>
 #include <unistd.h>
 #include <epicsExit.h>
+#include <epicsThread.h>
 
 
 // Below for asyn version and 64 bit ints
@@ -44,10 +45,42 @@
 #include "ecmcGlobalsExtern.h"
 #include <signal.h>
 
+static volatile sig_atomic_t ecmcShutdownRequested = 0;
+static int                   ecmcShutdownThreadStarted = 0;
+
+static void ecmcSigIntHandler(int signum) {
+  ecmcShutdownRequested = signum;
+}
+
+static void ecmcShutdownTask(void *arg) {
+  while (1) {
+    if (ecmcShutdownRequested) {
+      int signum = ecmcShutdownRequested;
+      ecmcShutdownRequested = 0;
+      ecmcCleanup(signum);
+      return;
+    }
+
+    epicsThreadSleep(0.1);
+  }
+}
+
 int ecmcInit(void *asynPortObject) {
   LOGINFO4("%s/%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
 
-  signal(SIGINT, ecmcCleanup);
+  signal(SIGINT, ecmcSigIntHandler);
+
+  if (!ecmcShutdownThreadStarted) {
+    if (epicsThreadCreate("ecmcSigMon",
+                          epicsThreadPriorityLow,
+                          epicsThreadGetStackSize(epicsThreadStackSmall),
+                          ecmcShutdownTask,
+                          NULL) == NULL) {
+      LOGERR("ERROR: Failed to create shutdown monitor thread.\n");
+      return ERROR_MAIN_EXCEPTION;
+    }
+    ecmcShutdownThreadStarted = 1;
+  }
 
 
   ecmcRTMutex = epicsMutexCreate();

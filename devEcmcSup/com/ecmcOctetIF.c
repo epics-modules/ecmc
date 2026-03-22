@@ -36,19 +36,33 @@ int cmd_buf_printf(ecmcOutputBufferType *buffer, const char *format, ...) {
   if (buffer == NULL) {
     return ERROR_MAIN_PARSER_BUFFER_NULL;
   }
+
+  if (buffer->bytesUsed >= buffer->bufferSize) {
+    return ERROR_MAIN_PRINT_TO_BUFFER_FAIL;
+  }
+
   va_list ap;
   va_start(ap, format);
   char *buff = &buffer->buffer[buffer->bytesUsed];
+  size_t bytesLeft = buffer->bufferSize - buffer->bytesUsed;
   int   res  = vsnprintf(buff,
-                         buffer->bufferSize - buffer->bytesUsed,
+                         bytesLeft,
                          format,
                          ap);
-  buffer->bytesUsed += res;
   va_end(ap);
 
   if (res < 0) {
     return res;
   }
+
+  if ((size_t)res >= bytesLeft) {
+    buffer->bytesUsed = buffer->bufferSize - 1;
+    buffer->buffer[buffer->bytesUsed] = '\0';
+    return ERROR_MAIN_PRINT_TO_BUFFER_FAIL;
+  }
+
+  buffer->bytesUsed += res;
+
   return 0;
 }
 
