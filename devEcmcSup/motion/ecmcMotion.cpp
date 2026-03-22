@@ -3860,6 +3860,12 @@ int addAxisGroup(const char *name) {
     return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
   }
 
+  for (int i = 0; i < index; i++) {
+    if (axisGroups[i] && strcmp(axisGroups[i]->getName(), name) == 0) {
+      return ERROR_AXISGRP_NAME_ALREADY_EXISTS;
+    }
+  }
+
   // Do not allow create already created axis (must be deleted first)
   if (axisGroups[index] != NULL) {
     return ERROR_MAIN_AXIS_ALREADY_CREATED;

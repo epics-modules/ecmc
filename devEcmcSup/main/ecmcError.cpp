@@ -1301,6 +1301,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
     return "ERROR_AXISGRP_NOT_FOUND";
   
     break;
+
+  case 0x16002:
+    return "ERROR_AXISGRP_NAME_ALREADY_EXISTS";
+  
+    break;
   
   case 0x17000:
     return "ERROR_MST_SLV_SM_GRP_NULL";

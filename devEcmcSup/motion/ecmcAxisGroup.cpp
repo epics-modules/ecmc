@@ -47,6 +47,9 @@ void ecmcAxisGroup::addAxis(ecmcAxisBase *axis){
 
 // Check if all axes in group are enable
 bool ecmcAxisGroup::getEnable(){
+  if (axes_.empty()) {
+    return false;
+  }
   for (auto *axis : axes_) {
     if (!axis->getEnable()) {
       return false;
@@ -67,6 +70,9 @@ bool ecmcAxisGroup::getAnyEnable(){
 
 // Check if all axes in group are enabled
 bool ecmcAxisGroup::getEnabled(){
+  if (axes_.empty()) {
+    return false;
+  }
   for (auto *axis : axes_) {
     if (!axis->getEnabled()) {
       return false;
@@ -88,6 +94,9 @@ bool ecmcAxisGroup::getAnyEnabled(){
 
 // Check if all axes in group are busy
 bool ecmcAxisGroup::getBusy(){
+  if (axes_.empty()) {
+    return false;
+  }
   for (auto *axis : axes_) {
     if (!axis->getBusy()) {
       return false;
@@ -253,6 +262,9 @@ ecmcAxisGroupStatusSummary ecmcAxisGroup::getStatusSummary(bool includeMonFields
 
 // get all traj src in extern
 bool ecmcAxisGroup::getTrajSrcExt(){
+  if (axes_.empty()) {
+    return false;
+  }
   for (auto *axis : axes_) {
     if (axis->getTrajDataSourceType() == ECMC_DATA_SOURCE_INTERNAL) {
       return false;
@@ -357,6 +369,9 @@ void ecmcAxisGroup::setAxisIsWithinCtrlDBExtTraj(bool within) {
 }
 
 bool ecmcAxisGroup::getAxisIsWithinCtrlDB() {
+  if (axes_.empty()) {
+    return false;
+  }
   for (auto *axis : axes_) {
     if (!axis->getMon()->getAxisIsWithinCtrlDB()) {
       return false;
@@ -375,6 +390,9 @@ bool ecmcAxisGroup::getAnyIlocked() {
 }
 
 bool ecmcAxisGroup::getAtTarget() {
+  if (axes_.empty()) {
+    return false;
+  }
   for (auto *axis : axes_) {
     auto * const mon = axis->getMon();
     if(mon->getEnableAtTargetMon()) {
@@ -408,6 +426,9 @@ bool ecmcAxisGroup::getBlocked() {
 }
 
 bool ecmcAxisGroup::getAxisAutoDisableEnabled() {
+  if (axes_.empty()) {
+    return false;
+  }
   bool autoDisable = true;
   for (auto *axis : axes_) {
     autoDisable = autoDisable && axis->getEnableAutoDisable();
