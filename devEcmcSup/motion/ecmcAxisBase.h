@@ -127,8 +127,9 @@ public:
   bool                       getGlobalBusy();
   bool                       getLocalBusy();
   bool                       getTrajBusy();
-  int                        getBlockExtCom();
-  int                        setBlockExtCom(int block);
+  int                        getBlockCom();
+  int                        setBlockCom(int block);
+  int                        setExternalCommandBlockedError();
   int                        getCycleCounter();
   void                       printAxisStatus();
   int                        initAsyn();
@@ -312,7 +313,6 @@ protected:
   bool firstEnableDone_;
   char diagBuffer_[AX_MAX_DIAG_STRING_CHAR_LENGTH];
   int printHeaderCounter_;
-  int blockExtCom_;
   double setEncoderPos_;
   ecmcTrajTypes currentTrajType_;
   int encPrimIndexAsyn_;

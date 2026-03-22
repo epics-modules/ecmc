@@ -32,7 +32,8 @@ typedef struct {
   bool enableDbgPrintout  : 1;
   bool tweakBwdCmd        : 1;
   bool tweakFwdCmd        : 1;
-  int  spareBitsCmd       : 19;
+  bool blockCom           : 1;
+  int  spareBitsCmd       : 18;
 } ecmcAsynAxisControlType;
 
 typedef struct {

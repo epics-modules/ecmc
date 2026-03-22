@@ -543,7 +543,7 @@ int ecmcPLCDataIF::readAxis() {
     break;
 
   case ECMC_AXIS_DATA_BLOCK_COM:
-    data_ = axis->getBlockExtCom();
+    data_ = axis->getBlockCom();
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:
@@ -718,11 +718,17 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_COMMAND:
+    if (axis->getBlockCom()) {
+      return axis->setExternalCommandBlockedError();
+    }
     return axis->setCommand((motionCommandTypes)data_);
 
     break;
 
   case ECMC_AXIS_DATA_CMD_DATA:
+    if (axis->getBlockCom()) {
+      return axis->setExternalCommandBlockedError();
+    }
     return axis->setCmdData(static_cast<int>(data_));
 
     break;
@@ -759,6 +765,9 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_ENABLE:
+    if (axis->getBlockCom() && data_ >= 1) {
+      return axis->setExternalCommandBlockedError();
+    }
     return axis->setEnable(static_cast<bool>(data_));
 
     break;
@@ -769,6 +778,9 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_EXECUTE:
+    if (axis->getBlockCom() && data_ >= 1) {
+      return axis->setExternalCommandBlockedError();
+    }
     return axis->setExecute(static_cast<bool>(data_));
 
     break;
@@ -854,7 +866,7 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_BLOCK_COM:
-    axis->setBlockExtCom(data_ >= 1);
+    axis->setBlockCom(data_ >= 1);
     break;
 
   case ECMC_AXIS_DATA_INTERLOCK_BWD_TYPE:

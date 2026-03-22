@@ -38,8 +38,9 @@ extern "C" {
 #define CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)\
         {\
           CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
-          if (axes[axisIndex]->getBlockExtCom()) {\
+          if (axes[axisIndex]->getBlockCom()) {\
             LOGERR("ERROR: External Commands Disabled\n");\
+            axes[axisIndex]->setExternalCommandBlockedError();\
             return ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED;\
           }\
         }\

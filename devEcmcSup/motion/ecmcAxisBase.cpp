@@ -277,7 +277,6 @@ void ecmcAxisBase::initVars() {
 
   statusOutputEntry_ = 0;
 
-  blockExtCom_ = 0;
   memset(diagBuffer_, 0, AX_MAX_DIAG_STRING_CHAR_LENGTH);
   extTrajVeloFilter_         = NULL;
   extEncVeloFilter_          = NULL;
@@ -1376,13 +1375,29 @@ motionDirection ecmcAxisBase::getAxisSetDirection() {
   return ECMC_DIR_STANDSTILL;
 }
 
-int ecmcAxisBase::getBlockExtCom() {
-  return blockExtCom_;
+int ecmcAxisBase::getBlockCom() {
+  return data_.control_.controlWord_.blockCom;
 }
 
-int ecmcAxisBase::setBlockExtCom(int block) {
-  blockExtCom_ = block;
+int ecmcAxisBase::setBlockCom(int block) {
+  data_.control_.controlWord_.blockCom = block > 0;
+  if (data_.axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]) {
+    data_.axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
+  }
   return 0;
+}
+
+int ecmcAxisBase::setExternalCommandBlockedError() {
+  LOGERR("%s/%s:%d: ERROR: Axis[%d]: External commands blocked (0x%x).\n",
+         __FILE__,
+         __FUNCTION__,
+         __LINE__,
+         data_.status_.axisId,
+         ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED);
+  return setErrorID(__FILE__,
+                    __FUNCTION__,
+                    __LINE__,
+                    ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED);
 }
 
 int ecmcAxisBase::setModRange(double mod) {
@@ -2181,6 +2196,7 @@ int ecmcAxisBase::stopMotion(int killAmplifier) {
  * data_.control_.controlWord_.enableILockChangePrintout
  * data_.control_.controlWord_.tweakBwdCmd
  * data_.control_.controlWord_.tweakFwdCmd
+ * data_.control_.controlWord_.blockCom
  * 
 */
 asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
@@ -2200,8 +2216,9 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     return asynError;
   }
 
-  memcpy(&data_.control_.controlWord_, data, sizeof(data_.control_.controlWord_));
-  uint32_t *tmpcontrolWordPtr = (uint32_t *)&data_.control_.controlWord_;
+  ecmcAsynAxisControlType controlWordNew;
+  memcpy(&controlWordNew, data, sizeof(controlWordNew));
+  uint32_t *tmpcontrolWordPtr = (uint32_t *)&controlWordNew;
   LOGERR(
     "%s/%s:%d: INFO: Axis[%d]: Write : Control Word = 0x%x.\n",
     __FILE__,
@@ -2210,36 +2227,41 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     data_.status_.axisId, *tmpcontrolWordPtr);
 
 
-  // Check if com is blocked but allow stop cmd
-  if (blockExtCom_) {
-    bool refreshNeeded = false;
-    
-    // allow to stop and disable but still go to error state
-    if (!data_.control_.controlWord_.enableCmd) {
-      setEnable(data_.control_.controlWord_.enableCmd);
-      refreshNeeded = true;
+  if (controlWordNew.blockCom && !getBlockCom()) {
+    setBlockCom(1);
+  }
+
+  if (getBlockCom()) {
+    bool allowedCommand = false;
+    int  errorCode      = 0;
+
+    if (!controlWordNew.enableCmd) {
+      errorCode = setEnable(0);
+      if (!errorCode) {
+        allowedCommand = true;
+      }
     }
 
-    if (data_.control_.controlWord_.stopCmd) {
-      stopMotion(data_.control_.controlWord_.enableCmd == 0);
-      //errorCode            = setExecute(0);
-      data_.control_.controlWord_.stopCmd = 0;  // auto reset      
-      refreshNeeded        = true;
+    if (controlWordNew.stopCmd) {
+      int stopError = stopMotion(controlWordNew.enableCmd == 0);
+      if (!errorCode) {
+        errorCode = stopError;
+      }
+      if (!stopError) {
+        allowedCommand = true;
+      }
     }
 
-    if (refreshNeeded) {
+    if (allowedCommand) {
       refreshStatusWd();
+      return errorCode ? asynError : asynSuccess;
     }
 
-    LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Communication blocked (stopCmd==1 and enableCmd==0 still can be used) (0x%x).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_.status_.axisId,
-      ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED);
+    setExternalCommandBlockedError();
     return asynError;
   }
+
+  memcpy(&data_.control_.controlWord_, &controlWordNew, sizeof(data_.control_.controlWord_));
 
   int errorCode = 0;
 
@@ -2457,6 +2479,7 @@ void ecmcAxisBase::initControlWord() {
   data_.control_.controlWord_.trajSourceCmd = getTrajDataSourceType() ==
                                ECMC_DATA_SOURCE_EXTERNAL;
   data_.control_.controlWord_.plcCmdsAllowCmd    = getAllowCmdFromPLC();
+  data_.control_.controlWord_.blockCom           = getBlockCom();
   data_.control_.controlWord_.enableSoftLimitBwd = data_.control_.controlWord_.enableSoftLimitBwd;
   data_.control_.controlWord_.enableSoftLimitFwd = data_.control_.controlWord_.enableSoftLimitFwd;
   data_.control_.controlWord_.stopCmd  = false;  
@@ -2673,6 +2696,11 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
   double pos = 0;
   memcpy(&pos, data, bytes);
 
+  if (getBlockCom()) {
+    setExternalCommandBlockedError();
+    return asynError;
+  }
+
   if (getBusy()) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis[%d]: Axis Busy, homing not possible.\n",
@@ -2712,6 +2740,11 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
   }
   int command = 0;
   memcpy(&command, data, bytes);
+
+  if (getBlockCom()) {
+    setExternalCommandBlockedError();
+    return asynError;
+  }
 
   if(!commandValid((motionCommandTypes)command)) {
     LOGERR(
@@ -2755,6 +2788,11 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
   }
   int cmddata = 0;
   memcpy(&cmddata, data, bytes);
+
+  if (getBlockCom()) {
+    setExternalCommandBlockedError();
+    return asynError;
+  }
   data_.control_.cmdData = cmddata;
   //setCmdData(cmddata);
 

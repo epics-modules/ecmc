@@ -52,6 +52,10 @@
 }                                                             \
 
 #define CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(axIndex) { \
+  if(axes[index]->getBlockCom()) {                            \
+    mc_errorCode=axes[index]->setExternalCommandBlockedError(); \
+    return ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED;             \
+  }                                                           \
   if(!axes[index]->getAllowCmdFromPLC()) {  \
     mc_errorCode=ERROR_MAIN_AXIS_COM_BLOCKED;                 \
     return ERROR_MAIN_AXIS_COM_BLOCKED;                       \
@@ -386,7 +390,6 @@ inline double mc_halt(double axIndex,double execute)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
-  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
 
   // check traj source, must be internal
   if(axes[index]->getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
@@ -415,7 +418,9 @@ inline double mc_power(double axIndex,double enable)
 {
   int index=(int)axIndex;
   CHECK_PLC_AXIS_RETURN_IF_ERROR(index);
-  CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+  if((bool)enable) {
+    CHECK_PLC_AXIS_COM_ALLOWED_RETURN_IF_ERROR(index);
+  }
 
   if(axes[index]->getEnable() != (bool)enable){
     mc_errorCode=axes[index]->setEnable((bool)enable);    
@@ -682,6 +687,16 @@ inline double mc_grp_set_enable(double grpIndex, double enable){
   int intGrpIndex=(int)grpIndex;
   CHECK_PLC_AXISGRP_RETURN_IF_ERROR(intGrpIndex);
   auto * const grp = axisGroups[intGrpIndex];
+  if ((int)enable) {
+    for (int axisIndex = 0; axisIndex < ECMC_MAX_AXES; ++axisIndex) {
+      if (grp->inGroup(axisIndex) &&
+          axes[axisIndex] &&
+          axes[axisIndex]->getBlockCom()) {
+        mc_errorCode = axes[axisIndex]->setExternalCommandBlockedError();
+        return ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED;
+      }
+    }
+  }
   return (double)grp->setEnable((int)enable);
 }
 

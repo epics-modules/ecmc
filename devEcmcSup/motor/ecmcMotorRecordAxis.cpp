@@ -957,8 +957,9 @@ asynStatus ecmcMotorRecordAxis::move(double position,
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   
   // Communication to axis blocked
-  if (drvlocal.ecmcAxis->getBlockExtCom()) {
+  if (drvlocal.ecmcAxis->getBlockCom()) {
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+    drvlocal.ecmcAxis->setExternalCommandBlockedError();
     LOGERR(
       "%s/%s:%d: ERROR: Axis[%d]: Communication to ECMC blocked, motion commands not allowed..\n",
       __FILE__,
@@ -1134,8 +1135,9 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
 
-  if (drvlocal.ecmcAxis->getBlockExtCom()) {
+  if (drvlocal.ecmcAxis->getBlockCom()) {
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+    drvlocal.ecmcAxis->setExternalCommandBlockedError();
 
     LOGERR(
       "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
@@ -1240,8 +1242,9 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
 
-  if (drvlocal.ecmcAxis->getBlockExtCom()) {
+  if (drvlocal.ecmcAxis->getBlockCom()) {
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+    drvlocal.ecmcAxis->setExternalCommandBlockedError();
     LOGERR(
       "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
       __FILE__,
@@ -1345,8 +1348,9 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
 
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
 
-  if (drvlocal.ecmcAxis->getBlockExtCom()) {
+  if (drvlocal.ecmcAxis->getBlockCom() && on) {
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
+    drvlocal.ecmcAxis->setExternalCommandBlockedError();
     LOGERR(
       "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
       __FILE__,

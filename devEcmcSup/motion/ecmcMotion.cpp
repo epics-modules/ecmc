@@ -233,7 +233,11 @@ int setAxisExecute(int axisIndex, int value) {
            axisIndex,
            value);
 
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+
+  if (value && axes[axisIndex]->getBlockCom()) {
+    return axes[axisIndex]->setExternalCommandBlockedError();
+  }
 
   // Axis needs to be reset before new command is executed
   // (however allow execute=0)
@@ -511,7 +515,11 @@ int setAxisEnable(int axisIndex, int value) {
            axisIndex,
            value);
 
-  CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+
+  if (value && axes[axisIndex]->getBlockCom()) {
+    return axes[axisIndex]->setExternalCommandBlockedError();
+  }
 
   if (!value) {
     axes[axisIndex]->setExecute(value);
@@ -708,7 +716,7 @@ int setAxisBlockCom(int axisIndex, int block) {
            block);
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
 
-  return axes[axisIndex]->setBlockExtCom(block);
+  return axes[axisIndex]->setBlockCom(block);
 }
 
 int getAxisBlockCom(int axisIndex, int *block) {
@@ -719,7 +727,7 @@ int getAxisBlockCom(int axisIndex, int *block) {
            axisIndex);
   CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
   * block = 0;
-  *block  = axes[axisIndex]->getBlockExtCom();
+  *block  = axes[axisIndex]->getBlockCom();
   return 0;
 }
 
