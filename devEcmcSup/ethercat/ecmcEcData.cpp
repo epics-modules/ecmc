@@ -17,6 +17,44 @@
 #include <string.h>
 #include "ecmcErrorsList.h"
 
+namespace {
+
+uint64_t read_unaligned_bits(const uint8_t *buffer,
+                             int            byteOffset,
+                             int            bitOffset,
+                             int            bitCount) {
+  uint64_t result = 0;
+
+  for (int bit = 0; bit < bitCount; ++bit) {
+    const int srcBitIndex  = bitOffset + bit;
+    const int srcByteIndex = byteOffset + (srcBitIndex / 8);
+    const int srcBitOffset = srcBitIndex % 8;
+    result |=
+      ((uint64_t)((buffer[srcByteIndex] >> srcBitOffset) & 0x01)) << bit;
+  }
+
+  return result;
+}
+
+void write_unaligned_bits(uint8_t *buffer,
+                          int      byteOffset,
+                          int      bitOffset,
+                          int      bitCount,
+                          uint64_t value) {
+  for (int bit = 0; bit < bitCount; ++bit) {
+    const int dstBitIndex  = bitOffset + bit;
+    const int dstByteIndex = byteOffset + (dstBitIndex / 8);
+    const int dstBitOffset = dstBitIndex % 8;
+    const uint8_t mask     = (uint8_t)(1u << dstBitOffset);
+    const uint8_t bitValue = (uint8_t)((value >> bit) & 0x01);
+
+    buffer[dstByteIndex] =
+      (buffer[dstByteIndex] & ~mask) | (bitValue ? mask : 0);
+  }
+}
+
+}  // namespace
+
 ecmcEcData::ecmcEcData(ecmcAsynPortDriver *asynPortDriver,
                        int                 masterId,
                        int                 slaveId,
@@ -498,10 +536,7 @@ uint16_t ecmcEcData::read_uint16_offset(uint8_t *buffer,
     memcpy(&result, &buffer[byteOffset], 2);
     return result;
   } else {
-    uint16_t result =
-      (buffer[byteOffset] >>
-       bitOffset) | (buffer[byteOffset + 1] << (8 - bitOffset));
-    return result;
+    return (uint16_t)read_unaligned_bits(buffer, byteOffset, bitOffset, 16);
   }
 }
 
@@ -513,12 +548,7 @@ void ecmcEcData::write_uint16_offset(uint8_t *buffer,
   if (bitOffset == 0) {
     memcpy(&buffer[byteOffset], &value, 2);
   } else {
-    buffer[byteOffset] =
-      (buffer[byteOffset] & (0xFF >> (8 - bitOffset))) | (value << bitOffset);
-    buffer[byteOffset +
-           1] =
-      (buffer[byteOffset + 1] &
-       (0xFF << bitOffset)) | (value >> (8 - bitOffset));
+    write_unaligned_bits(buffer, byteOffset, bitOffset, 16, value);
   }
 }
 
@@ -548,14 +578,7 @@ uint32_t ecmcEcData::read_uint32_offset(uint8_t *buffer,
     memcpy(&result, &buffer[byteOffset], 4);
     return result;
   } else {
-    uint32_t result =
-      (buffer[byteOffset] >>
-       bitOffset) |
-      (buffer[byteOffset + 1] <<
-        (8 - bitOffset)) |
-      (buffer[byteOffset + 2] <<
-        (16 - bitOffset)) | (buffer[byteOffset + 3] << (24 - bitOffset));
-    return result;
+    return (uint32_t)read_unaligned_bits(buffer, byteOffset, bitOffset, 32);
   }
 }
 
@@ -567,20 +590,7 @@ void ecmcEcData::write_uint32_offset(uint8_t *buffer,
   if (bitOffset == 0) {
     memcpy(&buffer[byteOffset], &value, 4);
   } else {
-    buffer[byteOffset] =
-      (buffer[byteOffset] & (0xFF >> (8 - bitOffset))) | (value << bitOffset);
-    buffer[byteOffset +
-           1] =
-      (buffer[byteOffset + 1] &
-       (0xFF << bitOffset)) | (value >> (8 - bitOffset));
-    buffer[byteOffset +
-           2] =
-      (buffer[byteOffset + 2] &
-       (0xFF << bitOffset)) | (value >> (16 - bitOffset));
-    buffer[byteOffset +
-           3] =
-      (buffer[byteOffset + 3] &
-       (0xFF << bitOffset)) | (value >> (24 - bitOffset));
+    write_unaligned_bits(buffer, byteOffset, bitOffset, 32, value);
   }
 }
 
@@ -610,12 +620,7 @@ uint64_t ecmcEcData::read_uint64_offset(uint8_t *buffer,
     memcpy(&result, &buffer[byteOffset], 8);
     return result;
   } else {
-    uint64_t result = (uint64_t)read_uint32_offset(buffer,
-                                                   byteOffset,
-                                                   bitOffset) |
-                      ((uint64_t)read_uint32_offset(buffer, byteOffset + 4,
-                                                    bitOffset) << 32);
-    return result;
+    return read_unaligned_bits(buffer, byteOffset, bitOffset, 64);
   }
 }
 
@@ -627,9 +632,7 @@ void ecmcEcData::write_uint64_offset(uint8_t *buffer,
   if (bitOffset == 0) {
     memcpy(&buffer[byteOffset], &value, 8);
   } else {
-    write_uint32_offset(buffer, byteOffset,     bitOffset, (uint32_t)value);
-    write_uint32_offset(buffer, byteOffset + 4, bitOffset,
-                        (uint32_t)(value >> 32));
+    write_unaligned_bits(buffer, byteOffset, bitOffset, 64, value);
   }
 }
 
