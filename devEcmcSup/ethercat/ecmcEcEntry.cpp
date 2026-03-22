@@ -28,22 +28,22 @@
 #define EC_READ_B4(DATA, POS) ((*((uint8_t *)(DATA)) >> (POS))&EC_MASK_B4)
 
 // Write 2 bits (lsb)
-#define EC_WRITE_B2(DATA, VAL)\
+#define EC_WRITE_B2(DATA, POS, VAL)\
         do {\
-          *((uint8_t *)(DATA)) &= ~EC_MASK_B2;\
-          *((uint8_t *)(DATA)) |= (VAL &EC_MASK_B2);\
+          *((uint8_t *)(DATA)) &= ~(EC_MASK_B2 << (POS));\
+          *((uint8_t *)(DATA)) |= ((VAL &EC_MASK_B2) << (POS));\
         } while (0)
 
-#define EC_WRITE_B3(DATA, VAL)\
+#define EC_WRITE_B3(DATA, POS, VAL)\
         do {\
-          *((uint8_t *)(DATA)) &= ~EC_MASK_B3;\
-          *((uint8_t *)(DATA)) |= (VAL &EC_MASK_B3);\
+          *((uint8_t *)(DATA)) &= ~(EC_MASK_B3 << (POS));\
+          *((uint8_t *)(DATA)) |= ((VAL &EC_MASK_B3) << (POS));\
         } while (0)
 
-#define EC_WRITE_B4(DATA, VAL)\
+#define EC_WRITE_B4(DATA, POS, VAL)\
         do {\
-          *((uint8_t *)(DATA)) &= ~EC_MASK_B4;\
-          *((uint8_t *)(DATA)) |= (VAL &EC_MASK_B4);\
+          *((uint8_t *)(DATA)) &= ~(EC_MASK_B4 << (POS));\
+          *((uint8_t *)(DATA)) |= ((VAL &EC_MASK_B4) << (POS));\
         } while (0)
 
 ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
@@ -452,9 +452,9 @@ void ecmcEcEntry::readF64() { *float64Ptr_ = EC_READ_LREAL(adr_); }
 
 void ecmcEcEntry::writeNone() { buffer_ = 0; }
 void ecmcEcEntry::writeB1() { EC_WRITE_BIT(adr_, bitOffset_, buffer_); }
-void ecmcEcEntry::writeB2() { EC_WRITE_B2(adr_, buffer_); }
-void ecmcEcEntry::writeB3() { EC_WRITE_B3(adr_, buffer_); }
-void ecmcEcEntry::writeB4() { EC_WRITE_B4(adr_, buffer_); }
+void ecmcEcEntry::writeB2() { EC_WRITE_B2(adr_, bitOffset_, buffer_); }
+void ecmcEcEntry::writeB3() { EC_WRITE_B3(adr_, bitOffset_, buffer_); }
+void ecmcEcEntry::writeB4() { EC_WRITE_B4(adr_, bitOffset_, buffer_); }
 void ecmcEcEntry::writeU8() { EC_WRITE_U8(adr_, buffer_); }
 void ecmcEcEntry::writeS8() { EC_WRITE_S8(adr_, buffer_); }
 void ecmcEcEntry::writeS8ToU8() { EC_WRITE_S8(adr_, buffer_ ^ 0x80u); }

@@ -298,7 +298,7 @@ int ecmcDataStorage::appendDataRing(double *data, int size) {
     currentBufferIndex_ = (size - sizeToCopy);
   }
 
-  dataCountInBuffer_ = dataCountInBuffer_ + sizeToCopy;
+  dataCountInBuffer_ = dataCountInBuffer_ + size;
 
   if (dataCountInBuffer_ > bufferSize_) {
     dataCountInBuffer_ = bufferSize_;
