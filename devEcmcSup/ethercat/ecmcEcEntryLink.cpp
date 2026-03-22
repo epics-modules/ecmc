@@ -290,13 +290,17 @@ int ecmcEcEntryLink::getEntryStartBit(int index, int *startBit) {
 }
 
 bool ecmcEcEntryLink::checkEntryExist(int entryIndex) {
-  if (entryIndex < ECMC_EC_ENTRY_LINKS_MAX) {
+  if ((entryIndex >= 0) && (entryIndex < ECMC_EC_ENTRY_LINKS_MAX)) {
     return entryInfoArray_[entryIndex].entry != NULL;
   }
   return false;
 }
 
 ecmcEcDataType ecmcEcEntryLink::getEntryDataType(int index) {
+  if ((index < 0) || (index >= ECMC_EC_ENTRY_LINKS_MAX)) {
+    return ECMC_EC_NONE;
+  }
+
   if (entryInfoArray_[index].entry == NULL) {
     return ECMC_EC_NONE;
   }
@@ -305,6 +309,10 @@ ecmcEcDataType ecmcEcEntryLink::getEntryDataType(int index) {
 }
 
 int ecmcEcEntryLink::getSlaveId(int index) {
+  if ((index < 0) || (index >= ECMC_EC_ENTRY_LINKS_MAX)) {
+    return -1000;
+  }
+
   if (entryInfoArray_[index].entry == NULL) {
     return -1000;
   }
@@ -313,6 +321,14 @@ int ecmcEcEntryLink::getSlaveId(int index) {
 }
 
 bool ecmcEcEntryLink::checkDomainOK(int entryIndex) {
+  if ((entryIndex < 0) || (entryIndex >= ECMC_EC_ENTRY_LINKS_MAX)) {
+    return false;
+  }
+
+  if (entryInfoArray_[entryIndex].entry == NULL) {
+    return false;
+  }
+
   return entryInfoArray_[entryIndex].entry->getDomainOK();
 }
 

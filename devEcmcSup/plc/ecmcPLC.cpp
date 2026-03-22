@@ -242,6 +242,12 @@ const char* getPLCExpr(int plcIndex, int *error) {
     return "";
   }
 
+  if (!plcs) {
+    LOGERR("ERROR: PLC object NULL.\n");
+    *error = ERROR_MAIN_PLCS_NULL;
+    return "";
+  }
+
   int errorLocal    = 0;
   std::string *expr = plcs->getExpr(plcIndex, &errorLocal);
 
