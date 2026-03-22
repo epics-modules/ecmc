@@ -81,6 +81,11 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
   int errorCode = plcs_[plcIndex]->getErrorID();
 
   if (errorCode) {
+    delete plcs_[plcIndex];
+    plcs_[plcIndex]      = NULL;
+    plcEnable_[plcIndex] = NULL;
+    plcError_[plcIndex]  = NULL;
+    plcFirstScan_[plcIndex] = NULL;
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
@@ -92,6 +97,11 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
   errorCode = addPLCDefaultVariables(plcIndex, skipCycles);
 
   if (errorCode) {
+    delete plcs_[plcIndex];
+    plcs_[plcIndex]         = NULL;
+    plcEnable_[plcIndex]    = NULL;
+    plcError_[plcIndex]     = NULL;
+    plcFirstScan_[plcIndex] = NULL;
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
@@ -640,7 +650,7 @@ int ecmcPLCMain::createNewGlobalDataIF(char              *varName,
   case ECMC_RECORDER_SOURCE_DATA_STORAGE:
     dsId = getDsIndex(varName);
 
-    if ((dsId >= ECMC_MAX_DATA_RECORDERS_OBJECTS) || (dsId < 0)) {
+    if ((dsId >= ECMC_MAX_DATA_STORAGE_OBJECTS) || (dsId < 0)) {
       return setErrorID(__FILE__,
                         __FUNCTION__,
                         __LINE__,
@@ -1257,16 +1267,19 @@ ecmcPLCTask * ecmcPLCMain::getPLCTaskForAxis(int axisId) {
     // Always run sync with axis
     try {
       error = createPLC(index, 0);
-      LOGERR("%s/%s:%d: ERROR: Fail create PLC for axis %d (0x%x).\n",
-             __FILE__,
-             __FUNCTION__,
-             __LINE__,
-             axisId,
-             error);
-      return NULL;
+      if (error) {
+        LOGERR("%s/%s:%d: ERROR: Fail create PLC for axis %d (0x%x).\n",
+               __FILE__,
+               __FUNCTION__,
+               __LINE__,
+               axisId,
+               error);
+        return NULL;
+      }
     }
     catch (std::exception& e) {
       delete plcs_[index];
+      plcs_[index] = NULL;
       LOGERR(
         "%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXIS PLC OBJECT.\n",
         __FILE__,
