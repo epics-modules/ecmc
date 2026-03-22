@@ -1007,6 +1007,26 @@ int ecmcEcSlave::addSDOAsync(uint16_t       sdoIndex, /**< SDO index. */
                              uint8_t        sdoSubIndex, /**< SDO subindex. */
                              ecmcEcDataType dt,
                              std::string    alias) {
+  if ((dt == ECMC_EC_NONE) ||
+      (dt == ECMC_EC_B1) ||
+      (dt == ECMC_EC_B2) ||
+      (dt == ECMC_EC_B3) ||
+      (dt == ECMC_EC_B4)) {
+    LOGERR(
+      "%s/%s:%d: ERROR: Slave %d: Async SDO 0x%x:%x datatype invalid (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePosition_,
+      sdoIndex,
+      sdoSubIndex,
+      ERROR_EC_SDO_DATATYPE_ERROR);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_SDO_DATATYPE_ERROR);
+  }
+
   try {
     ecmcEcAsyncSDO *temp = new ecmcEcAsyncSDO(asynPortDriver_,
                                               masterId_,

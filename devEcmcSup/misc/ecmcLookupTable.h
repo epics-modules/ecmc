@@ -212,9 +212,9 @@ private:
   
      // Ensure the indexTable_ vector is sorted
     for (size_t i = 1; i < indexTable_.size(); ++i) {
-      if (indexTable_[i] < indexTable_[i - 1]) {
+      if (indexTable_[i] <= indexTable_[i - 1]) {
          LOGERR(
-        "%s/%s:%d: ERROR: Encoder correction table not sorted (0x%x).\n",
+        "%s/%s:%d: ERROR: Encoder correction table not strictly increasing (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
