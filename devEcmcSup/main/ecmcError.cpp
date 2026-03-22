@@ -1312,6 +1312,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x17002:
+    return "ERROR_MST_SLV_SM_GRP_EMPTY";
+
+    break;
+
   case 0x30000:    // TRANSFORM
     return "ERROR_TRANSFORM_EXPR_NOT_COMPILED";
 
@@ -2897,6 +2902,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x242001:
+    return "ERROR_PVT_CTRL_EC_LINK_FUNCTION_UNKNOWN";
+
+    break;
+
   case 0x242002:
     return "ERROR_PVT_CTRL_TRIGG_CFG_INVALID";
 
@@ -2904,6 +2914,16 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
   case 0x242003:
     return "ERROR_PVT_CTRL_AXIS_INTERLOCK";
+
+    break;
+
+  case 0x242004:
+    return "ERROR_PVT_CTRL_AXIS_NULL";
+
+    break;
+
+  case 0x242005:
+    return "ERROR_PVT_CTRL_PVT_NULL";
 
     break;
   }

@@ -109,10 +109,12 @@ void ecmcPVTController::setExecute(bool execute) {
   softTrigger_ = 0;
   setTriggerOutput(false);
   int error = 0;
-  if(execute_ && !executeOld_ && !axes_.empty() && axes_[0]) {
+  if(execute_ && !executeOld_) {
     error=validate();
     if(error) {
       setErrorID(error);
+      busy_ = 0;
+      setAxesBusy(false);
       execute_ = 0;
       executeOld_ = 0;
       return;
@@ -429,6 +431,11 @@ int ecmcPVTController::validate() {
     return setErrorID(ERROR_PVT_CTRL_AXIS_COUNT_ZERO);
   }
 
+  const int axisBindingError = validateAxisBindings();
+  if (axisBindingError) {
+    return setErrorID(axisBindingError);
+  }
+
   // trigger
   triggerValidatedOK_ = false;
   if(!triggerDefined_ || triggerCount_ <= 0 ) {
@@ -437,6 +444,23 @@ int ecmcPVTController::validate() {
 
   triggerValidatedOK_ = true;
   return 0; 
+}
+
+int ecmcPVTController::validateAxisBindings() {
+  const size_t axisCount = axes_.size();
+  for (size_t i = 0; i < axisCount; i++) {
+    if (!axes_[i]) {
+      LOGERR("ecmcPVTController::validateAxisBindings(): Error axis pointer NULL at index %zu\n",
+             i);
+      return ERROR_PVT_CTRL_AXIS_NULL;
+    }
+    if (!pvtObjs_[i]) {
+      LOGERR("ecmcPVTController::validateAxisBindings(): Error PVT object NULL for axis %d\n",
+             axes_[i]->getAxisID());
+      return ERROR_PVT_CTRL_PVT_NULL;
+    }
+  }
+  return 0;
 }
 
 int ecmcPVTController::anyAxisInterlocked() {

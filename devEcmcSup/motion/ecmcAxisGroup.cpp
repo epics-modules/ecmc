@@ -199,16 +199,17 @@ size_t ecmcAxisGroup::size(){
 
 ecmcAxisGroupStatusSummary ecmcAxisGroup::getStatusSummary(bool includeMonFields) {
   ecmcAxisGroupStatusSummary summary;
-  summary.allEnableCmd    = true;
+  const bool hasAxes = !axes_.empty();
+  summary.allEnableCmd    = hasAxes;
   summary.anyEnableCmd    = false;
-  summary.allEnabled      = true;
+  summary.allEnabled      = hasAxes;
   summary.anyEnabled      = false;
-  summary.allBusy         = true;
+  summary.allBusy         = hasAxes;
   summary.anyBusy         = false;
   summary.anyIlocked      = false;
-  summary.allAtTarget     = true;
-  summary.allWithinCtrlDb = true;
-  summary.allTrajExternal = true;
+  summary.allAtTarget     = hasAxes;
+  summary.allWithinCtrlDb = hasAxes;
+  summary.allTrajExternal = hasAxes;
   summary.anyTrajExternal = false;
   summary.firstErrorId    = 0;
 

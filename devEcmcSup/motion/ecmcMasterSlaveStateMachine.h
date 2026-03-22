@@ -33,10 +33,8 @@
 
 #define MST_SLV_START_DELAY_S 0.105
 
-#define ERROR_MST_SLV_SM_GRP_NULL 0x17000
-#define ERROR_MST_SLV_SM_GRP_INIT_ASYN_FAILED 0x17001
-
 #include "ecmcError.h"
+#include "ecmcErrorsList.h"
 #include "ecmcAxisGroup.h"
 #include "ecmcDefinitions.h"
 #include "ecmcAsynPortDriver.h"

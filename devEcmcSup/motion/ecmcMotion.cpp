@@ -3934,10 +3934,10 @@ int addAxisToGroupByIndex(int axIndex, int grpIndex) {
 
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axIndex);
 
-  if(grpIndex >= (int)axisGroupCounter || grpIndex < 0 ) {
-    if(!axisGroups[grpIndex]) {
-      return ERROR_AXISGRP_NOT_FOUND;
-    }
+  if ((grpIndex < 0) ||
+      (grpIndex >= static_cast<int>(axisGroupCounter)) ||
+      !axisGroups[grpIndex]) {
+    return ERROR_AXISGRP_NOT_FOUND;
   }
   
   if ((axIndex < 0) || (axIndex >= ECMC_MAX_AXES)) {

@@ -362,9 +362,15 @@ int ecmcMasterSlaveStateMachine::stateReset() {
 }
 
 int ecmcMasterSlaveStateMachine::validate(){
+  validationOK_ = false;
+
   if( masterGrp_ == NULL || slaveGrp_ == NULL){
     return ERROR_MST_SLV_SM_GRP_NULL;
   };
+
+  if ((masterGrp_->size() == 0) || (slaveGrp_->size() == 0)) {
+    return ERROR_MST_SLV_SM_GRP_EMPTY;
+  }
 
   if( !asynInitOk_){
     return ERROR_MST_SLV_SM_GRP_INIT_ASYN_FAILED;

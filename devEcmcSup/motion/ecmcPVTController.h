@@ -13,11 +13,6 @@
 #ifndef ECMCPVTCONTROLLER_H_
 #define ECMCPVTCONTROLLER_H_
 
-#define ERROR_PVT_CTRL_AXIS_COUNT_ZERO 0x242000
-#define ERROR_PVT_CTRL_EC_LINK_FUNCTION_UNKNOWN 0x242001
-#define ERROR_PVT_CTRL_TRIGG_CFG_INVALID 0x242002
-#define ERROR_PVT_CTRL_AXIS_INTERLOCK 0x242003
-
 enum ecmcPVTSMType {
   ECMC_PVT_IDLE                         = 0,
   ECMC_PVT_ENABLE_AXES                  = 1,
@@ -34,6 +29,7 @@ enum ecmcPVTSMType {
 // For future use when timestamped output might be needed
 //#define ECMC_PVT_EC_ENTRY_TRIGGER_TIME "pvtctrl.trigg.timestamp"
 
+#include "ecmcErrorsList.h"
 #include "ecmcEcEntryLink.h"
 #include "ecmcAxisPVTSequence.h"
 #include "ecmcAxisBase.h"
@@ -72,6 +68,7 @@ class ecmcPVTController: public ecmcEcEntryLink {
     void   initAsyn();
     void   refreshAsyn();
     void   setTriggerOutput(bool high);
+    int    validateAxisBindings();
 
     double sampleTime_;
     double nextTime_, endTime_;
