@@ -401,7 +401,7 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
     return asynError;
   }
 
-  if ((axisNo >= ECMC_MAX_AXES) || (axisNo <= 0)) {
+  if ((axisNo >= ECMC_MAX_AXES) || (axisNo < 0)) {
     printf("ERROR: Axis index out of range.\n");
     return asynError;
   }
@@ -2787,7 +2787,7 @@ asynStatus ecmcMotorRecordAxis::readbackProfile() {
   double *dataPosErr =  pvtRunning_->getResultPosErrDataPrt();
   size_t elements = pvtRunning_->getResultBufferSize();
 
-  if(dataPosAct == NULL || dataPosAct == NULL) {
+  if(dataPosAct == NULL || dataPosErr == NULL) {
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
     printf("!pointer NULL_\n");
     return asynError;
