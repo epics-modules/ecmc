@@ -332,7 +332,6 @@ protected:
   bool enableAutoDisable_;
   double positionTargetAsyn_;
   double invSampleTime_;
-  bool blocked_;
   bool enableAutoResetError_;
 };
 

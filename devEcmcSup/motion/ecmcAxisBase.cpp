@@ -310,7 +310,7 @@ void ecmcAxisBase::initVars() {
   enableAutoDisable_            = 0;
   positionTargetAsyn_           = 0;
   invSampleTime_                = 1000.0;
-  blocked_                      = 0;
+  data_.status_.statusWord_.blocked = 0;
   enableAutoResetError_         = 1;
 }
 
@@ -1775,7 +1775,7 @@ int ecmcAxisBase::moveAbsolutePosition(
     printf("INFO: Axis[%d]: ecmcAxisBase::moveAbsolutePosition()\n",data_.status_.axisId);
   }
 
-  if(blocked_) {
+  if(data_.status_.statusWord_.blocked) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
       __FILE__,
@@ -1854,7 +1854,7 @@ int ecmcAxisBase::moveRelativePosition(
     printf("INFO: Axis[%d]: ecmcAxisBase::moveRelativePosition()\n",data_.status_.axisId);
   }
 
-  if(blocked_) {
+  if(data_.status_.statusWord_.blocked) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
       __FILE__,
@@ -1929,7 +1929,7 @@ int ecmcAxisBase::moveVelocity(
   double accelerationSet,
   double decelerationSet) {
   
-  if(blocked_) {
+  if(data_.status_.statusWord_.blocked) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
       __FILE__,
