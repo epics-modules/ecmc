@@ -2226,6 +2226,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     __LINE__,
     data_.status_.axisId, *tmpcontrolWordPtr);
 
+  const ecmcAsynAxisControlType controlWordCurrent = data_.control_.controlWord_;
 
   if (controlWordNew.blockCom != getBlockCom()) {
     setBlockCom(controlWordNew.blockCom);
@@ -2233,7 +2234,26 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
   if (getBlockCom()) {
     bool allowedCommand = false;
+    bool disallowedCommandChange = false;
     int  errorCode      = 0;
+
+    disallowedCommandChange =
+      ((controlWordNew.enableCmd != controlWordCurrent.enableCmd) &&
+       controlWordNew.enableCmd) ||
+      (controlWordNew.executeCmd != controlWordCurrent.executeCmd) ||
+      (controlWordNew.resetCmd != controlWordCurrent.resetCmd) ||
+      (controlWordNew.encSourceCmd != controlWordCurrent.encSourceCmd) ||
+      (controlWordNew.trajSourceCmd != controlWordCurrent.trajSourceCmd) ||
+      (controlWordNew.plcEnableCmd != controlWordCurrent.plcEnableCmd) ||
+      (controlWordNew.plcCmdsAllowCmd != controlWordCurrent.plcCmdsAllowCmd) ||
+      (controlWordNew.enableSoftLimitBwd !=
+       controlWordCurrent.enableSoftLimitBwd) ||
+      (controlWordNew.enableSoftLimitFwd !=
+       controlWordCurrent.enableSoftLimitFwd) ||
+      (controlWordNew.enableDbgPrintout !=
+       controlWordCurrent.enableDbgPrintout) ||
+      (controlWordNew.tweakBwdCmd != controlWordCurrent.tweakBwdCmd) ||
+      (controlWordNew.tweakFwdCmd != controlWordCurrent.tweakFwdCmd);
 
     if (!controlWordNew.enableCmd) {
       errorCode = setEnable(0);
@@ -2255,6 +2275,11 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     if (allowedCommand) {
       refreshStatusWd();
       return errorCode ? asynError : asynSuccess;
+    }
+
+    if (!disallowedCommandChange) {
+      refreshStatusWd();
+      return asynSuccess;
     }
 
     setExternalCommandBlockedError();
