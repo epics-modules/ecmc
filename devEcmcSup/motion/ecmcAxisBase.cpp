@@ -310,6 +310,7 @@ void ecmcAxisBase::initVars() {
   enableAutoDisable_            = 0;
   positionTargetAsyn_           = 0;
   invSampleTime_                = 1000.0;
+  masterSlaveBlocked_           = false;
   data_.status_.statusWord_.blocked = 0;
   enableAutoResetError_         = 1;
 }
@@ -1381,6 +1382,7 @@ int ecmcAxisBase::getBlockCom() {
 
 int ecmcAxisBase::setBlockCom(int block) {
   data_.control_.controlWord_.blockCom = block > 0;
+  data_.status_.statusWord_.blocked    = getBlocked();
   if (data_.axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]) {
     data_.axAsynParams_[ECMC_ASYN_AX_CONTROL_BIN_ID]->refreshParamRT(1);
   }
@@ -1495,6 +1497,9 @@ void ecmcAxisBase::refreshStatusWd() {
   // bit 20 softlimilockbwd
   data_.status_.statusWord_.softlimilockbwd =
     data_.interlocks_.bwdSoftLimitInterlock;
+
+  // bit 23 blocked
+  data_.status_.statusWord_.blocked = getBlocked();
 
   // bit 26..31 lastActiveInterlock type
   data_.status_.statusWord_.lastilock =
@@ -1775,7 +1780,7 @@ int ecmcAxisBase::moveAbsolutePosition(
     printf("INFO: Axis[%d]: ecmcAxisBase::moveAbsolutePosition()\n",data_.status_.axisId);
   }
 
-  if(data_.status_.statusWord_.blocked) {
+  if(getBlocked()) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
       __FILE__,
@@ -1854,7 +1859,7 @@ int ecmcAxisBase::moveRelativePosition(
     printf("INFO: Axis[%d]: ecmcAxisBase::moveRelativePosition()\n",data_.status_.axisId);
   }
 
-  if(data_.status_.statusWord_.blocked) {
+  if(getBlocked()) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
       __FILE__,
@@ -1929,7 +1934,7 @@ int ecmcAxisBase::moveVelocity(
   double accelerationSet,
   double decelerationSet) {
   
-  if(data_.status_.statusWord_.blocked) {
+  if(getBlocked()) {
     LOGERR(
       "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
       __FILE__,
@@ -3471,10 +3476,11 @@ bool ecmcAxisBase::getLocalBusy() {
 
 // set Group blocked
 void ecmcAxisBase::setBlocked(bool blocked) {
-  data_.status_.statusWord_.blocked = blocked;
+  masterSlaveBlocked_               = blocked;
+  data_.status_.statusWord_.blocked = getBlocked();
 }
 
 // get Group blocked
 bool ecmcAxisBase::getBlocked() {
-  return data_.status_.statusWord_.blocked;
+  return masterSlaveBlocked_ || getBlockCom();
 }
