@@ -2227,8 +2227,8 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
     data_.status_.axisId, *tmpcontrolWordPtr);
 
 
-  if (controlWordNew.blockCom && !getBlockCom()) {
-    setBlockCom(1);
+  if (controlWordNew.blockCom != getBlockCom()) {
+    setBlockCom(controlWordNew.blockCom);
   }
 
   if (getBlockCom()) {
