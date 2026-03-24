@@ -832,6 +832,10 @@ int setAppModeRun(int mode) {
 int setAppMode(int mode) {
   LOGINFO4("%s/%s:%d mode=%d\n", __FILE__, __FUNCTION__, __LINE__, mode);
 
+  if (appModeStat == (app_mode_type)mode) {
+    return 0;
+  }
+
   switch ((app_mode_type)mode) {
   case ECMC_MODE_CONFIG:
     return setAppModeCfg(mode);
