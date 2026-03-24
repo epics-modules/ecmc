@@ -1686,7 +1686,6 @@ static int handleCfgCommand(const char *myarg_1) {
              __FUNCTION__,
              __LINE__,
              iValue);
-      cmd_buf_printf(buffer, "OK");
       return 0;
     }
     return ecApplyConfig(iValue);
@@ -1699,7 +1698,6 @@ static int handleCfgCommand(const char *myarg_1) {
              __FILE__,
              __FUNCTION__,
              __LINE__);
-      cmd_buf_printf(buffer, "OK");
       return 0;
     }
     return ecApplyConfig(-1);
