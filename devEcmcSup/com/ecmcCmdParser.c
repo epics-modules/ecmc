@@ -1680,13 +1680,28 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcApplyConfig(%d)", &iValue);
 
   if (nvals == 1) {
-    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcApplyConfig");
+    if (appModeStat == ECMC_MODE_RUNTIME) {
+      LOGERR("%s/%s:%d: WARNING: Cfg.EcApplyConfig(%d) ignored in runtime.\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             iValue);
+      cmd_buf_printf(buffer, "OK");
+      return 0;
+    }
     return ecApplyConfig(iValue);
   }
 
   /*Cfg.EcApplyConfig()*/
   if (0 == strcmp(myarg_1, "EcApplyConfig()")) {
-    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcApplyConfig");
+    if (appModeStat == ECMC_MODE_RUNTIME) {
+      LOGERR("%s/%s:%d: WARNING: Cfg.EcApplyConfig() ignored in runtime.\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__);
+      cmd_buf_printf(buffer, "OK");
+      return 0;
+    }
     return ecApplyConfig(-1);
   }
 
