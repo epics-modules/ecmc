@@ -717,6 +717,14 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "SetAppMode(%d)", &iValue);
 
   if (nvals == 1) {
+    if ((appModeStat == ECMC_MODE_RUNTIME) && (iValue == ECMC_MODE_RUNTIME)) {
+      LOGERR("%s/%s:%d: WARNING: Cfg.SetAppMode(%d) ignored in runtime; already in requested mode.\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             iValue);
+      return 0;
+    }
     RETURN_ERROR_IF_RUNTIME_CFG_CMD("SetAppMode");
     return setAppMode(iValue);
   }
@@ -1780,7 +1788,14 @@ static int handleCfgCommand(const char *myarg_1) {
   nvals = sscanf(myarg_1, "EcSetDelayECOkAtStartup(%d)", &iValue);
 
   if (nvals == 1) {
-    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSetDelayECOkAtStartup");
+    if (appModeStat == ECMC_MODE_RUNTIME) {
+      LOGERR("%s/%s:%d: WARNING: Cfg.EcSetDelayECOkAtStartup(%d) ignored in runtime.\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             iValue);
+      return 0;
+    }
     return ecSetDelayECOkAtStartup(iValue);
   }
 
