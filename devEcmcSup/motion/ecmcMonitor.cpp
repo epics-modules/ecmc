@@ -1005,6 +1005,11 @@ int  ecmcMonitor::checkStall() {
   
   // Measure time of last move, busy high to busy low.
   if (statusWord.localBusy) {
+    // Stall monitoring only applies after the active move has finished.
+    // Clear any post-move timeout state so a retriggered or retargeted move
+    // cannot inherit elapsed stall time from an earlier settle window.
+    maxStallCounter_ = 0;
+    stallCheckAtTargetAtCycle_ = 0;
     stallLastMotionCmdCycles_++;
     if (!statusOldWord.localBusy) {
       stallLastMotionCmdCycles_ = 0;
