@@ -553,9 +553,16 @@ int ecmcMonitor::getMaxVelTrajTime() {
 int ecmcMonitor::reset() {
   // data_->status_.statusWord_.attarget = false;
   // atTargetCounter_        = 0;
+  const bool keepCurrentMoveStallTiming =
+    data_ && data_->status_.statusWord_.localBusy;
   lagMonCounter_       = 0;
   maxVelCounterDrive_  = 0;
   maxVelCounterTraj_   = 0;
+  maxStallCounter_     = 0;
+  if (!keepCurrentMoveStallTiming) {
+    stallLastMotionCmdCycles_ = 0;
+  }
+  stallCheckAtTargetAtCycle_ = 0;
   velocityDiffCounter_ = 0;
   data_->clearInterlocks();
   return 0;
