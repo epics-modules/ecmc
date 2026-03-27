@@ -1,5 +1,13 @@
 Release Notes
 ===
+# 11.0.6
+* Fix issue with softlimits (actually fixed in ecmccfg). In certain cases verification of softlimits failed because enabling of softlimits was made before setting the softlimit value.
+* Reset stall monitoring time counter for the case when update of target position is made during a move.
+
+# 11.0.5
+* Sync. softlimits between motor and ecmc (improvements, still WIP)
+* Block motion command for a axis (bit in control word)
+
 # 11.0.4
 * Last Ilock now latches the first iLock of the last move command (excluding stop).
 
