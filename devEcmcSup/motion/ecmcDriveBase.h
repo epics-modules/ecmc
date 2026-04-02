@@ -84,12 +84,15 @@ public:
   int          setCspRecalcOffset(double posEng);
   //void         setCspActPos(int64_t posRaw,
   //                          double  posAct);
-  void         setCspRef(int64_t posRaw,
+  void         setCspRef(double  posRaw,
                          double  posAct,
                          double  posSet);
   void         setCspEnc(ecmcEncoder * enc);
 
 protected:
+  bool csvUsesFloatingPoint();
+  bool cspUsesFloatingPoint();
+  bool entryTypeIsFloat(ecmcEcDataType type) const;
   int  updateBrakeState();
   bool driveInterlocksOK();
   int  initAsyn();
@@ -124,9 +127,9 @@ private:
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem *asynControlWd_;
   ecmcAsynDataItem *asynStatusWd_;
-  int64_t cspRawActPos_;
+  double cspRawActPos_;
   double cspActPos_;
-  int64_t cspRawPosOffset_;
+  double cspRawPosOffset_;
   uint64_t hwReset_;
   uint64_t hwErrorAlarm0_;
   uint64_t hwErrorAlarm0Old_;
@@ -145,7 +148,7 @@ private:
   int64_t minVeloOutput_;
   int64_t maxVeloOutput_;
   int64_t veloPosOutput_;
-  int64_t veloRawOffset_;
+  double veloRawOffset_;
   ecmcEncoder* cspEnc_;
 };
 

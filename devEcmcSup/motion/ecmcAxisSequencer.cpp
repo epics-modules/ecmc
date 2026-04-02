@@ -3073,6 +3073,25 @@ int ecmcAxisSequencer::stopSeq() {
 }
 
 int ecmcAxisSequencer::validate() {
+  auto * const primEnc = getPrimEnc();
+  if (primEnc && primEnc->actPosEntryUsesFloatingPoint()) {
+    const int homeSeqId = primEnc->getHomeSeqId();
+    if (homeSeqId == ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS ||
+        homeSeqId == ECMC_SEQ_HOME_HIGH_LIM_SINGLE_TURN_ABS) {
+      LOGERR(
+        "%s/%s:%d: ERROR (axis %d): Homing sequence %d requires integer absolute encoder bits and is not supported for floating point encoder entries (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_ ? data_->status_.axisId : -1,
+        homeSeqId,
+        ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED);
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_SEQ_HOME_SEQ_NOT_SUPPORTED);
+    }
+  }
   return 0;
 }
 
@@ -3232,7 +3251,7 @@ void ecmcAxisSequencer::setNewPositionCtrlDrvTrajBumpless(double newPosition) {
 
   if (drv_) {
     drv_->setCspRef(
-      getCSPEnc()->getRawPosRegister(),
+      getCSPEnc()->getRawPosRegisterDouble(),
       newPosition,
       newPosition);
   }

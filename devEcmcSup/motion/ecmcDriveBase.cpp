@@ -100,6 +100,20 @@ void ecmcDriveBase::initVars() {
 
 ecmcDriveBase::~ecmcDriveBase() {}
 
+bool ecmcDriveBase::entryTypeIsFloat(ecmcEcDataType type) const {
+  return type == ECMC_EC_F32 || type == ECMC_EC_F64;
+}
+
+bool ecmcDriveBase::csvUsesFloatingPoint() {
+  return entryTypeIsFloat(
+    getEntryDataType(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT));
+}
+
+bool ecmcDriveBase::cspUsesFloatingPoint() {
+  return entryTypeIsFloat(
+    getEntryDataType(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT));
+}
+
 int ecmcDriveBase::setVelSet(double vel) {
   if (!driveInterlocksOK()) {
     velSet_                                   = 0;
@@ -107,13 +121,14 @@ int ecmcDriveBase::setVelSet(double vel) {
     return 0;
   }
   velSet_                                   = vel;
-  data_->status_.currentVelocitySetpointRaw = velSet_ * invScale_;
+  data_->status_.currentVelocitySetpointRaw = static_cast<int64_t>(
+    std::llround(velSet_ * invScale_));
   return 0;
 }
 
 int ecmcDriveBase::setCspPosSet(double posEng) {
   cspPosSet_    = posEng; // Engineering unit
-  cspRawActPos_ = cspEnc_->getRawPosRegister();
+  cspRawActPos_ = cspEnc_->getRawPosRegisterDouble();
   cspActPos_    = cspEnc_->getActPos();
 
   if (!driveInterlocksOK()) {
@@ -121,24 +136,25 @@ int ecmcDriveBase::setCspPosSet(double posEng) {
   }
 
   if (data_->status_.statusWord_.enabled && data_->status_.statusWord_.enable) {
-    data_->status_.currentPositionSetpointRaw = cspPosSet_ * invScale_ +
-                                                cspRawPosOffset_;
+    data_->status_.currentPositionSetpointRaw = static_cast<int64_t>(
+      std::llround(cspPosSet_ * invScale_ + cspRawPosOffset_));
   } else {
-    data_->status_.currentPositionSetpointRaw = cspRawActPos_;
+    data_->status_.currentPositionSetpointRaw = static_cast<int64_t>(
+      std::llround(cspRawActPos_));
   }
 
   // Calculate new offset
   if (data_->status_.statusWord_.enable && !enableCmdOld_) {
     setCspRecalcOffset(cspPosSet_);
-    data_->status_.currentPositionSetpointRaw = cspPosSet_ * invScale_ +
-                                                cspRawPosOffset_;
+    data_->status_.currentPositionSetpointRaw = static_cast<int64_t>(
+      std::llround(cspPosSet_ * invScale_ + cspRawPosOffset_));
   }
 
   return 0;
 }
 
 // For drv at homing
-void ecmcDriveBase::setCspRef(int64_t posRaw, double posAct,  double posSet) {
+void ecmcDriveBase::setCspRef(double posRaw, double posAct,  double posSet) {
   cspRawActPos_    = posRaw;
   cspActPos_       = posAct;
   cspRawPosOffset_ = cspRawActPos_ - posSet * invScale_;  // Raw
@@ -296,18 +312,24 @@ void ecmcDriveBase::writeEntries() {
 
   if (data_->control_.drvMode == ECMC_DRV_MODE_CSV) {
     // CSV:    Check so not outside allowable range
-    veloPosOutput_ = data_->status_.currentVelocitySetpointRaw +
-                     veloRawOffset_;
+    const double csvOutput = velSet_ * invScale_ + veloRawOffset_;
+    veloPosOutput_ = static_cast<int64_t>(std::llround(csvOutput));
 
-    if (veloPosOutput_ > maxVeloOutput_) {
-      veloPosOutput_ = maxVeloOutput_;
-    } else if (veloPosOutput_ < minVeloOutput_) {
-      veloPosOutput_ = minVeloOutput_;
+    if (csvUsesFloatingPoint()) {
+      errorCode =
+        writeEcEntryValueDouble(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,
+                                csvOutput);
+    } else {
+      if (veloPosOutput_ > maxVeloOutput_) {
+        veloPosOutput_ = maxVeloOutput_;
+      } else if (veloPosOutput_ < minVeloOutput_) {
+        veloPosOutput_ = minVeloOutput_;
+      }
+
+      errorCode =
+        writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,
+                          (uint64_t)veloPosOutput_);
     }
-
-    errorCode =
-      writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_VELOCITY_SETPOINT,
-                        (uint64_t)veloPosOutput_);
 
     if (errorCode) {
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
@@ -315,7 +337,8 @@ void ecmcDriveBase::writeEntries() {
     }
   } else {
     // CSP: Check so not outside allowable range
-    veloPosOutput_ = data_->status_.currentPositionSetpointRaw;
+    const double cspOutput = cspPosSet_ * invScale_ + cspRawPosOffset_;
+    veloPosOutput_ = static_cast<int64_t>(std::llround(cspOutput));
 
     // Allow position to wrap around
     // if(veloPosOutput_ > maxVeloOutput_) {
@@ -324,9 +347,15 @@ void ecmcDriveBase::writeEntries() {
     //  veloPosOutput_ = minVeloOutput_;
     // }
 
-    errorCode =
-      writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT,
-                        (uint64_t)veloPosOutput_);
+    if (cspUsesFloatingPoint()) {
+      errorCode =
+        writeEcEntryValueDouble(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT,
+                                cspOutput);
+    } else {
+      errorCode =
+        writeEcEntryValue(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT,
+                          (uint64_t)veloPosOutput_);
+    }
 
     if (errorCode) {
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
@@ -591,6 +620,27 @@ int ecmcDriveBase::validate() {
         ERROR_DRV_CSP_ENC_NULL);
   
       return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DRV_CSP_ENC_NULL);      
+    }
+    const ecmcEcDataType encType = cspEnc_->getActPosEntryDataType();
+    const ecmcEcDataType posSetType =
+      getEntryDataType(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
+    const bool encFloat = entryTypeIsFloat(encType);
+    const bool posSetFloat = entryTypeIsFloat(posSetType);
+
+    if (encFloat || posSetFloat) {
+      if (!(encFloat && posSetFloat && encType == posSetType)) {
+        LOGERR(
+          "%s/%s:%d: ERROR (axis %d): Floating point CSP requires drive encoder actual position and drive position setpoint to use the same EtherCAT datatype (0x%x).\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__,
+          data_->status_.axisId,
+          ERROR_DRV_INVALID_DRV_MODE);
+        return setErrorID(__FILE__,
+                          __FUNCTION__,
+                          __LINE__,
+                          ERROR_DRV_INVALID_DRV_MODE);
+      }
     }
     // Allow wrap around for position
     // ecmcEcDataType dt = getEntryDataType(ECMC_DRIVEBASE_ENTRY_INDEX_POSITION_SETPOINT);
@@ -947,7 +997,7 @@ int ecmcDriveBase::setStateMachineTimeout(double seconds) {
 }
 
 int ecmcDriveBase::setVelSetOffsetRaw(double offset) {
-  veloRawOffset_ = (int64_t)offset;
+  veloRawOffset_ = offset;
   return 0;
 }
 

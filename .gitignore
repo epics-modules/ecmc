@@ -28,4 +28,7 @@ lib/
 .cvsignore
 *linux-arm/
 ecmc.Makefile
-
+.codex
+.codex/
+**/.codex
+**/.codex/

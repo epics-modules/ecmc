@@ -1,5 +1,14 @@
 Release Notes
 ===
+# 11.0.7-rc1
+* Add support for floating point encoder actual-position EtherCAT entries (`F32`, `F64`).
+* For floating point encoders, over/underflow handling, raw-mask filtering, and absolute-bit extraction are disabled. Encoder scaling and engineering offset are still applied.
+* For floating point encoders, configured encoder `bits` and `absBits` are accepted but ignored, and a warning is printed during validation.
+* Add support for floating point CSP drive position setpoints (`F32`, `F64`) when the selected CSP encoder actual-position entry uses the same EtherCAT datatype.
+* Add support for floating point CSV drive velocity setpoints (`F32`, `F64`).
+* Integer and unsigned encoder/drive behavior is unchanged. Existing integer raw-mask, abs-bit, overflow, CSV, and CSP paths are preserved.
+* Floating point single-turn-absolute homing sequences are not supported and will fail validation.
+
 # 11.0.6
 * Fix issue with softlimits (actually fixed in ecmccfg). In certain cases verification of softlimits failed because enabling of softlimits was made before setting the softlimit value.
 * Reset stall monitoring time counter for the case when update of target position is made during a move.

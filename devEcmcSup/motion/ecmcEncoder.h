@@ -20,6 +20,7 @@
 #include <ecrt.h>
 #include <string.h>
 #include <cmath>
+#include <limits>
 #include <vector>
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
@@ -63,7 +64,10 @@ public:
   int                   getAbsBits();
   int64_t               getRawPosMultiTurn();
   uint64_t              getRawPosRegister();
+  double                getRawPosRegisterDouble();
   uint64_t              getRawAbsPosRegister();  // Only absolute bits
+  ecmcEcDataType        getActPosEntryDataType();
+  bool                  actPosEntryUsesFloatingPoint();
   int                   setScaleNum(double scaleNum);
   int                   setScaleDenom(double scaleDenom);
   double                getScaleNum();
@@ -164,6 +168,9 @@ public:
   int                   setAllowOverUnderFlow(bool allow);
 protected:
   void                  initVars();
+  bool                  entryTypeIsFloat(ecmcEcDataType type) const;
+  static int64_t        clampDoubleToInt64(double value);
+  static uint64_t       clampDoubleToUInt64(double value);
   int                   countTrailingZerosInMask(uint64_t mask);
   int                   countBitWidthOfMask(uint64_t mask,
                                             int      trailZeros);
@@ -195,8 +202,10 @@ protected:
   uint64_t totalRawRegShift_;
   uint64_t rawLimit_;
   uint64_t rawAbsLimit_;
-  int64_t rawPosMultiTurn_;
-  int64_t rawPosOffset_;
+  double rawPosDouble_;
+  double rawPosDoubleOld_;
+  double rawPosMultiTurn_;
+  double rawPosOffset_;
   int64_t rawRange_;
   int64_t rawAbsRange_;
   int64_t rawTurns_;
@@ -219,8 +228,10 @@ protected:
   bool encLatchFunctEnabled_;
   bool encLatchStatus_;
   bool encLatchStatusOld_;
-  int64_t rawEncLatchPos_;
-  int64_t rawEncLatchPosMultiTurn_;
+  double rawAbsPosDouble_;
+  double rawAbsPosDoubleOld_;
+  double rawEncLatchPos_;
+  double rawEncLatchPosMultiTurn_;
   uint64_t encLatchControlWordArm_;
   uint64_t encLatchControlWordIdle_;
   int      encLatchControlBits_;

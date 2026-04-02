@@ -69,6 +69,8 @@ void ecmcEncoder::initVars() {
   rawLimit_               = 0;
   rawAbsLimit_            = 0;
   bits_                   = 0;
+  rawPosDoubleOld_        = 0;
+  rawPosDouble_           = 0;
   rawPosUintOld_          = 0;
   rawPosUint_             = 0;
   scale_                  = 0;
@@ -97,6 +99,8 @@ void ecmcEncoder::initVars() {
   rawTurns_               = 0;
   rawTurnsOld_            = 0;
   actEncLatchPos_         = 0;
+  rawAbsPosDouble_        = 0;
+  rawAbsPosDoubleOld_     = 0;
   rawAbsPosUint_          = 0;
   rawAbsPosUintOld_       = 0;
   hwReset_                = 0;
@@ -198,17 +202,63 @@ int ecmcEncoder::setErrorID(const char       *fileName,
 
 int64_t ecmcEncoder::getRawPosMultiTurn() {
   // Overflow compensated raw value
-  return rawPosMultiTurn_;
+  return clampDoubleToInt64(rawPosMultiTurn_);
 }
 
 uint64_t ecmcEncoder::getRawPosRegister() {
   // Non overflow compensated raw value
+  if (actPosEntryUsesFloatingPoint()) {
+    return clampDoubleToUInt64(rawPosDouble_);
+  }
   return rawPosUint_;
+}
+
+double ecmcEncoder::getRawPosRegisterDouble() {
+  return actPosEntryUsesFloatingPoint() ? rawPosDouble_ :
+         static_cast<double>(rawPosUint_);
 }
 
 uint64_t ecmcEncoder::getRawAbsPosRegister() {
   // Non overflow compensated raw value of abs bits only
+  if (actPosEntryUsesFloatingPoint()) {
+    return clampDoubleToUInt64(rawAbsPosDouble_);
+  }
   return rawAbsPosUint_;
+}
+
+ecmcEcDataType ecmcEncoder::getActPosEntryDataType() {
+  return getEntryDataType(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION);
+}
+
+bool ecmcEncoder::entryTypeIsFloat(ecmcEcDataType type) const {
+  return type == ECMC_EC_F32 || type == ECMC_EC_F64;
+}
+
+bool ecmcEncoder::actPosEntryUsesFloatingPoint() {
+  return entryTypeIsFloat(getActPosEntryDataType());
+}
+
+int64_t ecmcEncoder::clampDoubleToInt64(double value) {
+  if (!std::isfinite(value)) {
+    return 0;
+  }
+  if (value >= static_cast<double>(std::numeric_limits<int64_t>::max())) {
+    return std::numeric_limits<int64_t>::max();
+  }
+  if (value <= static_cast<double>(std::numeric_limits<int64_t>::min())) {
+    return std::numeric_limits<int64_t>::min();
+  }
+  return static_cast<int64_t>(std::llround(value));
+}
+
+uint64_t ecmcEncoder::clampDoubleToUInt64(double value) {
+  if (!std::isfinite(value) || value <= 0) {
+    return 0;
+  }
+  if (value >= static_cast<double>(std::numeric_limits<uint64_t>::max())) {
+    return std::numeric_limits<uint64_t>::max();
+  }
+  return static_cast<uint64_t>(std::llround(value));
 }
 
 int ecmcEncoder::setScaleNum(double scaleNum) {
@@ -244,12 +294,14 @@ double ecmcEncoder::getActPos() {
 }
 
 void ecmcEncoder::setActPos(double pos) {
+  const double rawPos = actPosEntryUsesFloatingPoint() ? rawPosDouble_ :
+                        static_cast<double>(rawPosUint_);
   // reset overflow counter
   engOffset_       = 0;
   rawTurnsOld_     = 0;
   rawTurns_        = 0;
-  rawPosOffset_    = pos * invScale_ - rawPosUint_;
-  rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
+  rawPosOffset_    = pos * invScale_ - rawPos;
+  rawPosMultiTurn_ = rawPos + rawPosOffset_;
 
   actPosOld_   = pos;
   actPosLocal_ = pos;
@@ -448,28 +500,43 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   }
 
   uint64_t tempRaw = 0;
+  double tempRawDouble = 0;
   int errorCode    = 0;
 
   // Actual position entry
   // Act position
-  errorCode = readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION,
-                               &tempRaw);
+  if (actPosEntryUsesFloatingPoint()) {
+    errorCode = readEcEntryValueDouble(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION,
+                                       &tempRawDouble);
+  } else {
+    errorCode = readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_ACTUAL_POSITION,
+                                 &tempRaw);
+  }
 
   if (errorCode != 0) {
     return errorCode;
   }
 
   rawPosUintOld_ = rawPosUint_;
+  rawPosDoubleOld_ = rawPosDouble_;
 
-  // Filter value with mask
-  rawPosUint_ = (totalRawMask_ & tempRaw) - totalRawRegShift_;
-  data_->status_.currentPositionActualRaw = rawPosUint_;
+  if (actPosEntryUsesFloatingPoint()) {
+    rawPosDouble_ = tempRawDouble;
+    rawPosUint_   = clampDoubleToUInt64(rawPosDouble_);
+    data_->status_.currentPositionActualRaw = clampDoubleToInt64(rawPosDouble_);
+  } else {
+    // Filter value with mask
+    rawPosUint_ = (totalRawMask_ & tempRaw) - totalRawRegShift_;
+    rawPosDouble_ = rawPosUint_;
+    data_->status_.currentPositionActualRaw = rawPosUint_;
+  }
   // if(!encInitilized_ && masterOk_) {
   if (!encInitilized_) {
     // if ready bit defined
     if (hwReadyBitDefined_) {
       if (hwReady_ > 0) {
         rawPosUintOld_ = rawPosUint_;
+        rawPosDoubleOld_ = rawPosDouble_;
         encInitilized_ = 1;
 
         LOGERR(
@@ -487,6 +554,7 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
       // if(!masterOKOld_) {
       if (!hwSumAlarmOld_) {
         rawPosUintOld_ = rawPosUint_;
+        rawPosDoubleOld_ = rawPosDouble_;
         encInitilized_ = 1;
         LOGERR(
           "%s/%s:%d: INFO (axis %d): Encoder initialized (domain==true ).\n",
@@ -502,22 +570,32 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
     return 0;
   }
 
-  // Check over/underflow (update turns counter)
-  rawTurnsOld_ = rawTurns_;
-  rawTurns_    = handleOverUnderFlow(rawPosUintOld_,
-                                     rawPosUint_,
-                                     rawTurns_,
-                                     rawLimit_,
-                                     bits_);
-  rawPosMultiTurn_ = rawTurns_ * rawRange_ + rawPosUint_ + rawPosOffset_;
+  if (actPosEntryUsesFloatingPoint()) {
+    rawTurnsOld_ = 0;
+    rawTurns_    = 0;
+    rawPosMultiTurn_ = rawPosDouble_ + rawPosOffset_;
+  } else {
+    // Check over/underflow (update turns counter)
+    rawTurnsOld_ = rawTurns_;
+    rawTurns_    = handleOverUnderFlow(rawPosUintOld_,
+                                       rawPosUint_,
+                                       rawTurns_,
+                                       rawLimit_,
+                                       bits_);
+    rawPosMultiTurn_ = rawTurns_ * rawRange_ + rawPosUint_ + rawPosOffset_;
+  }
 
   // Calculate absolute encoder data
-  if (absBits_ > 0) {
+  if (!actPosEntryUsesFloatingPoint() && absBits_ > 0) {
     rawAbsPosUintOld_ = rawAbsPosUint_;
     rawAbsPosUint_    = (rawAbsRange_ - 1) & rawPosUint_;  // filter abs bits
+    rawAbsPosDoubleOld_ = rawAbsPosDouble_;
+    rawAbsPosDouble_    = rawAbsPosUint_;
   } else {
     rawAbsPosUintOld_ = 0;
     rawAbsPosUint_    = 0;
+    rawAbsPosDoubleOld_ = 0;
+    rawAbsPosDouble_    = 0;
   }
 
   actPosLocal_ = scale_ * rawPosMultiTurn_ + engOffset_;
@@ -554,22 +632,26 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
       actPosLocal_ = actPosLocal_ - moduloRange;
 
       // Reset stuff to be able to run forever
+      const double rawPos = actPosEntryUsesFloatingPoint() ? rawPosDouble_ :
+                            static_cast<double>(rawPosUint_);
       engOffset_       = 0;
       rawTurnsOld_     = 0;
       rawTurns_        = 0;
-      rawPosOffset_    = actPosLocal_ * invScale_ - rawPosUint_;
-      rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
+      rawPosOffset_    = actPosLocal_ * invScale_ - rawPos;
+      rawPosMultiTurn_ = rawPos + rawPosOffset_;
     }
 
     if (actPosLocal_ < 0) {
       actPosLocal_ = moduloRange + actPosLocal_;
 
       // Reset stuff to be able to run forever
+      const double rawPos = actPosEntryUsesFloatingPoint() ? rawPosDouble_ :
+                            static_cast<double>(rawPosUint_);
       engOffset_       = 0;
       rawTurnsOld_     = 0;
       rawTurns_        = 0;
-      rawPosOffset_    = actPosLocal_ * invScale_ - rawPosUint_;
-      rawPosMultiTurn_ = rawPosUint_ + rawPosOffset_;
+      rawPosOffset_    = actPosLocal_ * invScale_ - rawPos;
+      rawPosMultiTurn_ = rawPos + rawPosOffset_;
     }
   }
 
@@ -604,6 +686,7 @@ int ecmcEncoder::readHwLatch(bool domainOK) {
   }
 
   uint64_t tempRaw = 0;
+  double tempRawDouble = 0;
 
   if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_STATUS, &tempRaw)) {
     return ERROR_ENC_ENTRY_READ_FAIL;
@@ -611,25 +694,37 @@ int ecmcEncoder::readHwLatch(bool domainOK) {
   encLatchStatusOld_ = encLatchStatus_;
   encLatchStatus_    = tempRaw > 0;
   
-  if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE, &tempRaw)) {
-    return ERROR_ENC_ENTRY_READ_FAIL;
-  }
+  if (entryTypeIsFloat(getEntryDataType(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE))) {
+    if (readEcEntryValueDouble(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE,
+                               &tempRawDouble)) {
+      return ERROR_ENC_ENTRY_READ_FAIL;
+    }
+    rawEncLatchPos_ = tempRawDouble;
+  } else {
+    if (readEcEntryValue(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE, &tempRaw)) {
+      return ERROR_ENC_ENTRY_READ_FAIL;
+    }
 
-  // Also treat latched position as actual position (same mask and shift)
-  rawEncLatchPos_ = (totalRawMask_ & tempRaw) - totalRawRegShift_;
+    // Also treat latched position as actual position (same mask and shift)
+    rawEncLatchPos_ = (totalRawMask_ & tempRaw) - totalRawRegShift_;
+  }
 
   // if new latched value then calculate latched value in engineering units
   if (encLatchStatus_ > encLatchStatusOld_) {
-    // Calculate multiturn latch value position (raw)
-    // Use rawTurnsOld_ since over/under flow might have occured after
-    // value was latched in hardware
-    int64_t turns = handleOverUnderFlow(rawPosUintOld_,
-                                        rawEncLatchPos_,
-                                        rawTurnsOld_,
-                                        rawLimit_,
-                                        bits_);
-    rawEncLatchPosMultiTurn_ = turns * rawRange_ + rawEncLatchPos_ +
-                               rawPosOffset_;
+    if (entryTypeIsFloat(getEntryDataType(ECMC_ENCODER_ENTRY_INDEX_LATCH_VALUE))) {
+      rawEncLatchPosMultiTurn_ = rawEncLatchPos_ + rawPosOffset_;
+    } else {
+      // Calculate multiturn latch value position (raw)
+      // Use rawTurnsOld_ since over/under flow might have occured after
+      // value was latched in hardware
+      int64_t turns = handleOverUnderFlow(rawPosUintOld_,
+                                          clampDoubleToUInt64(rawEncLatchPos_),
+                                          rawTurnsOld_,
+                                          rawLimit_,
+                                          bits_);
+      rawEncLatchPosMultiTurn_ = turns * rawRange_ + rawEncLatchPos_ +
+                                 rawPosOffset_;
+    }
     actEncLatchPos_ = scale_ * rawEncLatchPosMultiTurn_ +
                       engOffset_;
   }
@@ -893,6 +988,19 @@ int ecmcEncoder::validate() {
                         ERROR_ENC_ENTRY_NULL);
     }
     hwActPosDefined_ = errorCode == 0;
+  }
+
+  if (hwActPosDefined_ && actPosEntryUsesFloatingPoint()) {
+    if ((bits_ > 0) || (absBits_ > 0)) {
+      LOGERR(
+        "%s/%s:%d: WARNING (axis %d): Encoder actual-position entry is floating point. Configured bits=%d and absBits=%d will be ignored.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        data_->status_.axisId,
+        bits_,
+        absBits_);
+    }
   }
 
   // Check if latch entries are linked then "enable" latch funct
