@@ -375,6 +375,13 @@ int ecmcEcAsyncSDO::initAsyn() {
     usedSizeBytes_ = 1;
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    asynParamValue_->addSupportedAsynType(asynParamInt32);
+    asynParamValue_->addSupportedAsynType(asynParamUInt32Digital);
+    asynParamValue_->addSupportedAsynType(asynParamFloat64);
+    usedSizeBytes_ = 1;
+    break;
+
   case ECMC_EC_U16:
     asynParamValue_->addSupportedAsynType(asynParamInt32);
     asynParamValue_->addSupportedAsynType(asynParamUInt32Digital);
@@ -389,6 +396,13 @@ int ecmcEcAsyncSDO::initAsyn() {
     usedSizeBytes_ = 2;
     break;
 
+  case ECMC_EC_S16_TO_U16:
+    asynParamValue_->addSupportedAsynType(asynParamInt32);
+    asynParamValue_->addSupportedAsynType(asynParamUInt32Digital);
+    asynParamValue_->addSupportedAsynType(asynParamFloat64);
+    usedSizeBytes_ = 2;
+    break;
+
   case ECMC_EC_U32:
     asynParamValue_->addSupportedAsynType(asynParamInt32);
     asynParamValue_->addSupportedAsynType(asynParamUInt32Digital);
@@ -397,6 +411,13 @@ int ecmcEcAsyncSDO::initAsyn() {
     break;
 
   case ECMC_EC_S32:
+    asynParamValue_->addSupportedAsynType(asynParamInt32);
+    asynParamValue_->addSupportedAsynType(asynParamUInt32Digital);
+    asynParamValue_->addSupportedAsynType(asynParamFloat64);
+    usedSizeBytes_ = 4;
+    break;
+
+  case ECMC_EC_S32_TO_U32:
     asynParamValue_->addSupportedAsynType(asynParamInt32);
     asynParamValue_->addSupportedAsynType(asynParamUInt32Digital);
     asynParamValue_->addSupportedAsynType(asynParamFloat64);
@@ -657,6 +678,10 @@ int ecmcEcAsyncSDO::readValue() {
     *int8Ptr_ = EC_READ_S8(ecrt_sdo_request_data(sdoreq_));
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    *uint8Ptr_ = static_cast<uint8_t>(EC_READ_S8(ecrt_sdo_request_data(sdoreq_)));
+    break;
+
   case ECMC_EC_U16:
     *uint16Ptr_ = EC_READ_U16(ecrt_sdo_request_data(sdoreq_));
     break;
@@ -665,12 +690,20 @@ int ecmcEcAsyncSDO::readValue() {
     *int16Ptr_ = EC_READ_S16(ecrt_sdo_request_data(sdoreq_));
     break;
 
+  case ECMC_EC_S16_TO_U16:
+    *uint16Ptr_ = static_cast<uint16_t>(EC_READ_S16(ecrt_sdo_request_data(sdoreq_)));
+    break;
+
   case ECMC_EC_U32:
     *uint32Ptr_ = EC_READ_U32(ecrt_sdo_request_data(sdoreq_));
     break;
 
   case ECMC_EC_S32:
     *int32Ptr_ = EC_READ_S32(ecrt_sdo_request_data(sdoreq_));
+    break;
+
+  case ECMC_EC_S32_TO_U32:
+    *uint32Ptr_ = static_cast<uint32_t>(EC_READ_S32(ecrt_sdo_request_data(sdoreq_)));
     break;
 
 #ifdef EC_READ_U64
@@ -735,6 +768,10 @@ int ecmcEcAsyncSDO::writeValue() {
     EC_WRITE_S8(ecrt_sdo_request_data(sdoreq_), *int8Ptr_);
     break;
 
+  case ECMC_EC_S8_TO_U8:
+    EC_WRITE_S8(ecrt_sdo_request_data(sdoreq_), static_cast<int8_t>(*uint8Ptr_));
+    break;
+
   case ECMC_EC_U16:
     EC_WRITE_U16(ecrt_sdo_request_data(sdoreq_), *uint16Ptr_);
     break;
@@ -743,12 +780,20 @@ int ecmcEcAsyncSDO::writeValue() {
     EC_WRITE_S16(ecrt_sdo_request_data(sdoreq_), *int16Ptr_);
     break;
 
+  case ECMC_EC_S16_TO_U16:
+    EC_WRITE_S16(ecrt_sdo_request_data(sdoreq_), static_cast<int16_t>(*uint16Ptr_));
+    break;
+
   case ECMC_EC_U32:
     EC_WRITE_U32(ecrt_sdo_request_data(sdoreq_), *uint32Ptr_);
     break;
 
   case ECMC_EC_S32:
     EC_WRITE_S32(ecrt_sdo_request_data(sdoreq_), *int32Ptr_);
+    break;
+
+  case ECMC_EC_S32_TO_U32:
+    EC_WRITE_S32(ecrt_sdo_request_data(sdoreq_), static_cast<int32_t>(*uint32Ptr_));
     break;
 
 #ifdef EC_WRITE_U64
