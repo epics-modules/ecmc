@@ -17,6 +17,7 @@
 #include "ecmcPLCTask_libMc.inc"
 #include "ecmcPLCTask_libFileIO.inc"
 #include "ecmcPLCTask_libMisc.inc"
+#include <new>
 
 #define ecmcPLCTaskAddFunction(cmd, func) {\
           errorCode = exprtk_->addFunction(cmd, func);\
@@ -35,7 +36,17 @@ ecmcPLCTask::ecmcPLCTask(int                 plcIndex,
   skipCycles_        = skipCycles;
   asynPortDriver_    = asynPortDriver;
   functionLibs_.clear();
-  exprtk_            = new exprtkWrap();
+  try {
+    exprtk_ = new exprtkWrap();
+  } catch (std::bad_alloc& ex) {
+    LOGERR("%s/%s:%d: ERROR: PLC[%d]: exprtk allocation failed.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           plcIndex);
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_MAIN_EXCEPTION);
+    return;
+  }
   mcuFreq_           = mcuFreq;
   plcScanTimeInSecs_ = 1 / mcuFreq_ * (skipCycles + 1);
   int errorCode      = initAsyn(plcIndex);

@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcEcPdo.h"
+#include "ecmcErrorsList.h"
 
 ecmcEcPdo::ecmcEcPdo(ecmcAsynPortDriver *asynPortDriver,
                      int                 masterId,
@@ -105,6 +106,18 @@ ecmcEcEntry * ecmcEcPdo::addEntry(uint16_t       entryIndex,
                                        dt,
                                        id,
                                        useInRealTime);
+  if (!entry) {
+    *errorCode = ERROR_MAIN_EXCEPTION;
+    return NULL;
+  }
+
+  int entryError = entry->getErrorID();
+  if (entryError) {
+    *errorCode = entryError;
+    delete entry;
+    return NULL;
+  }
+
   entryArray_[entryCounter_] = entry;
   entryCounter_++;
   *errorCode = 0;

@@ -12,6 +12,7 @@
 
 #include "ecmcEcSlave.h"
 #include "ecmcErrorsList.h"
+#include "ecmcGeneral.h"
 
 extern app_mode_type appModeStat;
 
@@ -196,13 +197,36 @@ int ecmcEcSlave::addSyncManager(ec_direction_t direction,
                       ERROR_EC_SLAVE_SM_ARRAY_FULL);
   }
 
-  syncManagerArray_[syncManCounter_] = new ecmcEcSyncManager(asynPortDriver_,
-                                                             masterId_,
-                                                             slavePosition_,
-                                                             domain_,
-                                                             slaveConfig_,
-                                                             direction,
-                                                             syncMangerIndex);
+  ecmcEcSyncManager *syncManager = new ecmcEcSyncManager(asynPortDriver_,
+                                                         masterId_,
+                                                         slavePosition_,
+                                                         domain_,
+                                                         slaveConfig_,
+                                                         direction,
+                                                         syncMangerIndex);
+  if (!syncManager) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_MAIN_EXCEPTION);
+  }
+
+  int errorCode = syncManager->getErrorID();
+  if (errorCode) {
+    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Sync manager creation failed: %s (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           slavePosition_,
+           vendorId_,
+           productCode_,
+           getErrorString(errorCode),
+           errorCode);
+    delete syncManager;
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
+
+  syncManagerArray_[syncManCounter_] = syncManager;
   syncManCounter_++;
   return 0;
 }
@@ -1208,13 +1232,26 @@ int ecmcEcSlave::addSimEntry(std::string    id,
   simBuffer_[simEntryCounter_] = value;
   
   // Entry
-  simEntries_[simEntryCounter_]= new ecmcEcEntry(asynPortDriver_,
-                                                 masterId_,
-                                                 slavePosition_,
-                                                 (uint8_t*)&(simBuffer_[simEntryCounter_]),
-                                                 dt,
-                                                 id);
+  ecmcEcEntry *entry = new ecmcEcEntry(asynPortDriver_,
+                                       masterId_,
+                                       slavePosition_,
+                                       (uint8_t*)&(simBuffer_[simEntryCounter_]),
+                                       dt,
+                                       id);
+  if (!entry) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_MAIN_EXCEPTION);
+  }
 
+  int errorCode = entry->getErrorID();
+  if (errorCode) {
+    delete entry;
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
+
+  simEntries_[simEntryCounter_] = entry;
   simEntries_[simEntryCounter_]->writeValue(value);
 
   appendEntryToList(simEntries_[simEntryCounter_], 1);

@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcEcSyncManager.h"
+#include "ecmcErrorsList.h"
 
 ecmcEcSyncManager::ecmcEcSyncManager(ecmcAsynPortDriver *asynPortDriver,
                                      int                 masterId,
@@ -90,14 +91,28 @@ int ecmcEcSyncManager::addPdo(uint16_t pdoIndex) {
                       __LINE__,
                       ERROR_EC_SM_PDO_ARRAY_FULL);
   }
-  pdoArray_[pdoCounter_] = new ecmcEcPdo(asynPortDriver_,
-                                         masterId_,
-                                         slaveId_,
-                                         domain_,
-                                         slaveConfig_,
-                                         syncMangerIndex_,
-                                         pdoIndex,
-                                         direction_);
+  ecmcEcPdo *pdo = new ecmcEcPdo(asynPortDriver_,
+                                 masterId_,
+                                 slaveId_,
+                                 domain_,
+                                 slaveConfig_,
+                                 syncMangerIndex_,
+                                 pdoIndex,
+                                 direction_);
+  if (!pdo) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_MAIN_EXCEPTION);
+  }
+
+  int errorCode = pdo->getErrorID();
+  if (errorCode) {
+    delete pdo;
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
+
+  pdoArray_[pdoCounter_] = pdo;
   pdoCounter_++;
   return 0;
 }

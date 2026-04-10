@@ -1777,8 +1777,11 @@ int ecmcAxisBase::movePVTAbs() {
 
 int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisBase::movePVTAbs().\n",
-           data_.status_.axisId);
+    LOGINFO("%s/%s:%d: INFO: Axis[%d]: movePVTAbs().\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            data_.status_.axisId);
   }
 
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
@@ -1838,8 +1841,11 @@ int ecmcAxisBase::moveAbsolutePosition(
   double accelerationSet,
   double decelerationSet) {
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisBase::moveAbsolutePosition().\n",
-           data_.status_.axisId);
+    LOGINFO("%s/%s:%d: INFO: Axis[%d]: moveAbsolutePosition().\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            data_.status_.axisId);
   }
 
   if(getBlocked()) {
@@ -1918,8 +1924,11 @@ int ecmcAxisBase::moveRelativePosition(
   double decelerationSet) {
   
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisBase::moveRelativePosition().\n",
-           data_.status_.axisId);
+    LOGINFO("%s/%s:%d: INFO: Axis[%d]: moveRelativePosition().\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            data_.status_.axisId);
   }
 
   if(getBlocked()) {
@@ -3134,8 +3143,11 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
 
 
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisBase::selectCSPDriveEncoder(): CSP encoder selected for drive control.\n",
-           data_.status_.axisId);
+    LOGINFO("%s/%s:%d: INFO: Axis[%d]: selectCSPDriveEncoder(): CSP encoder selected for drive control.\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            data_.status_.axisId);
   }
 
   data_.control_.cspDrvEncIndex = localIndex;
@@ -3466,8 +3478,11 @@ void ecmcAxisBase::autoEnableSM() {
   
   if(!data_.status_.statusWord_.enable) {
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      printf("INFO: Axis[%d]: ecmcAxisBase::autoEnableSM(): Enabling axis.\n",
-             data_.status_.axisId);
+      LOGINFO("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): enabling axis.\n",
+              __FILE__,
+              __FUNCTION__,
+              __LINE__,
+              data_.status_.axisId);
     }
 
     setEnable(true);
@@ -3488,8 +3503,11 @@ void ecmcAxisBase::autoEnableSM() {
     autoEnableTimeCounter_ = 0;
     autoEnableRequest_= false;
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      printf("INFO: Axis[%d]: ecmcAxisBase::autoEnableSM(): Axis enabled, triggering motion.\n",
-             data_.status_.axisId);
+      LOGINFO("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): axis enabled, triggering motion.\n",
+              __FILE__,
+              __FUNCTION__,
+              __LINE__,
+              data_.status_.axisId);
     }
     
     setExecute(0,1); // need ignore busy
@@ -3521,8 +3539,12 @@ void ecmcAxisBase::autoDisableSM() {
 
   if(autoDisbleTimeCounter_ > autoDisableAfterS_ && data_.control_.controlWord_.enableCmd) {
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      printf("INFO: Axis[%d]: ecmcAxisBase::autoDisableSM(): Auto-disabling axis after %lf s idle.\n",
-              data_.status_.axisId, autoDisableAfterS_);
+      LOGINFO("%s/%s:%d: INFO: Axis[%d]: autoDisableSM(): auto-disabling axis after %lf s idle.\n",
+              __FILE__,
+              __FUNCTION__,
+              __LINE__,
+              data_.status_.axisId,
+              autoDisableAfterS_);
     }
 
     setEnable(0);

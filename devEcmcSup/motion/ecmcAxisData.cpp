@@ -93,11 +93,14 @@ void printInterlockSummaryChange(int axisId,
                                  const char *summaryName,
                                  bool active,
                                  const char *causes) {
-  printf("INFO: Axis[%d]: Interlock summary %s %s: active=%s.\n",
-         axisId,
-         summaryName,
-         active ? "active" : "cleared",
-         causes[0] ? causes : "none");
+  LOGINFO("%s/%s:%d: INFO: Axis[%d]: Interlock summary %s %s: active=%s.\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__,
+          axisId,
+          summaryName,
+          active ? "active" : "cleared",
+          causes[0] ? causes : "none");
 }
 }
 
