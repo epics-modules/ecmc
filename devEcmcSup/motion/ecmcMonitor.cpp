@@ -883,11 +883,25 @@ int ecmcMonitor::checkLimits() {
   }
 
   const bool checkSoftLimits = axisEnabled && !isHomingCmd;
+  const bool useVelocityDirection =
+    (status.command == ECMC_CMD_MOVEVEL) ||
+    (status.command == ECMC_CMD_JOG) ||
+    (status.command == ECMC_CMD_MOVEPVTABS) ||
+    (statusWord.trajsource != ECMC_DATA_SOURCE_INTERNAL);
+  const bool movingBwd =
+    (status.currentTargetPosition < status.currentPositionSetpoint) ||
+    (useVelocityDirection && (status.currentVelocitySetpoint < 0));
+  const bool movingFwd =
+    (status.currentTargetPosition > status.currentPositionSetpoint) ||
+    (useVelocityDirection && (status.currentVelocitySetpoint > 0));
+  const bool movingAwayFromBwdLimit = movingFwd && !movingBwd;
+  const bool movingAwayFromFwdLimit = movingBwd && !movingFwd;
 
   if (checkSoftLimits && statusWord.softlimbwdena) {
     const bool virtSoftlimitBwd =
-      (status.currentPositionSetpoint < control.softLimitBwd) ||
-      (status.currentTargetPosition < control.softLimitBwd);
+      !movingAwayFromBwdLimit &&
+      ((status.currentPositionSetpoint < control.softLimitBwd) ||
+       (status.currentTargetPosition < control.softLimitBwd));
     if (virtSoftlimitBwd) {
       interlocks.bwdSoftLimitInterlock = true;
       if (warningId != WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
@@ -911,8 +925,9 @@ int ecmcMonitor::checkLimits() {
 
   if (checkSoftLimits && statusWord.softlimfwdena) {
     const bool virtSoftlimitFwd =
-      (status.currentPositionSetpoint > control.softLimitFwd) ||
-      (status.currentTargetPosition > control.softLimitFwd);
+      !movingAwayFromFwdLimit &&
+      ((status.currentPositionSetpoint > control.softLimitFwd) ||
+       (status.currentTargetPosition > control.softLimitFwd));
     if (virtSoftlimitFwd) {
       interlocks.fwdSoftLimitInterlock = true;
       if (warningId != WARNING_MON_SOFT_LIMIT_FWD_INTERLOCK) {
