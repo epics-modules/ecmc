@@ -13,6 +13,39 @@
 #include "ecmcAxisData.h"
 #include "ecmcOctetIF.h"
 
+namespace {
+void appendActiveInterlock(char *buffer,
+                           size_t bufferSize,
+                           bool active,
+                           const char *name) {
+  if (!active) {
+    return;
+  }
+
+  const size_t bufferLength = strlen(buffer);
+  if (bufferLength >= bufferSize) {
+    return;
+  }
+
+  snprintf(buffer + bufferLength,
+           bufferSize - bufferLength,
+           "%s%s",
+           bufferLength ? "," : "",
+           name);
+}
+
+void printInterlockSummaryChange(int axisId,
+                                 const char *summaryName,
+                                 bool active,
+                                 const char *causes) {
+  printf("INFO: Axis[%d]: Interlock summary %s %s: active=%s.\n",
+         axisId,
+         summaryName,
+         active ? "active" : "cleared",
+         causes[0] ? causes : "none");
+}
+}
+
 ecmcAxisData::ecmcAxisData() {
   memset(&control_,    0, sizeof(control_));
   memset(&controlOld_, 0, sizeof(controlOld_));
@@ -316,50 +349,99 @@ int ecmcAxisData::setSummaryInterlocks() {
 
   // printout interlock changes
   if(control_.controlWord_.enableDbgPrintout) {
+    char activeInterlocks[512];
     if(interlocksOld_.driveSummaryInterlock != interlocks_.driveSummaryInterlock) {
-      printf("interlocks_.driveSummaryInterlock changed:\n");
-      printf("interlocks_.bothLimitsLowInterlock= %d\n",interlocks_.bothLimitsLowInterlock);
-      printf("interlocks_.bothLimitsLowInterlock= %d\n",interlocks_.bothLimitsLowInterlock);
-      printf("interlocks_.cntrlOutputHLDriveInterlock= %d\n",interlocks_.cntrlOutputHLDriveInterlock);
-      printf("interlocks_.lagDriveInterlock= %d\n",interlocks_.lagDriveInterlock);
-      printf("interlocks_.maxVelocityDriveInterlock= %d\n",interlocks_.maxVelocityDriveInterlock);
-      printf("interlocks_.velocityDiffDriveInterlock= %d\n",interlocks_.velocityDiffDriveInterlock);
-      printf("interlocks_.hardwareInterlock= %d\n",interlocks_.hardwareInterlock);
-      printf("interlocks_.etherCatMasterInterlock= %d\n",interlocks_.etherCatMasterInterlock);
-      printf("interlocks_.analogInterlock= %d\n",interlocks_.analogInterlock);
-      printf("interlocks_.stallInterlock= %d\n",interlocks_.stallInterlock);
+      activeInterlocks[0] = '\0';
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.bothLimitsLowInterlock, "bothLimitsLow");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.cntrlOutputHLDriveInterlock, "driveCntrlHL");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.lagDriveInterlock, "driveLag");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.maxVelocityDriveInterlock, "driveMaxVelocity");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.velocityDiffDriveInterlock, "driveVelocityDiff");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.hardwareInterlock, "hardware");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.etherCatMasterInterlock, "etherCatMaster");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.analogInterlock, "analog");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.stallInterlock, "stall");
+      printInterlockSummaryChange(status_.axisId,
+                                  "drive",
+                                  interlocks_.driveSummaryInterlock,
+                                  activeInterlocks);
     }
 
     if(interlocksOld_.trajSummaryInterlockBWD !=interlocks_.trajSummaryInterlockBWD) {
-      printf("interlocks_.trajSummaryInterlockBWD changed:\n");
-      printf("interlocks_.axisErrorStateInterlock= %d\n",interlocks_.axisErrorStateInterlock);
-      printf("interlocks_.bwdLimitInterlock= %d\n",interlocks_.bwdLimitInterlock);
-      printf("interlocks_.bwdSoftLimitInterlock= %d\n",interlocks_.bwdSoftLimitInterlock);
-      printf("interlocks_.cntrlOutputHLTrajInterlock= %d\n",interlocks_.cntrlOutputHLTrajInterlock);
-      printf("interlocks_.lagTrajInterlock= %d\n",interlocks_.lagTrajInterlock);
-      printf("interlocks_.maxVelocityTrajInterlock= %d\n",interlocks_.maxVelocityTrajInterlock);
-      printf("interlocks_.noExecuteInterlock= %d\n",interlocks_.noExecuteInterlock);
-      printf("interlocks_.velocityDiffTrajInterlock= %d\n",interlocks_.velocityDiffTrajInterlock);
-      printf("interlocks_.plcInterlock= %d\n",interlocks_.plcInterlock);
-      printf("interlocks_.plcInterlockBWD= %d\n",interlocks_.plcInterlockBWD);
-      printf("interlocks_.encDiffInterlock= %d\n",interlocks_.encDiffInterlock);
-      printf("interlocks_.safetyInterlock= %d\n",interlocks_.safetyInterlock);
+      activeInterlocks[0] = '\0';
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.driveSummaryInterlock, "drive");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.axisErrorStateInterlock, "axisErrorState");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.bwdLimitInterlock, "bwdLimit");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.bwdSoftLimitInterlock, "bwdSoftLimit");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.cntrlOutputHLTrajInterlock, "trajCntrlHL");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.lagTrajInterlock, "trajLag");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.maxVelocityTrajInterlock, "trajMaxVelocity");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.noExecuteInterlock, "noExecute");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.velocityDiffTrajInterlock, "trajVelocityDiff");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.plcInterlock, "plc");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.plcInterlockBWD, "plcBwd");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.encDiffInterlock, "encDiff");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.safetyInterlock, "safety");
+      printInterlockSummaryChange(status_.axisId,
+                                  "trajectory backward",
+                                  interlocks_.trajSummaryInterlockBWD,
+                                  activeInterlocks);
     }
   
     if(interlocksOld_.trajSummaryInterlockFWD !=interlocks_.trajSummaryInterlockFWD) {
-      printf("interlocks_.trajSummaryInterlockFWD changed:\n");
-      printf("interlocks_.axisErrorStateInterlock = %d \n",interlocks_.axisErrorStateInterlock);
-      printf("interlocks_.cntrlOutputHLTrajInterlock = %d \n",interlocks_.cntrlOutputHLTrajInterlock);
-      printf("interlocks_.fwdLimitInterlock = %d \n",interlocks_.fwdLimitInterlock);
-      printf("interlocks_.fwdSoftLimitInterlock = %d \n",interlocks_.fwdSoftLimitInterlock);
-      printf("interlocks_.lagTrajInterlock = %d \n",interlocks_.lagTrajInterlock);
-      printf("interlocks_.maxVelocityTrajInterlock = %d \n",interlocks_.maxVelocityTrajInterlock);
-      printf("interlocks_.noExecuteInterlock = %d \n",interlocks_.noExecuteInterlock);
-      printf("interlocks_.velocityDiffTrajInterlock = %d \n",interlocks_.velocityDiffTrajInterlock);
-      printf("interlocks_.plcInterlock = %d \n",interlocks_.plcInterlock);
-      printf("interlocks_.plcInterlockFWD = %d \n",interlocks_.plcInterlockFWD);
-      printf("interlocks_.encDiffInterlock = %d \n",interlocks_.encDiffInterlock);
-      printf("interlocks_.safetyInterlock; = %d \n",interlocks_.safetyInterlock);
+      activeInterlocks[0] = '\0';
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.driveSummaryInterlock, "drive");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.axisErrorStateInterlock, "axisErrorState");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.fwdLimitInterlock, "fwdLimit");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.fwdSoftLimitInterlock, "fwdSoftLimit");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.cntrlOutputHLTrajInterlock, "trajCntrlHL");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.lagTrajInterlock, "trajLag");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.maxVelocityTrajInterlock, "trajMaxVelocity");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.noExecuteInterlock, "noExecute");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.velocityDiffTrajInterlock, "trajVelocityDiff");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.plcInterlock, "plc");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.plcInterlockFWD, "plcFwd");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.encDiffInterlock, "encDiff");
+      appendActiveInterlock(activeInterlocks, sizeof(activeInterlocks),
+                            interlocks_.safetyInterlock, "safety");
+      printInterlockSummaryChange(status_.axisId,
+                                  "trajectory forward",
+                                  interlocks_.trajSummaryInterlockFWD,
+                                  activeInterlocks);
     }
   }
 
