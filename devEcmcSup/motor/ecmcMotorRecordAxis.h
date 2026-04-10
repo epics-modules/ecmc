@@ -153,6 +153,8 @@ private:
   asynStatus readBackSoftLimits(bool updateMotor);
   int        applyMotorSoftLimitChange(bool   updateFwd,
                                        double value);
+  bool       isSoftLimitSyncEnabled();
+  asynStatus updateSoftLimitSyncState(bool updateParams, bool *risingEdge);
   asynStatus syncEcmcSoftLimits();
   asynStatus syncEcmcSoftLimits(bool force, bool updateParams);
   asynStatus syncMotorSoftLimits();

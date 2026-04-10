@@ -544,20 +544,43 @@ int ecmcMotorRecordAxis::applyMotorSoftLimitChange(bool   updateFwd,
   return errorCode;
 }
 
+bool ecmcMotorRecordAxis::isSoftLimitSyncEnabled() {
+  int sync = 0;
+#ifdef motorFlagsRwSoftLimitsString
+  // Allow sync of softlimit (motor to ecmc and the other way around)
+  pC_->getIntegerParam(axisNo_, pC_->motorFlagsRwSoftLimits_, &sync);
+#endif //motorFlagsRwSoftLimitsString
+  return sync != 0;
+}
+
+asynStatus ecmcMotorRecordAxis::updateSoftLimitSyncState(bool updateParams,
+                                                         bool *risingEdge) {
+  if (risingEdge) {
+    *risingEdge = false;
+  }
+#ifdef motorFlagsRwSoftLimitsString
+  const bool syncWasEnabled = drvlocal.syncEcmcMrSoftlimits;
+  const bool syncIsEnabled = isSoftLimitSyncEnabled();
+
+  drvlocal.syncEcmcMrSoftlimits = syncIsEnabled;
+  if (!syncWasEnabled && syncIsEnabled) {
+    if (risingEdge) {
+      *risingEdge = true;
+    }
+    return syncSoftLimitInterfaces(updateParams);
+  }
+#endif //motorFlagsRwSoftLimitsString
+  return asynSuccess;
+}
+
 asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits() {
   return syncEcmcSoftLimits(false, true);
 }
 
-// Sync ecmc softlimits based on command from motor
+// Refresh ECMC soft-limit config/readback parameters.
 asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits(bool force, bool updateParams) {
 
-  int sync = 0;
-  #ifdef motorFlagsRwSoftLimitsString
-  // Allow sync of softlimit (motor to ecmc and the other way around)
-  pC_->getIntegerParam(axisNo_, pC_->motorFlagsRwSoftLimits_,&sync);
-  #endif //motorFlagsRwSoftLimitsString
-
-  if(!sync && !force) {
+  if(!isSoftLimitSyncEnabled() && !force) {
     return asynSuccess;
   }
   
@@ -586,16 +609,10 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits() {
   return syncMotorSoftLimits(false, true);
 }
 
-// Sync motor softlimits based on ecmc soft limit settings
+// Sync motor softlimits based on ecmc soft limit settings.
 asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParams) {
 
-  int sync = 0;
-  #ifdef motorFlagsRwSoftLimitsString
-  // Allow sync of softlimit (motor to ecmc and the other way around)
-  pC_->getIntegerParam(axisNo_, pC_->motorFlagsRwSoftLimits_,&sync);
-  #endif //motorFlagsRwSoftLimitsString
-
-  if(!sync && !force) {
+  if(!isSoftLimitSyncEnabled() && !force) {
     return asynSuccess;
   }
 
@@ -630,7 +647,7 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParam
 asynStatus ecmcMotorRecordAxis::syncSoftLimitInterfaces(bool updateParams) {
   asynStatus status = syncEcmcSoftLimits(true, false);
   if (status == asynSuccess) {
-    status = syncMotorSoftLimits(true, false);
+    status = syncMotorSoftLimits(false, false);
   }
 
   if (updateParams) {
@@ -1807,7 +1824,14 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     asynMotorAxis::setIntegerParam(pC_->ecmcMotorRecordTRIGG_SYNC_,triggsync_);
   }
 
-  syncSoftLimitInterfaces(false);
+  bool softLimitSyncRisingEdge = false;
+  status = updateSoftLimitSyncState(false, &softLimitSyncRisingEdge);
+  if (status) {
+    return status;
+  }
+  if (!softLimitSyncRisingEdge) {
+    syncSoftLimitInterfaces(false);
+  }
 
   if (drvlocal.statusOld_.statusWord_.lastilock !=
       drvlocal.status_.statusWord_.lastilock) {
@@ -2373,13 +2397,17 @@ void ecmcMotorRecordAxis::updateIlockShortTxtFromDriver(int lastInterlock) {
 /** Set the high limit position of the motor.
   * \param[in] highLimit The new high limit position that should be set in the hardware. Units=steps.*/
 asynStatus ecmcMotorRecordAxis::setHighLimit(double highLimit) {
-  int errorCode = applyMotorSoftLimitChange(true, highLimit);
+  int errorCode = 0;
 
-  if (errorCode) {
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-              "%ssetHighLimit(%d)=%lf\n", modNamEMC, axisNo_, highLimit);
+  if (isSoftLimitSyncEnabled()) {
+    errorCode = applyMotorSoftLimitChange(true, highLimit);
 
-    return asynError;
+    if (errorCode) {
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+                "%ssetHighLimit(%d)=%lf\n", modNamEMC, axisNo_, highLimit);
+
+      return asynError;
+    }
   }
 
   asynStatus status = asynMotorAxis::setHighLimit(highLimit);
@@ -2390,13 +2418,17 @@ asynStatus ecmcMotorRecordAxis::setHighLimit(double highLimit) {
 /** Set the low limit position of the motor.
   * \param[in] lowLimit The new low limit position that should be set in the hardware. Units=steps.*/
 asynStatus ecmcMotorRecordAxis::setLowLimit(double lowLimit) {
-  int errorCode = applyMotorSoftLimitChange(false, lowLimit);
+  int errorCode = 0;
 
-  if (errorCode) {
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-              "%ssetLowLimit(%d)=%lf\n", modNamEMC, axisNo_, lowLimit);
+  if (isSoftLimitSyncEnabled()) {
+    errorCode = applyMotorSoftLimitChange(false, lowLimit);
 
-    return asynError;
+    if (errorCode) {
+      asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+                "%ssetLowLimit(%d)=%lf\n", modNamEMC, axisNo_, lowLimit);
+
+      return asynError;
+    }
   }
 
   asynStatus status = asynMotorAxis::setLowLimit(lowLimit);
