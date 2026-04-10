@@ -14,6 +14,61 @@
 #include "ecmcOctetIF.h"
 
 namespace {
+const char *interlockToString(interlockTypes interlock) {
+  switch (interlock) {
+  case ECMC_INTERLOCK_NONE:
+    return "none";
+  case ECMC_INTERLOCK_SOFT_BWD:
+    return "soft limit backward";
+  case ECMC_INTERLOCK_SOFT_FWD:
+    return "soft limit forward";
+  case ECMC_INTERLOCK_HARD_BWD:
+    return "hard limit backward";
+  case ECMC_INTERLOCK_HARD_FWD:
+    return "hard limit forward";
+  case ECMC_INTERLOCK_NO_EXECUTE:
+    return "no execute";
+  case ECMC_INTERLOCK_POSITION_LAG:
+    return "position lag";
+  case ECMC_INTERLOCK_BOTH_LIMITS:
+    return "both limits";
+  case ECMC_INTERLOCK_EXTERNAL:
+    return "external interlock";
+  case ECMC_INTERLOCK_TRANSFORM:
+    return "transform interlock";
+  case ECMC_INTERLOCK_MAX_SPEED:
+    return "max speed";
+  case ECMC_INTERLOCK_CONT_HIGH_LIMIT:
+    return "controller high limit";
+  case ECMC_INTERLOCK_CONT_OUT_INCREASE_AT_LIMIT_SWITCH:
+    return "control output increase at limit";
+  case ECMC_INTERLOCK_AXIS_ERROR_STATE:
+    return "axis error state";
+  case ECMC_INTERLOCK_UNEXPECTED_LIMIT_SWITCH_BEHAVIOUR:
+    return "unexpected limit switch behaviour";
+  case ECMC_INTERLOCK_VELOCITY_DIFF:
+    return "velocity difference";
+  case ECMC_INTERLOCK_ETHERCAT_MASTER_NOT_OK:
+    return "EtherCAT master not OK";
+  case ECMC_INTERLOCK_PLC_NORMAL:
+    return "PLC interlock";
+  case ECMC_INTERLOCK_PLC_BWD:
+    return "PLC interlock backward";
+  case ECMC_INTERLOCK_PLC_FWD:
+    return "PLC interlock forward";
+  case ECMC_INTERLOCK_ENC_DIFF:
+    return "encoder difference";
+  case ECMC_INTERLOCK_ANALOG:
+    return "analog interlock";
+  case ECMC_INTERLOCK_SAFETY:
+    return "safety interlock";
+  case ECMC_INTERLOCK_STALL:
+    return "stall";
+  default:
+    return "unknown interlock";
+  }
+}
+
 void appendActiveInterlock(char *buffer,
                            size_t bufferSize,
                            bool active,
@@ -290,11 +345,12 @@ stopMode ecmcAxisData::refreshInterlocks() {
   if ((oldInterlock != interlocks_.interlockStatus) &&
       !status_.statusWord_.instartup) {
     if (interlocks_.interlockStatus) {
-      LOGERR("%s/%s:%d: INFO: Axis[%d]: Motion interlocked (type %d).\n",
+      LOGERR("%s/%s:%d: INFO: Axis[%d]: Motion interlocked: %s (type %d).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
              status_.axisId,
+             interlockToString(interlocks_.interlockStatus),
              interlocks_.interlockStatus);
     } else {
       LOGERR("%s/%s:%d: INFO: Axis[%d]: Motion interlock cleared.\n",

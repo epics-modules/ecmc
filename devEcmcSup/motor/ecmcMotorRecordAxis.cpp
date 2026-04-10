@@ -929,19 +929,16 @@ asynStatus ecmcMotorRecordAxis::move(double position,
                                      double maxVelocity,
                                      double acceleration) {
   bool commandAccepted = false;
-  if (drvlocal.axisPrintDbg) {
-    LOGERR(
-        "%s/%s:%d: INFO: Axis[%d]: Motor record move request: target=%lf, relative=%d, velocity=%lf..%lf, acceleration=%lf.\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        drvlocal.axisId,
-        position,
-        relative,
-        minVelocity,
-        maxVelocity,
-        acceleration);
-  }
+  LOGERR(
+      "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute %s requested (target=%lf, velocity=%lf, acceleration=%lf).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      drvlocal.axisId,
+      relative ? "MOVE_REL" : "MOVE_ABS",
+      position,
+      maxVelocity,
+      acceleration);
 
   //asynPrint(pPrintOutAsynUser,
   //          ASYN_TRACE_INFO,
@@ -1043,7 +1040,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   // cmd, nCmddata,homepos,velhigh,vellow,acc
   //printf("velo min max acc= %lf %lf, %lf \n",minVelocity,maxVelocity,acceleration);
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: INFO: Axis[%d]: Motor record home request: velocity=%lf..%lf, acceleration=%lf, forward=%d.\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute HOMING requested (velocity=%lf..%lf, acceleration=%lf, forward=%d).\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, minVelocity, maxVelocity, acceleration, forwards);
 
@@ -1213,7 +1210,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
                                              double acceleration) {
   bool commandAccepted = false;
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: INFO: Axis[%d]: Motor record velocity request: velocity=%lf..%lf, acceleration=%lf.\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute MOVE_VEL requested (velocity=%lf..%lf, acceleration=%lf).\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, minVelocity, maxVelocity, acceleration);
 
@@ -1321,7 +1318,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
  */
 asynStatus ecmcMotorRecordAxis::setPosition(double value) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: INFO: Axis[%d]: Motor record set-position request: position=%lf.\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute SET_POSITION requested (position=%lf).\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, value);
 
@@ -1337,7 +1334,7 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value) {
 
 asynStatus ecmcMotorRecordAxis::resetAxis(void) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: INFO: Axis[%d]: Motor record reset request.\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute RESET requested.\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_);
 
@@ -1357,7 +1354,7 @@ asynStatus ecmcMotorRecordAxis::resetAxis(void) {
 
 asynStatus ecmcMotorRecordAxis::setEnable(int on) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: INFO: Axis[%d]: Motor record enable request: enable=%d.\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute SET_ENABLE requested (enable=%d).\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, on);
 
@@ -1437,7 +1434,7 @@ bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
  */
 asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: Axis[%d] Enable amp cmd %d\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute ENABLE_AMPLIFIER requested (enable=%d).\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, on);
 
@@ -1519,7 +1516,7 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
 asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name,
                                                  double      acceleration) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: INFO: Axis[%d]: Motor record stop request: caller=%s, acceleration=%lf.\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute STOP requested (caller=%s, acceleration=%lf).\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, function_name, acceleration);
 
@@ -1563,7 +1560,7 @@ asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name,
  */
 asynStatus ecmcMotorRecordAxis::stop(double acceleration) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: INFO: Axis[%d]: Motor record stop request: acceleration=%lf.\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute STOP requested (acceleration=%lf).\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, acceleration);
 
@@ -1930,31 +1927,34 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 
   if (drvlocal.waitNumPollsBeforeReady) {
     /* Don't update moving, done, motorStatusProblem_ */
-    asynPrint(pPrintOutAsynUser,
-              ASYN_TRACE_INFO,
-              "%spoll(%d): waiting for ECMC status update: ready=%d, busy=%d, execute=%d, enabled=%d, atTarget=%d, pollsLeft=%d.\n",
-              modNamEMC,
-              axisNo_,
-              drvlocal.moveReady,
-              drvlocal.status_.statusWord_.busy,
-              drvlocal.status_.statusWord_.execute,
-              drvlocal.status_.statusWord_.enabled,
-              drvlocal.status_.statusWord_.attarget,
-              drvlocal.waitNumPollsBeforeReady);
+    if (drvlocal.axisPrintDbg) {
+      asynPrint(pPrintOutAsynUser,
+                ASYN_TRACE_INFO,
+                "%spoll(%d): waiting for ECMC status update: ready=%d, busy=%d, execute=%d, enabled=%d, atTarget=%d, pollsLeft=%d.\n",
+                modNamEMC,
+                axisNo_,
+                drvlocal.moveReady,
+                drvlocal.status_.statusWord_.busy,
+                drvlocal.status_.statusWord_.execute,
+                drvlocal.status_.statusWord_.enabled,
+                drvlocal.status_.statusWord_.attarget,
+                drvlocal.waitNumPollsBeforeReady);
+    }
     drvlocal.waitNumPollsBeforeReady--;
     callParamCallbacks();
   } else
 #endif // ifndef motorWaitPollsBeforeReadyString
   {
-    if ((drvlocal.moveReadyOld != drvlocal.moveReady) ||
-        (drvlocal.statusOld_.statusWord_.busy     !=
-         drvlocal.status_.statusWord_.busy) ||
-        (drvlocal.statusOld_.statusWord_.enabled  !=
-         drvlocal.status_.statusWord_.enabled) ||
-        (drvlocal.statusOld_.statusWord_.execute  !=
-         drvlocal.status_.statusWord_.execute) ||
-        (drvlocal.statusOld_.statusWord_.attarget !=
-         drvlocal.status_.statusWord_.attarget)) {
+    if (((drvlocal.moveReadyOld != drvlocal.moveReady) ||
+         (drvlocal.statusOld_.statusWord_.busy     !=
+          drvlocal.status_.statusWord_.busy) ||
+         (drvlocal.statusOld_.statusWord_.enabled  !=
+          drvlocal.status_.statusWord_.enabled) ||
+         (drvlocal.statusOld_.statusWord_.execute  !=
+          drvlocal.status_.statusWord_.execute) ||
+         (drvlocal.statusOld_.statusWord_.attarget !=
+          drvlocal.status_.statusWord_.attarget)) &&
+        drvlocal.axisPrintDbg) {
       asynPrint(pPrintOutAsynUser,
                 ASYN_TRACE_INFO,
                 "%spoll(%d): ready=%d, busy=%d, execute=%d, enabled=%d, atTarget=%d, pollsLeft=%d, target=%g, actual=%g, encoderRaw=%g, pollTime=%f s.\n",
@@ -2057,8 +2057,10 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 asynStatus ecmcMotorRecordAxis::setClosedLoop(bool closedLoop) {
   int value = closedLoop ? 1 : 0;
 
-  asynPrint(pPrintOutAsynUser, ASYN_TRACE_FLOW,
-            "%ssetClosedLoop(%d)=%d\n",  modNamEMC, axisNo_, value);
+  asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+            "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute SET_CLOSED_LOOP requested (closedLoop=%d).\n",
+            __FILE__, __FUNCTION__, __LINE__,
+            axisNo_, value);
 
   if (drvlocal.axisFlags & AMPLIFIER_ON_FLAG_USING_CNEN) {
     return enableAmplifier(value);
