@@ -210,7 +210,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   updateFirstPollDone_ = false;
   if (!drvlocal.ecmcAxis) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis ref NULL. Application exits...\n",
+      "%s/%s:%d: ERROR: Axis reference is NULL; application exits.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__);
@@ -315,7 +315,12 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
         // Allow sync of softlimit (motor to ecmc and the other way around)
         setIntegerParam(pC_->motorFlagsRwSoftLimits_,    syncLims);
         drvlocal.syncEcmcMrSoftlimits = syncLims;
-        printf("Sync of softlimits %d\n",syncLims);
+        LOGERR("%s/%s:%d: INFO: Axis[%d]: Motor record soft-limit sync %s.\n",
+               __FILE__,
+               __FUNCTION__,
+               __LINE__,
+               axisNo_,
+               syncLims ? "enabled" : "disabled");
 #endif //motorFlagsRwSoftLimitsString
       }
 
@@ -926,7 +931,7 @@ asynStatus ecmcMotorRecordAxis::move(double position,
   bool commandAccepted = false;
   if (drvlocal.axisPrintDbg) {
     LOGERR(
-        "%s/%s:%d: Axis[%d]: move(): tgtpos=%lf, rel=%d, velo = %lf..%lf, acc=%lf\n",
+        "%s/%s:%d: INFO: Axis[%d]: Motor record move request: target=%lf, relative=%d, velocity=%lf..%lf, acceleration=%lf.\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
@@ -937,16 +942,6 @@ asynStatus ecmcMotorRecordAxis::move(double position,
         maxVelocity,
         acceleration);
   }
-  printf("%s/%s:%d: Axis[%d]: move(): tgtpos=%lf, rel=%d, velo = %lf..%lf, acc=%lf\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        drvlocal.axisId,
-        position,
-        relative,
-        minVelocity,
-        maxVelocity,
-        acceleration);
 
   //asynPrint(pPrintOutAsynUser,
   //          ASYN_TRACE_INFO,
@@ -978,7 +973,7 @@ asynStatus ecmcMotorRecordAxis::move(double position,
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
     drvlocal.ecmcAxis->setExternalCommandBlockedError();
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Communication to ECMC blocked, motion commands not allowed..\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Communication to ECMC is blocked; motion command rejected.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__, axisNo_);
@@ -989,7 +984,7 @@ asynStatus ecmcMotorRecordAxis::move(double position,
   if (drvlocal.ecmcAxis->getBlocked()) {
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Axis blocked (could be Masters/Slave related).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Axis is blocked; motion command rejected (possibly master/slave related).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__, axisNo_);
@@ -1048,7 +1043,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   // cmd, nCmddata,homepos,velhigh,vellow,acc
   //printf("velo min max acc= %lf %lf, %lf \n",minVelocity,maxVelocity,acceleration);
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: Axis[%d] Home cmd:  = %lf..%lf, acc=%lf, fwd=%d\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record home request: velocity=%lf..%lf, acceleration=%lf, forward=%d.\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, minVelocity, maxVelocity, acceleration, forwards);
 
@@ -1110,7 +1105,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
 
   if(useHVEL && !useHVELOk) {
     asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: Axis[%d]: Warning Homing with HVEL: Could not derive drive scale revert to velocity defined in ecmcMotorRecordVelToHom_.\n",
+            "%s/%s:%d: WARNING: Axis[%d]: HVEL homing requested, but drive scale could not be derived; using ecmcMotorRecordVelToHom_.\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_);
   }
@@ -1157,10 +1152,11 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
     drvlocal.ecmcAxis->setExternalCommandBlockedError();
 
     LOGERR(
-      "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Communication to ECMC is blocked; home command rejected.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
+      __LINE__,
+      axisNo_);
     return asynError;
   }
   
@@ -1168,7 +1164,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   if (drvlocal.ecmcAxis->getBlocked()) {
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Axis blocked (could be Masters/Slave related).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Axis is blocked; home command rejected (possibly master/slave related).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__, axisNo_);
@@ -1217,7 +1213,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
                                              double acceleration) {
   bool commandAccepted = false;
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: Axis[%d] Move vel cmd:  = %lf..%lf, acc=%lf\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record velocity request: velocity=%lf..%lf, acceleration=%lf.\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, minVelocity, maxVelocity, acceleration);
 
@@ -1232,10 +1228,11 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
 
   if (acceleration == 0) {
     LOGERR(
-      "%s/%s:%d: ERROR: Acceleration setpoint 0.0. Command aborted..\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Velocity command rejected: acceleration is 0.0.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
+      __LINE__,
+      axisNo_);
     return asynError;
   }
 
@@ -1263,10 +1260,11 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
     drvlocal.ecmcAxis->setExternalCommandBlockedError();
     LOGERR(
-      "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Communication to ECMC is blocked; velocity command rejected.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
+      __LINE__,
+      axisNo_);
     return asynError;
   }
 
@@ -1274,7 +1272,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
   if (drvlocal.ecmcAxis->getBlocked()) {
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Axis blocked (could be Masters/Slave related).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Axis is blocked; velocity command rejected (possibly master/slave related).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__, axisNo_);
@@ -1323,7 +1321,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
  */
 asynStatus ecmcMotorRecordAxis::setPosition(double value) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: Axis[%d] Set pos cmd:  = %lf\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record set-position request: position=%lf.\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, value);
 
@@ -1339,7 +1337,7 @@ asynStatus ecmcMotorRecordAxis::setPosition(double value) {
 
 asynStatus ecmcMotorRecordAxis::resetAxis(void) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: Axis[%d] Reset cmd\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record reset request.\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_);
 
@@ -1359,7 +1357,7 @@ asynStatus ecmcMotorRecordAxis::resetAxis(void) {
 
 asynStatus ecmcMotorRecordAxis::setEnable(int on) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: Axis[%d] Set enable cmd %d\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record enable request: enable=%d.\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, on);
 
@@ -1369,10 +1367,11 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
     if (ecmcRTMutex) epicsMutexUnlock(ecmcRTMutex);
     drvlocal.ecmcAxis->setExternalCommandBlockedError();
     LOGERR(
-      "%s/%s:%d: ERROR: Communication to ECMC blocked, motion commands not allowed..\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Communication to ECMC is blocked; enable command rejected.\n",
       __FILE__,
       __FUNCTION__,
-      __LINE__);
+      __LINE__,
+      axisNo_);
     return asynError;
   }
 
@@ -1382,10 +1381,11 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
 
   if (errorCode) {
     LOGERR(
-      "%s/%s:%d: ERROR: Function setEnable(%d) returned errorCode (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: setEnable(%d) failed (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      axisNo_,
       on,
       errorCode);
 
@@ -1403,7 +1403,10 @@ asynStatus ecmcMotorRecordAxis::setEnable(int on) {
  *  Method is called cyclic from asynMotorController::autoPowerOn()
  */
 bool ecmcMotorRecordAxis::pollPowerIsOn(void) {
-  printf("ecmcMotorRecordAxis::pollPowerIsOn(): Axis: %d\n",drvlocal.axisId);
+  if (drvlocal.axisPrintDbg) {
+    printf("INFO: Axis[%d]: ecmcMotorRecordAxis::pollPowerIsOn().\n",
+           drvlocal.axisId);
+  }
   int enabled = 0;
   bool interlock = 0;
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
@@ -1451,19 +1454,7 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
   asynStatus status  = asynSuccess;
   //unsigned   counter = (int)(ECMC_AXIS_ENABLE_MAX_SLEEP_TIME /
   //                           ECMC_AXIS_ENABLE_SLEEP_PERIOD);
-  int  justCheckForEnable = 0;
   bool moving             = 0;
-
-  #ifdef POWERAUTOONOFFMODE2
-  {
-    int autoPower;
-    pC_->getIntegerParam(axisNo_, pC_->motorPowerAutoOnOff_, &autoPower);
-    if (autoPower) {
-      /* The record/driver will check for enabled (pollPowerIsOn)- only check enable */
-      justCheckForEnable = 1;
-    }
-  }
-  #endif // ifdef POWERAUTOONOFFMODE2
 
   on = on ? 1 : 0; /* either 0 or 1 */
 
@@ -1528,7 +1519,7 @@ asynStatus ecmcMotorRecordAxis::enableAmplifier(int on) {
 asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name,
                                                  double      acceleration) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: Axis[%d] Stop cmd:  name=%s, acc=%lf\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record stop request: caller=%s, acceleration=%lf.\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, function_name, acceleration);
 
@@ -1545,17 +1536,20 @@ asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name,
   if(profileInProgress_) {
     if(exeAbort) {
       pC_->abortProfile();
-      printf("Axis[%d]: stopAxisInternal\n",axisNo_);
+      if (drvlocal.axisPrintDbg) {
+        printf("INFO: Axis[%d]: Profile aborted by stop request.\n", axisNo_);
+      }
     }
     profileInProgress_ = false;
   }
 
   if (errorCode) {
     LOGERR(
-      "%s/%s:%d: ERROR: Function setExecute(0) returned errorCode (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: stopMotion() failed (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
+      axisNo_,
       errorCode);
 
     return asynError;
@@ -1569,7 +1563,7 @@ asynStatus ecmcMotorRecordAxis::stopAxisInternal(const char *function_name,
  */
 asynStatus ecmcMotorRecordAxis::stop(double acceleration) {
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
-            "%s/%s:%d: Axis[%d] Stop cmd:  acc=%lf\n",
+            "%s/%s:%d: INFO: Axis[%d]: Motor record stop request: acceleration=%lf.\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_, acceleration);
 
@@ -1789,7 +1783,11 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   }
 
   if (status) {
-    printf("Error: Axis[%d]: ecmcMotorRecordAxis::poll() returned early (readEcmcAxisStatusData() returned error)\n",axisNo_);
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Poll aborted: readEcmcAxisStatusData() failed.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo_);
     return status;
   }
 
@@ -1933,10 +1931,10 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     /* Don't update moving, done, motorStatusProblem_ */
     asynPrint(pPrintOutAsynUser,
               ASYN_TRACE_INFO,
-              "%spoll(%d) mvnNRdyNexAt=%d bBusy=%d bExecute=%d bEnabled=%d atTarget=%d waitNumPollsBeforeReady=%d\n",
+              "%spoll(%d): waiting for ECMC status update: ready=%d, busy=%d, execute=%d, enabled=%d, atTarget=%d, pollsLeft=%d.\n",
               modNamEMC,
               axisNo_,
-              !drvlocal.moveReady,
+              drvlocal.moveReady,
               drvlocal.status_.statusWord_.busy,
               drvlocal.status_.statusWord_.execute,
               drvlocal.status_.statusWord_.enabled,
@@ -1958,18 +1956,18 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
          drvlocal.status_.statusWord_.attarget)) {
       asynPrint(pPrintOutAsynUser,
                 ASYN_TRACE_INFO,
-                "%spoll(%d) mvnNRdy=%d bBusy=%d bExecute=%d bEnabled=%d atTarget=%d wf=%d ENC=%g fPos=%g fActPosition=%g time=%f\n",
+                "%spoll(%d): ready=%d, busy=%d, execute=%d, enabled=%d, atTarget=%d, pollsLeft=%d, target=%g, actual=%g, encoderRaw=%g, pollTime=%f s.\n",
                 modNamEMC,
                 axisNo_,
-                !drvlocal.moveReady,
+                drvlocal.moveReady,
                 drvlocal.status_.statusWord_.busy,
                 drvlocal.status_.statusWord_.execute,
                 drvlocal.status_.statusWord_.enabled,
                 drvlocal.status_.statusWord_.attarget,
                 waitNumPollsBeforeReady_,
-                (double)drvlocal.statusOld_.currentPositionActualRaw,
                 drvlocal.status_.currentTargetPosition,
                 drvlocal.status_.currentPositionActual,
+                (double)drvlocal.statusOld_.currentPositionActualRaw,
                 ecmcMotorRecordgetNowTimeSecs() - timeBefore);
     }
   }
@@ -2438,9 +2436,16 @@ asynStatus ecmcMotorRecordAxis::setLowLimit(double lowLimit) {
 
 asynStatus ecmcMotorRecordAxis::initializeProfile(size_t maxProfilePoints)
 {
-  printf("ecmcMotorRecordAxis::initializeProfile()\n");
+  if (drvlocal.axisPrintDbg) {
+    printf("INFO: Axis[%d]: ecmcMotorRecordAxis::initializeProfile(maxPoints=%zu).\n",
+           axisNo_,
+           maxProfilePoints);
+  }
   if(!pvtEnabled_) {
-    printf("ecmcMotorRecordAxis::initializeProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    if (drvlocal.axisPrintDbg) {
+      printf("INFO: Axis[%d]: PVT profile support is disabled; initialize ignored.\n",
+             axisNo_);
+    }
     return asynSuccess;
   }
   profileMaxPoints_ = maxProfilePoints;
@@ -2452,7 +2457,11 @@ asynStatus ecmcMotorRecordAxis::initializeProfile(size_t maxProfilePoints)
   // Add axis ref to PVT controller
   ecmcPVTController * pvtCtrl = pC_->getPVTController();
   if(!pvtCtrl) {
-    printf("ecmcMotorRecordAxis::initializeProfile(): Error axis[%d]: ecmcPVTController == NULL\n", axisNo_);
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: PVT profile initialization failed: controller is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo_);
     return asynError;
   }
   
@@ -2464,9 +2473,16 @@ asynStatus ecmcMotorRecordAxis::initializeProfile(size_t maxProfilePoints)
 
 asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoints)
 {
-  printf("ecmcMotorRecordAxis::defineProfile()\n");
+  if (drvlocal.axisPrintDbg) {
+    printf("INFO: Axis[%d]: ecmcMotorRecordAxis::defineProfile(points=%zu).\n",
+           axisNo_,
+           numPoints);
+  }
   if(!pvtEnabled_) {
-    printf("ecmcMotorRecordAxis::defineProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    if (drvlocal.axisPrintDbg) {
+      printf("INFO: Axis[%d]: PVT profile support is disabled; define ignored.\n",
+             axisNo_);
+    }
     return asynSuccess;
   }
 
@@ -2483,7 +2499,11 @@ asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoint
   // Call the base class function
   status = asynMotorAxis::defineProfile(positions, numPoints);
   if (status) {
-    printf("ecmcMotorRecordAxis::defineProfile(): ERROR!!!\n");
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Base motor profile define failed.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo_);
     return status;    
   }
 
@@ -2496,7 +2516,10 @@ asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoint
   profileLastDefineOk_ = status == asynSuccess;
   for (size_t i = 0; i < (profileCurrentDefinedPoints_); i++) {
     if(drvlocal.axisPrintDbg) {
-      printf("ecmcMotorRecordAxis::defineProfile: profilePositions_[%ld] = %lf\n",i,profilePositions_[i]);
+      printf("INFO: Axis[%d]: Profile position[%zu]=%lf.\n",
+             axisNo_,
+             i,
+             profilePositions_[i]);
     }
   }
 
@@ -2506,14 +2529,24 @@ asynStatus ecmcMotorRecordAxis::defineProfile(double *positions, size_t numPoint
 /** Function to build a coordinated move of multiple axes. */
 asynStatus ecmcMotorRecordAxis::buildProfile()
 {
-  printf("ecmcMotorRecordAxis::buildProfile()\n");
+  if (drvlocal.axisPrintDbg) {
+    printf("INFO: Axis[%d]: ecmcMotorRecordAxis::buildProfile().\n",
+           axisNo_);
+  }
   if(!pvtEnabled_) {
-    printf("ecmcMotorRecordAxis::buildProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    if (drvlocal.axisPrintDbg) {
+      printf("INFO: Axis[%d]: PVT profile support is disabled; build ignored.\n",
+             axisNo_);
+    }
     return asynSuccess;
   }
 
   if(profileInProgress_) {
-    printf("ecmcMotorRecordAxis::buildProfile(): INFO axis[%d]: Profile in progress\n",axisNo_);
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Profile build rejected: profile already in progress.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo_);
     return asynError;
   }
 
@@ -2608,18 +2641,26 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 
   if(drvlocal.axisPrintDbg) {
     if(timeMode==PROFILE_TIME_MODE_FIXED) {
-      printf("TIME_MODE=PROFILE_TIME_MODE_FIXED, time %lf\n",time);
+      printf("INFO: Axis[%d]: Profile time mode FIXED, time=%lf.\n",
+             axisNo_,
+             time);
     } else {
-      printf("TIME_MODE=PROFILE_TIME_MODE_ARRAY\n");
+      printf("INFO: Axis[%d]: Profile time mode ARRAY.\n", axisNo_);
     }
   
     for (int i = 0; i < pointsCount; i++) {
       if(timeMode == PROFILE_TIME_MODE_FIXED) {
-      printf("time[%d] = %lf \n",i, time);
+        printf("INFO: Axis[%d]: Profile time[%d]=%lf.\n", axisNo_, i, time);
       } else { // Time array
-        printf("pC->profileTimes_[%d] = %lf \n",i, pC->profileTimes_[i]);
+        printf("INFO: Axis[%d]: Profile time[%d]=%lf.\n",
+               axisNo_,
+               i,
+               pC->profileTimes_[i]);
       }
-      printf("profilePositions_[%d] = %lf \n",i, profilePositions_[i]);
+      printf("INFO: Axis[%d]: Profile position[%d]=%lf.\n",
+             axisNo_,
+             i,
+             profilePositions_[i]);
     }
   }
 
@@ -2638,14 +2679,22 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0] - distAcc,0,0));
 
   if(drvlocal.axisPrintDbg) {
-    printf("Added pre-point for acc (%lf,%lf,%lf)\n",profilePositions_[0]- distAcc, preVelo, 0.0);
+    printf("INFO: Axis[%d]: Added PVT pre-point for acceleration: pos=%lf, vel=%lf, time=%lf.\n",
+           axisNo_,
+           profilePositions_[0] - distAcc,
+           preVelo,
+           0.0);
   }
 
   // First point
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[0], preVelo, currTime));
   
   if(drvlocal.axisPrintDbg) {
-    printf("Added point (%lf,%lf,%lf)\n",profilePositions_[0], preVelo, currTime);
+    printf("INFO: Axis[%d]: Added PVT point: pos=%lf, vel=%lf, time=%lf.\n",
+           axisNo_,
+           profilePositions_[0],
+           preVelo,
+           currTime);
   }
 
   if(timeMode == PROFILE_TIME_MODE_FIXED) {
@@ -2666,7 +2715,11 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
     velo = (preVelo + postVelo)/2;
     pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[i],velo, currTime));
     if(drvlocal.axisPrintDbg) {
-      printf("Added point (%lf,%lf,%lf)",profilePositions_[i], velo, currTime);
+      printf("INFO: Axis[%d]: Added PVT point: pos=%lf, vel=%lf, time=%lf.\n",
+             axisNo_,
+             profilePositions_[i],
+             velo,
+             currTime);
     }
     if(timeMode == PROFILE_TIME_MODE_FIXED) {
       currTime += time;
@@ -2679,7 +2732,11 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   // Add last point. same velo as prev point    
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[pointsCount-1], postVelo, currTime));  
   if(drvlocal.axisPrintDbg) {
-    printf("Added point (%lf,%lf,%lf)",profilePositions_[pointsCount-1], postVelo, currTime);
+    printf("INFO: Axis[%d]: Added PVT point: pos=%lf, vel=%lf, time=%lf.\n",
+           axisNo_,
+           profilePositions_[pointsCount - 1],
+           postVelo,
+           currTime);
   }
 
   currTime +=accTime;
@@ -2689,7 +2746,11 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
   pvtPrepare_->addPoint(new ecmcPvtPoint(profilePositions_[pointsCount-1] + distAcc, 0.0, currTime));
  
   if(drvlocal.axisPrintDbg) {
-    printf("Added post-point for dec (%lf,%lf,%lf)\n",profilePositions_[pointsCount-1] + distAcc, preVelo, currTime);
+    printf("INFO: Axis[%d]: Added PVT post-point for deceleration: pos=%lf, vel=%lf, time=%lf.\n",
+           axisNo_,
+           profilePositions_[pointsCount - 1] + distAcc,
+           preVelo,
+           currTime);
   }
 
   // Dump what we have
@@ -2707,22 +2768,33 @@ asynStatus ecmcMotorRecordAxis::buildProfile()
 
 asynStatus ecmcMotorRecordAxis::executeProfile() {
   if(drvlocal.axisPrintDbg) {
-    printf("ecmcMotorRecordAxis::executeProfile()\n");
+    printf("INFO: Axis[%d]: ecmcMotorRecordAxis::executeProfile().\n",
+           axisNo_);
   }
   if(!pvtEnabled_) {
-    printf("ecmcMotorRecordAxis::executeProfile(): INFO axis[%d]: PVT not enabled\n",axisNo_);
+    if (drvlocal.axisPrintDbg) {
+      printf("INFO: Axis[%d]: PVT profile support is disabled; execute ignored.\n",
+             axisNo_);
+    }
     return asynSuccess;
   }
   int useAxis = 0;
   asynStatus status = pC_->getIntegerParam(axisNo_, pC_->profileUseAxis_, &useAxis);  
   
   if(useAxis == 0) {
-    printf("ecmcMotorRecordAxis::executeProfile(): Info axis[%d]: Axis not in use (ignoring execute command).\n", axisNo_);
+    if (drvlocal.axisPrintDbg) {
+      printf("INFO: Axis[%d]: Profile execute ignored: axis is not in use.\n",
+             axisNo_);
+    }
     return asynSuccess;
   }
 
   if(!profileLastBuildOk_) {
-    printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: Last build did not complete successfully\n", axisNo_);
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Profile execute rejected: last build did not complete successfully.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo_);
     return asynError;
   }
   
@@ -2730,7 +2802,11 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
   if(pvtRunning_) {
     if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
     if(pvtRunning_->getBusy()) {
-      printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: Profile busy..\n",axisNo_);
+      LOGERR("%s/%s:%d: ERROR: Axis[%d]: Profile execute rejected: profile is busy.\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             axisNo_);
       if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
       return asynError;
     }
@@ -2757,7 +2833,8 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   
   if(drvlocal.axisPrintDbg) {
-    printf("ecmcMotorRecordAxis::executeProfile()\n");
+    printf("INFO: Axis[%d]: Starting base motor profile execution.\n",
+           axisNo_);
   }
   status = asynMotorAxis::executeProfile();
   if(status != asynSuccess) {
@@ -2765,7 +2842,11 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
   }
 
   if(!profileLastBuildOk_) {
-    printf("ecmcMotorRecordAxis::executeProfile(): Error axis[%d]: Last build did not complete successfully\n", axisNo_);
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Profile execute rejected: last build did not complete successfully.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo_);
     return asynError;
   }
 
@@ -2777,8 +2858,11 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
   int ilock=drvlocal.ecmcAxis->getSumInterlock();
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   if(ilock) {
-    printf("ecmcMotorRecordAxis::executeProfile(): Error Axis[%d]: Axis interlocked, aborting profile...\n",
-    drvlocal.axisId);
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Profile execute rejected: axis is interlocked.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           drvlocal.axisId);
     abortProfile();
     return asynError;
   }
@@ -2796,7 +2880,10 @@ asynStatus ecmcMotorRecordAxis::executeProfile() {
 }
 
 asynStatus ecmcMotorRecordAxis::abortProfile() {
-  printf("ecmcMotorRecordAxis::abortProfile()\n");
+  if (drvlocal.axisPrintDbg) {
+    printf("INFO: Axis[%d]: ecmcMotorRecordAxis::abortProfile().\n",
+           axisNo_);
+  }
   profileInProgress_ = false;
 
   // Stop is called from ecmcMotorRecordController()::abortProfile()
@@ -2812,7 +2899,11 @@ asynStatus ecmcMotorRecordAxis::readbackProfile() {
   int status = 0;
 
   if(!pvtRunning_) {
-    printf("!pvtRunning_\n");
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Profile readback failed: no running PVT object.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo_);
     return asynError;
   }
 
@@ -2825,13 +2916,21 @@ asynStatus ecmcMotorRecordAxis::readbackProfile() {
 
   if(dataPosAct == NULL || dataPosErr == NULL) {
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
-    printf("!pointer NULL_\n");
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Profile readback failed: result buffer pointer is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo_);
     return asynError;
   }
 
   if(elements == 0) {
     if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
-    printf("!elements 0_\n");
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Profile readback failed: result buffer is empty.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo_);
     return asynError;
   }
 
@@ -2858,8 +2957,12 @@ asynStatus ecmcMotorRecordAxis::checkProfileStatus() {
 
   // Check for errors
   if(drvlocal.nErrorIdMcu) {
-    printf("ecmcMotorRecordController::checkProfileStatus(): Error Axis[%d]: Axis in error state, aborting profile... 0x%x\n",
-           drvlocal.axisId,drvlocal.nErrorIdMcu);
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Profile abort requested: axis is in error state (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           drvlocal.axisId,
+           drvlocal.nErrorIdMcu);
     //abortProfile();  // handle in controller
     return asynError;
   }
@@ -2869,7 +2972,10 @@ asynStatus ecmcMotorRecordAxis::checkProfileStatus() {
   int ilock=drvlocal.ecmcAxis->getSumInterlock();
   if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
   if(ilock) {
-    printf("ecmcMotorRecordController::checkProfileStatus(): Error Axis[%d]: Axis interlocked, aborting profile...\n",
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Profile abort requested: axis is interlocked.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
            drvlocal.axisId);
     //abortProfile();  // handle in controller
     return asynError;

@@ -366,7 +366,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   const bool dbgPrint = control.controlWord_.enableDbgPrintout;
 
   if (dbgPrint) {
-    printf("INFO: Axis[%d]: seq::setExetute execute = %d, old %d\n",
+    printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): execute=%d, old=%d\n",
            status.axisId,
            execute,
            executeOld_);
@@ -411,7 +411,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   case ECMC_CMD_MOVEVEL:
     if (dbgPrint) {
-      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEVEL\n",
+      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): MOVE_VEL\n",
              status.axisId);
     }
 
@@ -448,7 +448,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   case ECMC_CMD_MOVEREL:
     if (dbgPrint) {
-      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEREL to %lf\n",
+      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): MOVE_REL to %lf\n",
              status.axisId,
              status.currentTargetPosition);
     }
@@ -485,7 +485,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   case ECMC_CMD_MOVEABS:
     if (dbgPrint) {
-      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEABS to %lf\n",
+      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): MOVE_ABS to %lf\n",
              status.axisId,
              status.currentTargetPosition);
     }
@@ -548,7 +548,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
   // PVT is only abs here (relative is handled by the PVt controller)
   case ECMC_CMD_MOVEPVTABS:
     if (dbgPrint) {
-      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_MOVEPVTABS execute %d\n",
+      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): MOVE_PVT_ABS execute=%d\n",
              status.axisId,
              statusWord.execute);
     }
@@ -577,7 +577,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
 
   case ECMC_CMD_HOMING:
     if (dbgPrint) {
-      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): ECMC_CMD_HOMING execute %d, proc %d\n",
+      printf("INFO: Axis[%d]: ecmcAxisSequencer::setExecute(): HOMING execute=%d, cmdData=%d\n",
               status.axisId, statusWord.execute, status.cmdData);
     }
 
@@ -779,7 +779,7 @@ void ecmcAxisSequencer::setTargetPos(double pos) {
     traj_->setTargetPos(status.currentTargetPosition);
   }
   if (control.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisSequencer::setTargetPos(%lf)\n",
+    printf("INFO: Axis[%d]: ecmcAxisSequencer::setTargetPos(): target=%lf\n",
            status.axisId,
            pos);
   }
@@ -823,7 +823,7 @@ void ecmcAxisSequencer::setTargetVel(double velTarget) {
     traj_->setTargetVel(velTarget);
   }
   if (control.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisSequencer::setTargetVel(%lf)\n",
+    printf("INFO: Axis[%d]: ecmcAxisSequencer::setTargetVel(): velocity=%lf\n",
            status.axisId,
            velTarget);
   }
@@ -2373,8 +2373,14 @@ int ecmcAxisSequencer::seqHoming11() {  // nCmdData==11
         double currPos =
           getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
-        printf("currPos %lf = getPrimEnc()->getActPos() %lf - homePosLatch1_ %lf + homePosition_ %lf\n",
-        currPos,getPrimEnc()->getActPos(),homePosLatch1_, homePosition_);
+        if(data_->control_.controlWord_.enableDbgPrintout) {
+          printf("INFO: Axis[%d]: Homing position calculated: current=%lf, encoder=%lf, latch=%lf, home=%lf.\n",
+                 data_->status_.axisId,
+                 currPos,
+                 getPrimEnc()->getActPos(),
+                 homePosLatch1_,
+                 homePosition_);
+        }
         finalizeHomingSeq(currPos);
       }
     }
@@ -2535,8 +2541,14 @@ int ecmcAxisSequencer::seqHoming12() {  // nCmdData==12
           getPrimEnc()->getActPos() -
           homePosLatch1_ + homePosition_;
         finalizeHomingSeq(currPos);
-        printf("currPos %lf = getPrimEnc()->getActPos() %lf - homePosLatch1_ %lf + homePosition_ %lf\n",
-        currPos,getPrimEnc()->getActPos(),homePosLatch1_, homePosition_);
+        if(data_->control_.controlWord_.enableDbgPrintout) {
+          printf("INFO: Axis[%d]: Homing position calculated: current=%lf, encoder=%lf, latch=%lf, home=%lf.\n",
+                 data_->status_.axisId,
+                 currPos,
+                 getPrimEnc()->getActPos(),
+                 homePosLatch1_,
+                 homePosition_);
+        }
       }
     }
     break;
@@ -3185,7 +3197,10 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
     // Ref all encoders that are configured to be homed. Always ref primary encoder.
     if (encArray_[i]->getRefAtHoming() || i == data_->control_.primaryEncIndex ) {
       if(data_->control_.controlWord_.enableDbgPrintout) {
-        printf("INFO: Axis [%d]: Setting new position to encoder[%d]: %lf\n",data_->status_.axisId,i,newPosition);
+        printf("INFO: Axis[%d]: Setting encoder[%d] position to %lf.\n",
+               data_->status_.axisId,
+               i,
+               newPosition);
       }
       encArray_[i]->setActPos(newPosition);
       encArray_[i]->setHomed(true);
@@ -3522,7 +3537,8 @@ int ecmcAxisSequencer::setPVTObject(ecmcAxisPVTSequence* pvt) {
   pvt_->setAxisDataRef(data_);
 
   if(data_->control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis [%d]: ecmcAxisSequencer::setPVTObject(pvt): PVT object assigned\n", data_->status_.axisId);
+    printf("INFO: Axis[%d]: ecmcAxisSequencer::setPVTObject(): PVT object assigned.\n",
+           data_->status_.axisId);
   }
   return 0;
 }
@@ -3552,7 +3568,8 @@ int ecmcAxisSequencer::validatePVT() {
 
 void ecmcAxisSequencer::initStop() {
   if(data_->control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis [%d]: ecmcAxisSequencer::initStop(): Initiating new stopramp...\n", data_->status_.axisId);
+    printf("INFO: Axis[%d]: ecmcAxisSequencer::initStop(): Initiating new stop ramp.\n",
+           data_->status_.axisId);
   }
   
   // Inititaion of stop is made in setTrajDataSourceTypeInternal()
@@ -3560,7 +3577,8 @@ void ecmcAxisSequencer::initStop() {
   
   if(pvtmode_ && !pvtStopping_) {
     data_->status_.command = ECMC_CMD_MOVEABS;
-    printf("INFO: Axis [%d]: ecmcAxisSequencer::initStop(): PVT stopping...\n", data_->status_.axisId);
+    printf("INFO: Axis[%d]: ecmcAxisSequencer::initStop(): PVT stopping.\n",
+           data_->status_.axisId);
     pvtStopping_ = true;  // Latch stop if in PVT
     pvt_->setExecute(0);  // stop PVT
   }

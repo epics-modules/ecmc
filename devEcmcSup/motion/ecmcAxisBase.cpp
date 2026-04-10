@@ -13,11 +13,53 @@
 #include "ecmcAxisBase.h"
 #include <inttypes.h>
 #include <stdint.h>
-#include <string>
 #include <new>
 #include <iostream>
 #include "ecmcMotion.h"
 #include "ecmcErrorsList.h"
+
+namespace {
+const char *axisCommandToString(motionCommandTypes command) {
+  switch (command) {
+  case ECMC_CMD_NOCMD:
+    return "NO_CMD";
+  case ECMC_CMD_JOG:
+    return "JOG";
+  case ECMC_CMD_MOVEVEL:
+    return "MOVE_VEL";
+  case ECMC_CMD_MOVEREL:
+    return "MOVE_REL";
+  case ECMC_CMD_MOVEABS:
+    return "MOVE_ABS";
+  case ECMC_CMD_MOVEMODULO:
+    return "MOVE_MODULO";
+  case ECMC_CMD_MOVEPVTABS:
+    return "MOVE_PVT_ABS";
+  case ECMC_CMD_HOMING:
+    return "HOMING";
+  case ECMC_CMD_SUPERIMP:
+    return "SUPERIMP";
+  case ECMC_CMD_GEAR:
+    return "GEAR";
+  default:
+    return "UNKNOWN";
+  }
+}
+
+void appendControlWordAction(char *message,
+                             size_t messageSize,
+                             const char *action) {
+  size_t messageLength = strlen(message);
+  if (messageLength >= messageSize) {
+    return;
+  }
+  snprintf(message + messageLength,
+           messageSize - messageLength,
+           "%s%s",
+           messageLength ? ", " : "",
+           action);
+}
+}
 
 /**
  * Callback function for asynWrites (control word)
@@ -640,6 +682,16 @@ int ecmcAxisBase::getErrorID() {
     return setErrorID(data_.status_.errorCode);
   }
   return 0;
+}
+
+bool ecmcAxisBase::shouldSyncSetpointToActual() {
+  if (!mon_ || !mon_->getEnableAtTargetMon()) {
+    return true;
+  }
+
+  const double positionError = std::abs(data_.status_.currentPositionActual -
+                                        data_.status_.currentPositionSetpoint);
+  return positionError > mon_->getAtTargetTol();
 }
 
 int ecmcAxisBase::setEnableLocal(bool enable) {
@@ -1678,7 +1730,7 @@ int ecmcAxisBase::createAsynParam(const char        *nameFormat,
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Failed to generate (%s). Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to generate (%s). Buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1717,7 +1769,8 @@ int ecmcAxisBase::movePVTAbs() {
 
 int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisBase::movePVTAbs()\n",data_.status_.axisId);
+    printf("INFO: Axis[%d]: ecmcAxisBase::movePVTAbs().\n",
+           data_.status_.axisId);
   }
 
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
@@ -1777,7 +1830,8 @@ int ecmcAxisBase::moveAbsolutePosition(
   double accelerationSet,
   double decelerationSet) {
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisBase::moveAbsolutePosition()\n",data_.status_.axisId);
+    printf("INFO: Axis[%d]: ecmcAxisBase::moveAbsolutePosition().\n",
+           data_.status_.axisId);
   }
 
   if(getBlocked()) {
@@ -1856,7 +1910,8 @@ int ecmcAxisBase::moveRelativePosition(
   double decelerationSet) {
   
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisBase::moveRelativePosition()\n",data_.status_.axisId);
+    printf("INFO: Axis[%d]: ecmcAxisBase::moveRelativePosition().\n",
+           data_.status_.axisId);
   }
 
   if(getBlocked()) {
@@ -2023,7 +2078,7 @@ int ecmcAxisBase::moveHome(int    nCmdData,
 
   if (getBusy()) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Axis Busy, homing not possible (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Homing rejected: axis is busy (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2113,7 +2168,7 @@ int ecmcAxisBase::moveHome() {
 
   if (getBusy()) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Axis Busy, homing not possible (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Homing rejected: axis is busy (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2211,7 +2266,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
   if (sizeof(data_.control_.controlWord_) != bytes) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Control word size missmatch.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Control word size mismatch.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2223,15 +2278,129 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
 
   ecmcAsynAxisControlType controlWordNew;
   memcpy(&controlWordNew, data, sizeof(controlWordNew));
-  uint32_t *tmpcontrolWordPtr = (uint32_t *)&controlWordNew;
-  LOGERR(
-    "%s/%s:%d: INFO: Axis[%d]: Write : Control Word = 0x%x.\n",
-    __FILE__,
-    __FUNCTION__,
-    __LINE__,
-    data_.status_.axisId, *tmpcontrolWordPtr);
-
   const ecmcAsynAxisControlType controlWordCurrent = data_.control_.controlWord_;
+  uint32_t controlWordRaw = 0;
+  memcpy(&controlWordRaw,
+         &controlWordNew,
+         sizeof(controlWordNew) < sizeof(controlWordRaw) ?
+         sizeof(controlWordNew) : sizeof(controlWordRaw));
+
+  char controlWordActions[512] = "";
+  char actionBuffer[128];
+  if (controlWordNew.enableCmd != controlWordCurrent.enableCmd) {
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            controlWordNew.enableCmd ? "enable requested" :
+                            "disable requested");
+  }
+  if (controlWordNew.executeCmd && !controlWordCurrent.executeCmd) {
+    snprintf(actionBuffer,
+             sizeof(actionBuffer),
+             "execute %s requested (target=%lf, velocity=%lf)",
+             axisCommandToString(data_.control_.command),
+             data_.control_.positionTarget,
+             data_.control_.velocityTarget);
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            actionBuffer);
+  }
+  if (controlWordNew.stopCmd) {
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            controlWordNew.enableCmd ?
+                            "stop requested" : "stop and disable requested");
+  }
+  if (controlWordNew.resetCmd && !controlWordCurrent.resetCmd) {
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            "reset requested");
+  }
+  if (controlWordNew.tweakBwdCmd) {
+    snprintf(actionBuffer,
+             sizeof(actionBuffer),
+             "tweak backward requested (step=%lf)",
+             std::abs(data_.control_.tweakValue));
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            actionBuffer);
+  }
+  if (controlWordNew.tweakFwdCmd) {
+    snprintf(actionBuffer,
+             sizeof(actionBuffer),
+             "tweak forward requested (step=%lf)",
+             std::abs(data_.control_.tweakValue));
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            actionBuffer);
+  }
+  if (controlWordNew.encSourceCmd != controlWordCurrent.encSourceCmd) {
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            controlWordNew.encSourceCmd ?
+                            "encoder source external" :
+                            "encoder source internal");
+  }
+  if (controlWordNew.trajSourceCmd != controlWordCurrent.trajSourceCmd) {
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            controlWordNew.trajSourceCmd ?
+                            "trajectory source external" :
+                            "trajectory source internal");
+  }
+  if (controlWordNew.plcEnableCmd != controlWordCurrent.plcEnableCmd) {
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            controlWordNew.plcEnableCmd ?
+                            "axis PLC enabled" : "axis PLC disabled");
+  }
+  if (controlWordNew.plcCmdsAllowCmd != controlWordCurrent.plcCmdsAllowCmd) {
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            controlWordNew.plcCmdsAllowCmd ?
+                            "PLC commands allowed" :
+                            "PLC commands blocked");
+  }
+  if (controlWordNew.enableSoftLimitBwd !=
+      controlWordCurrent.enableSoftLimitBwd) {
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            controlWordNew.enableSoftLimitBwd ?
+                            "backward soft limit enabled" :
+                            "backward soft limit disabled");
+  }
+  if (controlWordNew.enableSoftLimitFwd !=
+      controlWordCurrent.enableSoftLimitFwd) {
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            controlWordNew.enableSoftLimitFwd ?
+                            "forward soft limit enabled" :
+                            "forward soft limit disabled");
+  }
+  if (controlWordNew.enableDbgPrintout !=
+      controlWordCurrent.enableDbgPrintout) {
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            controlWordNew.enableDbgPrintout ?
+                            "debug printout enabled" :
+                            "debug printout disabled");
+  }
+  if (controlWordNew.blockCom != controlWordCurrent.blockCom) {
+    appendControlWordAction(controlWordActions,
+                            sizeof(controlWordActions),
+                            controlWordNew.blockCom ?
+                            "external commands blocked" :
+                            "external commands unblocked");
+  }
+  if (controlWordActions[0]) {
+    LOGERR(
+      "%s/%s:%d: INFO: Axis[%d]: Control word request: %s (raw=0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      data_.status_.axisId,
+      controlWordActions,
+      controlWordRaw);
+  }
 
   if (controlWordNew.blockCom != getBlockCom()) {
     setBlockCom(controlWordNew.blockCom);
@@ -2385,7 +2554,11 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
           returnVal = asynError;
         }
       } else {
-        printf("BUSY\n");
+        LOGERR("%s/%s:%d: INFO: Axis[%d]: Execute request ignored: axis is busy.\n",
+               __FILE__,
+               __FUNCTION__,
+               __LINE__,
+               data_.status_.axisId);
       }
 
     }
@@ -2523,7 +2696,7 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
 {
   if ((bytes != 4) || (asynParType != asynParamInt32)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Primary encoder index datatype missmatch.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Primary encoder index datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2551,7 +2724,7 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
   }
 
   LOGERR(
-    "%s/%s:%d: INFO: Axis[%d]: Write: Prim encoder = %d.\n",
+    "%s/%s:%d: INFO: Axis[%d]: Primary encoder index set to %d.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -2565,7 +2738,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void         *data,
                                                  asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Target Velo size or datatype missmatch.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Target velocity size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2579,7 +2752,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void         *data,
   data_.control_.velocityTarget = velo;
 
   LOGERR(
-    "%s/%s:%d: INFO: Axis[%d]: Write: Target Velo = %lf.\n",
+    "%s/%s:%d: INFO: Axis[%d]: Target velocity set to %lf.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -2595,7 +2768,7 @@ asynStatus ecmcAxisBase::axisAsynWriteAcc(void         *data,
                                           asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Target Velo size or datatype missmatch.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Acceleration size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2611,7 +2784,7 @@ asynStatus ecmcAxisBase::axisAsynWriteAcc(void         *data,
   //setAcc(acc);
 
   LOGERR(
-    "%s/%s:%d: INFO: Axis[%d]: Write: Acceleration = %lf.\n",
+    "%s/%s:%d: INFO: Axis[%d]: Acceleration set to %lf.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -2625,7 +2798,7 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
                                           asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Write deceleration size or datatype missmatch.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Deceleration size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2641,7 +2814,7 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
   data_.control_.decelerationTarget = dec;
 
   LOGERR(
-    "%s/%s:%d: INFO: Axis[%d]: Write: Deceleration = %lf.\n",
+    "%s/%s:%d: INFO: Axis[%d]: Deceleration set to %lf.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -2657,7 +2830,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetTweakValue(void         *data,
                                                     asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Write tweak value size or datatype missmatch.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Tweak value size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2671,7 +2844,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetTweakValue(void         *data,
 
   data_.control_.tweakValue = twk;
   LOGERR(
-    "%s/%s:%d: INFO: Axis[%d]: Write: Tweak value = %lf.\n",
+    "%s/%s:%d: INFO: Axis[%d]: Tweak value set to %lf.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -2685,7 +2858,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
                                                 asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Target Pos size or datatype missmatch.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Target position size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2699,7 +2872,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
 
   data_.control_.positionTarget = pos;
   LOGERR(
-    "%s/%s:%d: INFO: Axis[%d]: Write: Target Pos Abs. = %lf.\n",
+    "%s/%s:%d: INFO: Axis[%d]: Target position set to %lf.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -2713,7 +2886,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
                                                 asynParamType asynParType) {
   if ((sizeof(double) != bytes) || (asynParType != asynParamFloat64)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Encoder Pos size or datatype missmatch.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Encoder position size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2733,7 +2906,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
 
   if (getBusy()) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Axis Busy, homing not possible.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Encoder position write rejected: axis is busy.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2744,7 +2917,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
   }
 
   LOGERR(
-    "%s/%s:%d: INFO: Axis[%d]: Write: Encoder position = %lf.\n",
+    "%s/%s:%d: INFO: Axis[%d]: Encoder position set to %lf.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -2759,7 +2932,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
                                               asynParamType asynParType) {
   if ((bytes != 4) || (asynParType != asynParamInt32)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Command size or datatype missmatch.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Command size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2778,7 +2951,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
 
   if(!commandValid((motionCommandTypes)command)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Invalid command = 0x%x. Old command (%d) will not be over written\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Invalid command 0x%x. Keeping old command %d.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2793,11 +2966,13 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
   refreshAsynTargetValue();
 
   LOGERR(
-    "%s/%s:%d: INFO: Axis[%d]: Write: Command = 0x%x.\n",
+    "%s/%s:%d: INFO: Axis[%d]: Command set to %s (%d).\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
-    data_.status_.axisId, data_.control_.command);
+    data_.status_.axisId,
+    axisCommandToString(data_.control_.command),
+    data_.control_.command);
   
   return asynSuccess;
 }
@@ -2807,7 +2982,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
                                               asynParamType asynParType) {
   if ((bytes != 4) || (asynParType != asynParamInt32)) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: CmdData size or datatype missmatch.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Command data size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -2827,7 +3002,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
   //setCmdData(cmddata);
 
   LOGERR(
-    "%s/%s:%d: INFO: Axis[%d]: Write: Command Data = 0x%x.\n",
+    "%s/%s:%d: INFO: Axis[%d]: Command data set to 0x%x.\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -2941,7 +3116,8 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
 
 
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    printf("INFO: Axis[%d]: ecmcAxisBase::selectCSPDriveEncoder(): CSP with control enabled\n",data_.status_.axisId);
+    printf("INFO: Axis[%d]: ecmcAxisBase::selectCSPDriveEncoder(): CSP encoder selected for drive control.\n",
+           data_.status_.axisId);
   }
 
   data_.control_.cspDrvEncIndex = localIndex;
@@ -3272,7 +3448,8 @@ void ecmcAxisBase::autoEnableSM() {
   
   if(!data_.status_.statusWord_.enable) {
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      printf("INFO: Axis[%d]: ecmcAxisBase::autoEnableSM(): Set enable axis\n",data_.status_.axisId);      
+      printf("INFO: Axis[%d]: ecmcAxisBase::autoEnableSM(): Enabling axis.\n",
+             data_.status_.axisId);
     }
 
     setEnable(true);
@@ -3293,7 +3470,8 @@ void ecmcAxisBase::autoEnableSM() {
     autoEnableTimeCounter_ = 0;
     autoEnableRequest_= false;
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      printf("INFO: Axis[%d]: ecmcAxisBase::autoEnableSM(): Axis enabled, triggering motion\n",data_.status_.axisId);      
+      printf("INFO: Axis[%d]: ecmcAxisBase::autoEnableSM(): Axis enabled, triggering motion.\n",
+             data_.status_.axisId);
     }
     
     setExecute(0,1); // need ignore busy
@@ -3325,7 +3503,7 @@ void ecmcAxisBase::autoDisableSM() {
 
   if(autoDisbleTimeCounter_ > autoDisableAfterS_ && data_.control_.controlWord_.enableCmd) {
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      printf("INFO: Axis[%d]: ecmcAxisBase::autoDisableSM(): Auto disable axis (axis idle for %lfs)\n",
+      printf("INFO: Axis[%d]: ecmcAxisBase::autoDisableSM(): Auto-disabling axis after %lf s idle.\n",
               data_.status_.axisId, autoDisableAfterS_);
     }
 

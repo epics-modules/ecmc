@@ -293,6 +293,7 @@ protected:
   void autoDisableSM();
   void refreshAsynTargetValue();
   bool commandValid(motionCommandTypes command);
+  bool shouldSyncSetpointToActual();
 
   ecmcTrajectoryBase *traj_;
   ecmcMonitor *mon_;

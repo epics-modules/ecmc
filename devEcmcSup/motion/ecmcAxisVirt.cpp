@@ -54,7 +54,7 @@ void ecmcAxisVirt::execute(bool masterOK) {
       setExecute(false);
     }
 
-    if (!firstEnableDone_ && masterOK) {
+    if (!firstEnableDone_ && masterOK && shouldSyncSetpointToActual()) {
       data_.status_.currentPositionSetpoint =
         data_.status_.currentPositionActual;
       traj_->setStartPos(data_.status_.currentPositionSetpoint);

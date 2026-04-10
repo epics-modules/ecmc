@@ -4587,7 +4587,13 @@ int createMasterSlaveSM(int index,
   ecmcAxisGroup *slaveGrp  = NULL;
   for(int i = 0;i < ECMC_MAX_AXES; i++) {
     if(axisGroups[i] != NULL) {
-      printf("Comparing %s with %s and %s\n",axisGroups[i]->getName(),masterGrpName,slaveGrpName);
+      LOGINFO4("%s/%s:%d comparing axis group %s with master=%s, slave=%s\n",
+               __FILE__,
+               __FUNCTION__,
+               __LINE__,
+               axisGroups[i]->getName(),
+               masterGrpName,
+               slaveGrpName);
       if(strcmp(axisGroups[i]->getName(),masterGrpName) == 0) {
         masterGrp = axisGroups[i];
       }
