@@ -448,6 +448,18 @@ int ecmcEcAsyncSDO::initAsyn() {
     usedSizeBytes_ = 8;
     break;
 
+  case ECMC_EC_S64_TO_U64:
+    asynParamValue_->addSupportedAsynType(asynParamInt32);
+    asynParamValue_->addSupportedAsynType(asynParamUInt32Digital);
+    asynParamValue_->addSupportedAsynType(asynParamFloat64);
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+    asynParamValue_->addSupportedAsynType(asynParamInt64);
+#endif //ECMC_ASYN_ASYNPARAMINT64
+
+    usedSizeBytes_ = 8;
+    break;
+
   case ECMC_EC_F32:
     asynParamValue_->addSupportedAsynType(asynParamFloat64);
     usedSizeBytes_ = 4;
@@ -716,6 +728,10 @@ int ecmcEcAsyncSDO::readValue() {
   case ECMC_EC_S64:
     *int64Ptr_ = EC_READ_S64(ecrt_sdo_request_data(sdoreq_));
     break;
+
+  case ECMC_EC_S64_TO_U64:
+    *uint64Ptr_ = static_cast<uint64_t>(EC_READ_S64(ecrt_sdo_request_data(sdoreq_)));
+    break;
 #endif // ifdef EC_READ_S64
 
 #ifdef EC_READ_REAL
@@ -805,6 +821,10 @@ int ecmcEcAsyncSDO::writeValue() {
 #ifdef EC_WRITE_S64
   case ECMC_EC_S64:
     EC_WRITE_S64(ecrt_sdo_request_data(sdoreq_), *int64Ptr_);
+    break;
+
+  case ECMC_EC_S64_TO_U64:
+    EC_WRITE_S64(ecrt_sdo_request_data(sdoreq_), static_cast<int64_t>(*uint64Ptr_));
     break;
 #endif // ifdef EC_WRITE_S64
 
