@@ -423,6 +423,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
       if (!status.startupFinsished) {
         initEncoders();
         status.currentPositionActual = getPrimEnc()->getActPos();
+        setMRSync(true);
       }
 
       status.startupFinsished = true;

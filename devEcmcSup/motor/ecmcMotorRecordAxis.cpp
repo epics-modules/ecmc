@@ -2071,7 +2071,7 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value) {
 
   if (function == pC_->motorUpdateStatus_) {
     asynPrint(pPrintOutAsynUser,
-              ASYN_TRACE_INFO,
+              ASYN_TRACE_FLOW,
               "%ssetIntegerParam(%d motorUpdateStatus_)=%d\n",
               modNamEMC,
               axisNo_,
