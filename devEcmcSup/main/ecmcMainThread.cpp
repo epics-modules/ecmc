@@ -40,6 +40,7 @@
 #include "ecmcOctetIF.h"
 #include "ecmcEthercat.h"
 #include "ecmcMotion.h"
+#include "ecmcRtLogger.h"
 #include "ecmcPLC.h"
 #include "ecmcMisc.h"
 #include "ecmcAsynPortDriver.h"
@@ -688,6 +689,7 @@ int setAppModeCfg(int mode) {
   LOGINFO4("INFO:\t\tApplication in configuration mode.\n");
   appModeCmdOld = appModeCmd;
   appModeCmd    = (app_mode_type)mode;
+  ecmcRtLoggerSetEnabled(0);
 
   if ((appModeCmd == ECMC_MODE_CONFIG) &&
       (appModeCmdOld == ECMC_MODE_RUNTIME)) {
@@ -801,6 +803,8 @@ int setAppModeRun(int mode) {
     LOGERR(
       "WARNING: EtherCAT master not initialized. Starting ECMC without EtherCAT support.\n");
   }
+  ecmcRtLoggerStart();
+  ecmcRtLoggerSetEnabled(1);
   errorCode = startRTthread();
 
   if (errorCode) {

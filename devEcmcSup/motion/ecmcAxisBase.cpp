@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcAxisBase.h"
+#include "ecmcRtLogger.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <new>
@@ -368,6 +369,7 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   auto &status = data_.status_;
   auto &statusWord = status.statusWord_;
   auto &interlocks = data_.interlocks_;
+  const axisState axisStateOld = axisState_;
   hwReadyOld_ = hwReady_;
 
   //if(data_.status_.statusWord_.localBusy != data_.statusOld_.statusWord_.localBusy) {
@@ -459,12 +461,6 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     }
 
     if (!masterOK) {
-      LOGERR(
-        "%s/%s:%d: ERROR: Axis[%d]: State change (ECMC_AXIS_STATE_DISABLED->ECMC_AXIS_STATE_STARTUP).\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        data_.status_.axisId);
       axisState_ = ECMC_AXIS_STATE_STARTUP;
     }
     break;
@@ -477,17 +473,30 @@ void ecmcAxisBase::preExecute(bool masterOK) {
     }
 
     if (!masterOK) {
-      LOGERR(
-        "%s/%s:%d: ERROR: Axis[%d]: State change (ECMC_AXIS_STATE_ENABLED->ECMC_AXIS_STATE_STARTUP).\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        data_.status_.axisId);
       axisState_ = ECMC_AXIS_STATE_STARTUP;
     }
 
     break;
   }
+  const bool logAxisStateChange =
+    (axisStateOld != axisState_) &&
+    ((axisStateOld == ECMC_AXIS_STATE_STARTUP) ||
+     (axisState_ == ECMC_AXIS_STATE_STARTUP));
+
+  if (logAxisStateChange &&
+      statusWord.inrealtime &&
+      ecmcRtLoggerIsEnabled()) {
+    ecmcRtLoggerQueueAxisState(status.axisId, axisState_);
+  } else if (logAxisStateChange && (axisState_ == ECMC_AXIS_STATE_STARTUP)) {
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: State change (%d->%d).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           status.axisId,
+           axisStateOld,
+           axisState_);
+  }
+
   mon_->readEntries();
 
   // Filter velocities from PLC source
@@ -690,6 +699,65 @@ int ecmcAxisBase::getErrorID() {
     return setErrorID(data_.status_.errorCode);
   }
   return 0;
+}
+
+int ecmcAxisBase::setErrorID(int errorID) {
+  if (errorID &&
+      data_.status_.statusWord_.inrealtime &&
+      ecmcRtLoggerIsEnabled() &&
+      (errorID != ecmcError::getErrorID())) {
+    ecmcRtLoggerQueueAxisError(data_.status_.axisId, errorID);
+  }
+
+  return ecmcError::setErrorID(errorID);
+}
+
+int ecmcAxisBase::setErrorID(int               errorID,
+                             ecmcAlarmSeverity severity) {
+  if (errorID &&
+      data_.status_.statusWord_.inrealtime &&
+      ecmcRtLoggerIsEnabled() &&
+      (errorID != ecmcError::getErrorID())) {
+    ecmcRtLoggerQueueAxisError(data_.status_.axisId, errorID);
+    return ecmcError::setErrorID(errorID, severity);
+  }
+
+  return ecmcError::setErrorID(errorID, severity);
+}
+
+int ecmcAxisBase::setErrorID(const char *fileName,
+                             const char *functionName,
+                             int         lineNumber,
+                             int         errorID) {
+  if (errorID &&
+      data_.status_.statusWord_.inrealtime &&
+      ecmcRtLoggerIsEnabled() &&
+      (errorID != ecmcError::getErrorID())) {
+    ecmcRtLoggerQueueAxisError(data_.status_.axisId, errorID);
+    return ecmcError::setErrorID(errorID);
+  }
+
+  return ecmcError::setErrorID(fileName, functionName, lineNumber, errorID);
+}
+
+int ecmcAxisBase::setErrorID(const char       *fileName,
+                             const char       *functionName,
+                             int               lineNumber,
+                             int               errorID,
+                             ecmcAlarmSeverity severity) {
+  if (errorID &&
+      data_.status_.statusWord_.inrealtime &&
+      ecmcRtLoggerIsEnabled() &&
+      (errorID != ecmcError::getErrorID())) {
+    ecmcRtLoggerQueueAxisError(data_.status_.axisId, errorID);
+    return ecmcError::setErrorID(errorID, severity);
+  }
+
+  return ecmcError::setErrorID(fileName,
+                               functionName,
+                               lineNumber,
+                               errorID,
+                               severity);
 }
 
 bool ecmcAxisBase::shouldSyncSetpointToActual() {

@@ -12,12 +12,76 @@
 
 #include "ecmcAxisSequencer.h"
 #include "ecmcErrorsList.h"
+#include "ecmcRtLogger.h"
 
 ecmcAxisSequencer::ecmcAxisSequencer() {
   initVars();
 }
 
 ecmcAxisSequencer::~ecmcAxisSequencer() {}
+
+int ecmcAxisSequencer::setErrorID(int errorID) {
+  if (errorID &&
+      data_ &&
+      data_->status_.statusWord_.inrealtime &&
+      ecmcRtLoggerIsEnabled() &&
+      (errorID != ecmcError::getErrorID())) {
+    ecmcRtLoggerQueueSeqError(data_->status_.axisId, errorID);
+  }
+
+  return ecmcError::setErrorID(errorID);
+}
+
+int ecmcAxisSequencer::setErrorID(int               errorID,
+                                  ecmcAlarmSeverity severity) {
+  if (errorID &&
+      data_ &&
+      data_->status_.statusWord_.inrealtime &&
+      ecmcRtLoggerIsEnabled() &&
+      (errorID != ecmcError::getErrorID())) {
+    ecmcRtLoggerQueueSeqError(data_->status_.axisId, errorID);
+    return ecmcError::setErrorID(errorID, severity);
+  }
+
+  return ecmcError::setErrorID(errorID, severity);
+}
+
+int ecmcAxisSequencer::setErrorID(const char *fileName,
+                                  const char *functionName,
+                                  int         lineNumber,
+                                  int         errorID) {
+  if (errorID &&
+      data_ &&
+      data_->status_.statusWord_.inrealtime &&
+      ecmcRtLoggerIsEnabled() &&
+      (errorID != ecmcError::getErrorID())) {
+    ecmcRtLoggerQueueSeqError(data_->status_.axisId, errorID);
+    return ecmcError::setErrorID(errorID);
+  }
+
+  return ecmcError::setErrorID(fileName, functionName, lineNumber, errorID);
+}
+
+int ecmcAxisSequencer::setErrorID(const char       *fileName,
+                                  const char       *functionName,
+                                  int               lineNumber,
+                                  int               errorID,
+                                  ecmcAlarmSeverity severity) {
+  if (errorID &&
+      data_ &&
+      data_->status_.statusWord_.inrealtime &&
+      ecmcRtLoggerIsEnabled() &&
+      (errorID != ecmcError::getErrorID())) {
+    ecmcRtLoggerQueueSeqError(data_->status_.axisId, errorID);
+    return ecmcError::setErrorID(errorID, severity);
+  }
+
+  return ecmcError::setErrorID(fileName,
+                               functionName,
+                               lineNumber,
+                               errorID,
+                               severity);
+}
 
 void ecmcAxisSequencer::initVars() {
   homeSensorOld_         = false;
@@ -356,6 +420,13 @@ void ecmcAxisSequencer::executeInternal() {
   default:
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_SEQ_CMD_UNDEFINED);
     break;
+  }
+
+  if ((status.command == ECMC_CMD_HOMING) &&
+      (seqStateOld_ != seqState_) &&
+      data_->status_.statusWord_.inrealtime &&
+      ecmcRtLoggerIsEnabled()) {
+    ecmcRtLoggerQueueHomeState(status.axisId, status.cmdData, seqState_);
   }
 }
 

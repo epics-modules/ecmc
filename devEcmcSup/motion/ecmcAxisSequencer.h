@@ -32,6 +32,18 @@ class ecmcAxisSequencer : public ecmcError {
 public:
   ecmcAxisSequencer();
   ~ecmcAxisSequencer();
+  int                  setErrorID(int errorID) override;
+  int                  setErrorID(int               errorID,
+                                  ecmcAlarmSeverity severity) override;
+  int                  setErrorID(const char *fileName,
+                                  const char *functionName,
+                                  int         lineNumber,
+                                  int         errorID) override;
+  int                  setErrorID(const char       *fileName,
+                                  const char       *functionName,
+                                  int               lineNumber,
+                                  int               errorID,
+                                  ecmcAlarmSeverity severity) override;
   void                 init(double sampleTime);
   int                  setExecute(bool execute);
   bool                 getExecute();
