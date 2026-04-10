@@ -41,7 +41,10 @@ ecmcEcSlave::ecmcEcSlave(
   if ((alias == 0) && (position == -1) && (vendorId == 0) &&
       (productCode == 0)) {
     simSlave_ = true;
-    initAsyn();
+    int errorCode = initAsyn();
+    if (errorCode) {
+      setErrorID(errorCode);
+    }
     return;
   }
 
@@ -71,7 +74,10 @@ ecmcEcSlave::ecmcEcSlave(
     vendorId_,
     productCode_);
 
-  initAsyn();
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(errorCode);
+  }
 }
 
 void ecmcEcSlave::initVars() {

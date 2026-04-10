@@ -13,14 +13,14 @@
 #include "ecmcEncoder.h"
 
 ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
-                         ecmcAxisData       *axisData,
+                         ecmcAxisData       &axisData,
                          double              sampleTime,
                          int                 index)
-  : ecmcEcEntryLink(&(axisData->status_.errorCode),
-                    &(axisData->status_.warningCode)) {
+  : ecmcEcEntryLink(&(axisData.status_.errorCode),
+                    &(axisData.status_.warningCode)) {
   initVars();
   asynPortDriver_ = asynPortDriver;
-  data_           = axisData;
+  data_           = &axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   // Clear error state after external pointers are valid to avoid null deref in reset
   errorReset();
@@ -31,13 +31,9 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
 
   // Encoder index start from 1 here, to get asyn param naming correct
   index_ = index;
-  initAsyn();
-  if (!data_) {
-    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    exit(EXIT_FAILURE);
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
   velocityFilter_ = new ecmcFilter(sampleTime, ECMC_FILTER_VELO_DEF_SIZE);
@@ -50,7 +46,9 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
            __LINE__);
     setErrorID(__FILE__, __FUNCTION__, __LINE__,
                ERROR_ENC_VELOCITY_FILTER_NULL);
-    exit(EXIT_FAILURE);
+    delete positionFilter_;
+    positionFilter_ = NULL;
+    return;
   }
 }
 

@@ -20,6 +20,8 @@
 #include "ecmcMotion.h"
 #include "ecmcOctetIF.h"        // Log Macros
 #include "ecmcErrorsList.h"
+#include "ecmcGeneral.h"
+#include <new>
 #include "ecmcDefinitions.h"
 #include "ecmcEthercat.h"
 #include "ecmcPLC.h"
@@ -3868,6 +3870,20 @@ int createAxis(int index, int type, int drvType, int trajType) {
   }
   axisDiagIndex = index;  // Always printout last axis added
 
+  int axisError = axes[index]->getErrorID();
+  if (axisError) {
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Axis creation failed: %s (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           getErrorString(axisError),
+           axisError);
+    delete axes[index];
+    axes[index] = NULL;
+    return axisError;
+  }
+
   int error = createPLC(AXIS_PLC_ID_TO_PLC_ID(index), mcuPeriod / 1e6, 1);
 
   if (error) {
@@ -4626,13 +4642,45 @@ int createMasterSlaveSM(int index,
     return ERROR_GROUP_NULL;
   }
 
-  masterSlaveSMs[index] = new ecmcMasterSlaveStateMachine(asynPort,
-                                                          index,
-                                                          name,
-                                                          1.0 / mcuFrequency,
-                                                          masterGrp,
-                                                          slaveGrp,
-                                                          autoDisableMasters,
-                                                          autoDisableSlaves);
+  try {
+    masterSlaveSMs[index] = new ecmcMasterSlaveStateMachine(asynPort,
+                                                            index,
+                                                            name,
+                                                            1.0 / mcuFrequency,
+                                                            masterGrp,
+                                                            slaveGrp,
+                                                            autoDisableMasters,
+                                                            autoDisableSlaves);
+  } catch (std::bad_alloc& ex) {
+    LOGERR("%s/%s:%d: ERROR: Master/slave state machine[%d]: Allocation failed.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index);
+    return ERROR_MAIN_EXCEPTION;
+  }
+
+  if (!masterSlaveSMs[index]) {
+    LOGERR("%s/%s:%d: ERROR: Master/slave state machine[%d]: Object allocation returned NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index);
+    return ERROR_MAIN_EXCEPTION;
+  }
+
+  int errorCode = masterSlaveSMs[index]->getErrorID();
+  if (errorCode) {
+    LOGERR("%s/%s:%d: ERROR: Master/slave state machine[%d]: Creation failed: %s (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           getErrorString(errorCode),
+           errorCode);
+    delete masterSlaveSMs[index];
+    masterSlaveSMs[index] = NULL;
+    return errorCode;
+  }
   return 0;
 }

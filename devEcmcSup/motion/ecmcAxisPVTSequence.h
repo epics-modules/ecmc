@@ -156,6 +156,7 @@ enum trgMode{
 class ecmcAxisPVTSequence {
   public:
     ecmcAxisPVTSequence(double sampleTime, size_t maxProfilePoints);
+    ~ecmcAxisPVTSequence();
     void   setSampleTime(double sampleTime);
     int    setAxisDataRef(ecmcAxisData *data);
     void   addPoint(ecmcPvtPoint *pnt);
@@ -199,7 +200,7 @@ class ecmcAxisPVTSequence {
     void   setTrgDAQ();  // PVT controller trigger DAQ at trigger time
 
   private:
-    void            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
+    bool            addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end );
     ecmcPvtSegment* getSeqmentAtTime(double time);
     std::vector<ecmcPvtSegment*> segments_;
     std::vector<ecmcPvtPoint*> points_;

@@ -13,7 +13,7 @@
 #include "ecmcTrajectoryTrapetz.h"
 #include <stdio.h>
 
-ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData *axisData,
+ecmcTrajectoryTrapetz::ecmcTrajectoryTrapetz(ecmcAxisData &axisData,
                                              double        sampleTime) :
   ecmcTrajectoryBase(axisData, sampleTime) {
   initVars();

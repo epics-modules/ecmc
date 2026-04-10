@@ -16,27 +16,22 @@
 #include <stdlib.h>
 
 ecmcPIDController::ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
-                                     ecmcAxisData       *axisData,
+                                     ecmcAxisData       &axisData,
                                      double              sampleTime)
-  : ecmcError(&(axisData->status_.errorCode),
-              &(axisData->status_.warningCode)) {
-  data_ = axisData;
+  : ecmcError(&(axisData.status_.errorCode),
+              &(axisData.status_.warningCode)) {
+  data_ = &axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   initVars();
   asynPortDriver_ = asynPortDriver;
-  initAsyn();
-
-  if (!data_) {
-    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    exit(EXIT_FAILURE);
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 }
 
 ecmcPIDController::ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
-                                     ecmcAxisData       *axisData,
+                                     ecmcAxisData       &axisData,
                                      double              kp,
                                      double              ki,
                                      double              kd,
@@ -44,19 +39,15 @@ ecmcPIDController::ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
                                      double              sampleTime,
                                      double              outMax,
                                      double              outMin)
-  : ecmcError(&(axisData->status_.errorCode),
-              &(axisData->status_.warningCode)) {
-  data_ = axisData;
+  : ecmcError(&(axisData.status_.errorCode),
+              &(axisData.status_.warningCode)) {
+  data_ = &axisData;
+  setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   initVars();
   asynPortDriver_ = asynPortDriver;
-  initAsyn();
-
-  if (!data_) {
-    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    exit(EXIT_FAILURE);
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
   kp_         = kp;
   ki_         = ki;

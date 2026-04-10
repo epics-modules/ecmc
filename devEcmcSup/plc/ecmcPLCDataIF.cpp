@@ -29,14 +29,17 @@ ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
   dataSourceAxis_ = parseAxisDataSource(axisVarName);
 
   if (dataSourceAxis_ == ECMC_AXIS_DATA_NONE) {
-    LOGERR("%s/%s:%d: ERROR: Axis data Source Undefined  (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           ERROR_PLC_AXIS_DATA_TYPE_ERROR);
+    setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_PLC_AXIS_DATA_TYPE_ERROR);
+    return;
   }
   asynWriteAllow_ = 0;
-  initAsyn();
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
 }
 
 ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
@@ -56,14 +59,17 @@ ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
   dataSourceDs_   = parseDataStorageDataSource(dsVarName);
 
   if (dataSourceDs_ == ECMC_DATA_STORAGE_DATA_NONE) {
-    LOGERR("%s/%s:%d: ERROR: Axis data Source Undefined  (0x%x).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           ERROR_PLC_AXIS_DATA_TYPE_ERROR);
+    setErrorID(__FILE__,
+               __FUNCTION__,
+               __LINE__,
+               ERROR_PLC_DATA_STORGAE_DATA_TYPE_ERROR);
+    return;
   }
   asynWriteAllow_ = 0;
-  initAsyn();
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
 }
 
 ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
@@ -80,9 +86,16 @@ ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
   exprTkVarName_  = ecVarName;
   asynPortDriver_ = asynPortDriver;
   source_         = ECMC_RECORDER_SOURCE_ETHERCAT;
-  parseAndLinkEcDataSource(ecVarName);
+  int errorCode   = parseAndLinkEcDataSource(ecVarName);
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    return;
+  }
   asynWriteAllow_ = 0;
-  initAsyn();
+  errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
 }
 
 ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
@@ -99,7 +112,10 @@ ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
   asynPortDriver_ = asynPortDriver;
   source_         = dataSource;
   asynWriteAllow_ = 1;
-  initAsyn();  // Only static and global variables accessible from PLC
+  int errorCode = initAsyn();  // Only static and global variables accessible from PLC
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
 }
 
 ecmcPLCDataIF::~ecmcPLCDataIF() {}

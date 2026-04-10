@@ -40,7 +40,10 @@ ecmcEcDomain::ecmcEcDomain(ecmcAsynPortDriver *asynPortDriver,
            __LINE__);
     throw std::bad_alloc();
   }
-  initAsyn();
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(errorCode);
+  }
 }
 
 void ecmcEcDomain::initVars() {

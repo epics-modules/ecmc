@@ -38,7 +38,10 @@ ecmcPLCTask::ecmcPLCTask(int                 plcIndex,
   exprtk_            = new exprtkWrap();
   mcuFreq_           = mcuFreq;
   plcScanTimeInSecs_ = 1 / mcuFreq_ * (skipCycles + 1);
-  initAsyn(plcIndex);
+  int errorCode      = initAsyn(plcIndex);
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
 }
 
 ecmcPLCTask::~ecmcPLCTask() {
@@ -1070,7 +1073,10 @@ int ecmcPLCTask::initAsyn(int plcIndex) {
       __FUNCTION__,
       __LINE__,
       name);
-    return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_MAIN_ASYN_CREATE_PARAM_FAIL);
   }
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->setArrayCheckSize(false);

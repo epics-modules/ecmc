@@ -14,21 +14,13 @@
 #include "ecmcErrorsList.h"
 #include <stdio.h>
 
-ecmcTrajectoryBase::ecmcTrajectoryBase(ecmcAxisData *axisData,
+ecmcTrajectoryBase::ecmcTrajectoryBase(ecmcAxisData &axisData,
                                        double        sampleTime)
-  : ecmcError(&(axisData->status_.errorCode),
-              &(axisData->status_.warningCode)) {
-  data_ = axisData;
+  : ecmcError(&(axisData.status_.errorCode),
+              &(axisData.status_.warningCode)) {
+  data_ = &axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   initVars();
-
-  if (!data_) {
-    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    exit(EXIT_FAILURE);
-  }
   sampleTime_ = sampleTime;
   invSampleTime_ = sampleTime > 0 ? 1.0 / sampleTime : 0.0;
 }

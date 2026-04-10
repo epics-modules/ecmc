@@ -51,7 +51,7 @@ enum ecmcOverUnderFlowType {
 class ecmcEncoder : public ecmcEcEntryLink {
 public:
   ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
-              ecmcAxisData       *axisData,
+              ecmcAxisData       &axisData,
               double              sampleTime,
               int                 index);
   ~ecmcEncoder();

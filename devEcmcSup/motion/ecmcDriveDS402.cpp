@@ -13,35 +13,16 @@
 #include "ecmcDriveDS402.h"
 
 ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
-                               ecmcAxisData       *axisData) :
+                               ecmcAxisData       &axisData) :
   ecmcDriveBase(asynPortDriver, axisData) {
-  data_ = axisData;
-
   initVars();
-
-  if (!data_) {
-    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    exit(EXIT_FAILURE);
-  }
 }
 
 ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
-                               ecmcAxisData       *axisData,
+                               ecmcAxisData       &axisData,
                                double              scale) :
   ecmcDriveBase(asynPortDriver, axisData) {
-  data_ = axisData;
   initVars();
-
-  if (!data_) {
-    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    exit(EXIT_FAILURE);
-  }
 
   scale_ = scale;
 }

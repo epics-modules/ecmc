@@ -14,6 +14,7 @@
 
 #include "ecmcOctetIF.h"        // Log Macros
 #include "ecmcErrorsList.h"
+#include "ecmcGeneral.h"
 #include "ecmcDefinitions.h"
 #include <iostream>
 #include <sys/ipc.h>
@@ -21,6 +22,7 @@
 #include <stdio.h>
 #include <semaphore.h>
 #include <fcntl.h>
+#include <new>
 
 // TODO: REMOVE GLOBALS
 #include "ecmcGlobalsExtern.h"
@@ -45,19 +47,46 @@ int createDataStorage(int index, int elements, int bufferType) {
   sampleRateChangeAllowed = 0;
 
   delete dataStorages[index];
-  dataStorages[index] = new ecmcDataStorage(asynPort, index,
-                                            elements,
-                                            (ecmcDSBufferType)bufferType);
+  dataStorages[index] = NULL;
 
-  if (!dataStorages[index]) {
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA STORAGE OBJECT.\n",
+  try {
+    dataStorages[index] = new ecmcDataStorage(asynPort,
+                                              index,
+                                              elements,
+                                              (ecmcDSBufferType)bufferType);
+  } catch (std::bad_alloc& ex) {
+    LOGERR("%s/%s:%d: ERROR: Data storage[%d]: Failed to allocate object.\n",
            __FILE__,
            __FUNCTION__,
-           __LINE__);
-    exit(EXIT_FAILURE);
+           __LINE__,
+           index);
+    return ERROR_MAIN_EXCEPTION;
   }
 
-  return dataStorages[index]->getErrorID();
+  if (!dataStorages[index]) {
+    LOGERR("%s/%s:%d: ERROR: Data storage[%d]: Object allocation returned NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index);
+    return ERROR_MAIN_EXCEPTION;
+  }
+
+  int errorCode = dataStorages[index]->getErrorID();
+  if (errorCode) {
+    LOGERR("%s/%s:%d: ERROR: Data storage[%d]: Creation failed: %s (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           index,
+           getErrorString(errorCode),
+           errorCode);
+    delete dataStorages[index];
+    dataStorages[index] = NULL;
+    return errorCode;
+  }
+
+  return 0;
 }
 
 

@@ -242,18 +242,22 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
   setExternalPtrs(&(data_.status_.errorCode), &(data_.status_.warningCode));
   try {
     data_.control_.primaryEncIndex = 0;
-    addEncoder();
+    int errorCode = addEncoder();
+    if (errorCode) {
+      setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+      return;
+    }
     currentTrajType_ = trajType;
 
     if (currentTrajType_ == ECMC_S_CURVE) {
-      traj_ = new ecmcTrajectoryS(&data_,
+      traj_ = new ecmcTrajectoryS(data_,
                                   data_.status_.sampleTime);
     } else {
-      traj_ = new ecmcTrajectoryTrapetz(&data_,
+      traj_ = new ecmcTrajectoryTrapetz(data_,
                                         data_.status_.sampleTime);
     }
 
-    mon_ = new ecmcMonitor(&data_, encArray_);
+    mon_ = new ecmcMonitor(data_, encArray_);
 
     extTrajVeloFilter_ = new ecmcFilter(data_.status_.sampleTime);
     extEncVeloFilter_  = new ecmcFilter(data_.status_.sampleTime);
@@ -264,15 +268,18 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
       __FUNCTION__,
       __LINE__,
       data_.status_.axisId);
-
-    exit(1);
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_MAIN_EXCEPTION);
+    return;
   }
   seq_.init(sampleTime);
   seq_.setAxisDataRef(&data_);
   seq_.setTraj(traj_);
   seq_.setMon(mon_);
   seq_.setEnc(encArray_);
-  initAsyn();
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
 }
 
 ecmcAxisBase::~ecmcAxisBase() {
@@ -3057,9 +3064,19 @@ int ecmcAxisBase::addEncoder() {
                       ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE);
   }
   encArray_[data_.status_.encoderCount] = new ecmcEncoder(asynPortDriver_,
-                                                          &data_,
+                                                          data_,
                                                           data_.status_.sampleTime,
                                                           data_.status_.encoderCount);
+  if (!encArray_[data_.status_.encoderCount]) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_AXIS_ENC_OBJECT_NULL);
+  }
+  int errorCode = encArray_[data_.status_.encoderCount]->getErrorID();
+  if (errorCode) {
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
   data_.control_.cfgEncIndex = data_.status_.encoderCount; // Use current encoder index for cfg
   data_.status_.encoderCount++;
 

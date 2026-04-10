@@ -12,6 +12,7 @@
 
 #include "ecmcDataStorage.h"
 #include "ecmcErrorsList.h"
+#include <new>
 
 ecmcDataStorage::ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
                                  int                 index,
@@ -20,8 +21,10 @@ ecmcDataStorage::ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
   PRINT_ERROR_PATH("dataStorage[%d].error", index);
   initVars();
   index_ = index;
-  setBufferSize(size);
-  bufferSize_     = size;
+  int errorCode = setBufferSize(size);
+  if (errorCode) {
+    return;
+  }
   bufferType_     = bufferType;
   asynPortDriver_ = asynPortDriver;
   LOGINFO9("%s/%s:%d: dataStorage[%d]=new;\n",
@@ -30,11 +33,14 @@ ecmcDataStorage::ecmcDataStorage(ecmcAsynPortDriver *asynPortDriver,
            __LINE__,
            index);
   printCurrentState();
-  initAsyn();
+  errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
 }
 
 ecmcDataStorage::~ecmcDataStorage() {
-  delete buffer_;
+  delete[] buffer_;
 }
 
 void ecmcDataStorage::printCurrentState() {
@@ -128,15 +134,18 @@ int ecmcDataStorage::setBufferSize(int elements) {
   bufferSize_        = elements;
   dataCountInBuffer_ = 0;
   isFull_            = 0;
-  double *tempBuffer = new double[elements];
-
-  if (tempBuffer == NULL) {
+  double *tempBuffer = NULL;
+  try {
+    tempBuffer = new double[elements];
+  } catch (std::bad_alloc& ex) {
     LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR DATA STORAGE OBJECT.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);
-    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_DATA_STORAGE_NULL);
-    exit(EXIT_FAILURE);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_DATA_STORAGE_NULL);
   }
 
   // Set new adress to asyn interface
@@ -145,7 +154,7 @@ int ecmcDataStorage::setBufferSize(int elements) {
                                           bufferSize_ * sizeof(double));
     updateAsyn(1);
   }
-  delete buffer_;
+  delete[] buffer_;
   buffer_ = tempBuffer;
 
   return 0;

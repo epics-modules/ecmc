@@ -69,9 +69,9 @@ enum stateMachine_DS402 {
 class ecmcDriveDS402 : public ecmcDriveBase {
 public:
   explicit ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
-                          ecmcAxisData       *axisData);
+                          ecmcAxisData       &axisData);
   ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
-                 ecmcAxisData       *axisData,
+                 ecmcAxisData       &axisData,
                  double              scale);
   ~ecmcDriveDS402();
   int  validate();

@@ -34,24 +34,50 @@ ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints) {
   trgMode_         = TRG_INT_ON_SEG_CHANGE;
 }
 
+ecmcAxisPVTSequence::~ecmcAxisPVTSequence() {
+  clear();
+}
+
 void   ecmcAxisPVTSequence::setSampleTime(double sampleTime) {
   sampleTime_     = sampleTime;
   halfSampleTime_ = sampleTime / 2;
 }
 
-void ecmcAxisPVTSequence::addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end ) {
-  segments_.push_back(new ecmcPvtSegment(start, end));
-  segmentCount_++;
+bool ecmcAxisPVTSequence::addSegment(ecmcPvtPoint *start, ecmcPvtPoint *end ) {
+  ecmcPvtSegment *segment = NULL;
+  try {
+    segment = new ecmcPvtSegment(start, end);
+    segments_.push_back(segment);
+    segmentCount_++;
+    return true;
+  } catch (std::bad_alloc& ex) {
+    delete segment;
+    LOGERR("%s/%s:%d: ERROR: PVT sequence add segment failed: %s.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ex.what());
+    return false;
+  }
 }
 
 void ecmcAxisPVTSequence::addPoint(ecmcPvtPoint *pnt) {
+  bool pointStored = false;
   try {
     points_.push_back(pnt);
+    pointStored = true;
     pointCount_++;
     if(pointCount_ > 1) {
-      addSegment(points_[pointCount_-2], points_[pointCount_-1]);
+      if (!addSegment(points_[pointCount_-2], points_[pointCount_-1])) {
+        points_.pop_back();
+        pointCount_--;
+        delete pnt;
+      }
     };
   } catch (std::bad_alloc& ex) {
+    if (!pointStored) {
+      delete pnt;
+    }
     LOGERR("%s/%s:%d: ERROR: PVT sequence add point failed: %s.\n",
            __FILE__,
            __FUNCTION__,
@@ -310,6 +336,12 @@ void ecmcAxisPVTSequence::setBusy(bool busy) {
 }
 
 void ecmcAxisPVTSequence::clear() {
+  for (size_t i = 0; i < segments_.size(); i++) {
+    delete segments_[i];
+  }
+  for (size_t i = 0; i < points_.size(); i++) {
+    delete points_[i];
+  }
   segments_.clear();
   points_.clear();
   resultPosActArray_.clear();

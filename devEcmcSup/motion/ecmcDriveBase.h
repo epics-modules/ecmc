@@ -43,7 +43,7 @@ enum ecmcBrakeStates {
 class ecmcDriveBase : public ecmcEcEntryLink {
 public:
   explicit ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
-                         ecmcAxisData       *axisData);
+                         ecmcAxisData       &axisData);
 
   /*ecmcDriveBase(ecmcAxisData *axisData,
                 double        scale);*/

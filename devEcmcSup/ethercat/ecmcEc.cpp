@@ -25,6 +25,20 @@ ecmcEc::ecmcEc(ecmcAsynPortDriver *asynPortDriver) {
   asynPortDriver_ = asynPortDriver;
   simSlave_       =
     new ecmcEcSlave(asynPortDriver_, 0, NULL, NULL, 0, -1, 0, 0);
+  if (simSlave_) {
+    int errorCode = simSlave_->getErrorID();
+    if (errorCode) {
+      LOGERR("%s/%s:%d: ERROR: Simulation slave creation failed: %s (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             ecmcError::convertErrorIdToString(errorCode),
+             errorCode);
+      delete simSlave_;
+      simSlave_ = NULL;
+      setErrorID(errorCode);
+    }
+  }
 }
 
 void ecmcEc::initVars() {
@@ -128,7 +142,10 @@ int ecmcEc::init(int nMasterIndex) {
   masterIndex_ = nMasterIndex;
 
   // Create default domain at ec-rate
-  addDomain(0, 0);
+  int errorCode = addDomain(0, 0);
+  if (errorCode) {
+    return errorCode;
+  }
 
   return initAsyn(asynPortDriver_);
 }
@@ -197,6 +214,21 @@ int ecmcEc::addSlave(
                                                  position,
                                                  vendorId,
                                                  productCode);
+    int errorCode = slaveArray_[slaveCounter_]->getErrorID();
+    if (errorCode) {
+      LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Creation failed: %s (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             position,
+             vendorId,
+             productCode,
+             ecmcError::convertErrorIdToString(errorCode),
+             errorCode);
+      delete slaveArray_[slaveCounter_];
+      slaveArray_[slaveCounter_] = NULL;
+      return -errorCode;
+    }
     slaveCounter_++;
 
     ecAsynParams_[ECMC_ASYN_EC_PAR_SLAVE_COUNT_ID]->refreshParam(1);
@@ -2352,6 +2384,18 @@ int ecmcEc::addDomain(int exeCycles, int offsetCycles) {
                                             domainCounter_,
                                             exeCycles,
                                             offsetCycles);
+    int errorCode = domain->getErrorID();
+    if (errorCode) {
+      LOGERR("%s/%s:%d: ERROR: Domain[%d]: Creation failed: %s (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             domainCounter_,
+             ecmcError::convertErrorIdToString(errorCode),
+             errorCode);
+      delete domain;
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
     domains_.push_back(domain);
     domainCounter_++;
 

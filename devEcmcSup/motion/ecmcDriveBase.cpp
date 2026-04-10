@@ -14,34 +14,29 @@
 #include "ecmcErrorsList.h"
 
 ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
-                             ecmcAxisData       *axisData) : ecmcEcEntryLink(&(
+                             ecmcAxisData       &axisData) : ecmcEcEntryLink(&(
                                                                                axisData
-                                                                               ->
+                                                                               .
                                                                                status_
                                                                                .
                                                                                errorCode),
                                                                              &(
                                                                                axisData
-                                                                               ->
+                                                                               .
                                                                                status_
                                                                                .
                                                                                warningCode))
 {
   initVars();
-  data_ = axisData;
+  data_ = &axisData;
   data_->control_.drvMode = ECMC_DRV_MODE_NONE;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   asynPortDriver_ = asynPortDriver;
 
-  if (!data_) {
-    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    exit(EXIT_FAILURE);
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
-
-  initAsyn();
 
   stateMachineTimeoutCycles_ = ERROR_DRV_STATE_MACHINE_TIME_OUT_TIME /
                                data_->status_.sampleTime;

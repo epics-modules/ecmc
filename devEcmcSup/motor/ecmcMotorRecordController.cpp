@@ -15,6 +15,7 @@ FILENAME... ecmcMotorRecordController.cpp
 #include <epicsExport.h>
 #include "ecmcMotorRecordAxis.h"
 #include "ecmcMotorRecordController.h"
+#include "ecmcGeneral.h"
 #include "ecmcGlobalsExtern.h"
 #include "ecmcPVTController.h"
 #include "ecmcPluginClient.h"
@@ -955,6 +956,18 @@ asynStatus ecmcMotorRecordController::initializeProfile(size_t maxProfilePoints)
            __FILE__,
            __FUNCTION__,
            __LINE__);
+    return asynError;
+  }
+
+  int errorCode = pvtCtrl->getErrorID();
+  if (errorCode) {
+    LOGERR("%s/%s:%d: ERROR: Profile initialization failed: PVT controller creation failed: %s (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           getErrorString(errorCode),
+           errorCode);
+    delete pvtCtrl;
     return asynError;
   }
 

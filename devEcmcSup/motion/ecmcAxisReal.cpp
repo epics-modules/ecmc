@@ -26,33 +26,73 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
   data_.status_.axisType   = ECMC_AXIS_TYPE_REAL;
   data_.status_.sampleTime = sampleTime;
 
+  if (getError()) {
+    return;
+  }
+
   // Create drive
-  switch (drvType) {
-  case ECMC_STEPPER:
-    drv_              = new ecmcDriveStepper(asynPortDriver_, &data_);
-    currentDriveType_ = ECMC_STEPPER;
-    break;
+  try {
+    switch (drvType) {
+    case ECMC_STEPPER:
+      drv_              = new ecmcDriveStepper(asynPortDriver_, data_);
+      currentDriveType_ = ECMC_STEPPER;
+      break;
 
-  case ECMC_DS402:
-    drv_              = new ecmcDriveDS402(asynPortDriver_, &data_);
-    currentDriveType_ = ECMC_DS402;
-    break;
+    case ECMC_DS402:
+      drv_              = new ecmcDriveDS402(asynPortDriver_, data_);
+      currentDriveType_ = ECMC_DS402;
+      break;
 
-  default:
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Drive type %d is not supported (0x%x).\n",
+    default:
+      LOGERR("%s/%s:%d: ERROR: Axis[%d]: Drive type %d is not supported (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             data_.status_.axisId,
+             drvType,
+             ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
+      return;
+    }
+
+    // Create PID
+    cntrl_ = new ecmcPIDController(asynPortDriver_,
+                                   data_,
+                                   data_.status_.sampleTime);
+  } catch (std::bad_alloc& ex) {
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Mem alloc error.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
-           data_.status_.axisId,
-           drvType,
-           ERROR_AXIS_FUNCTION_NOT_SUPPRTED);
-    exit(1);
-
-    break;
+           data_.status_.axisId);
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_MAIN_EXCEPTION);
+    return;
   }
 
-  // Create PID
-  cntrl_ = new ecmcPIDController(asynPortDriver_, &data_, data_.status_.sampleTime);
+  if (!drv_) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_AXIS_DRV_OBJECT_NULL);
+    return;
+  }
+
+  int errorCode = drv_->getErrorID();
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    return;
+  }
+
+  if (!cntrl_) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_AXIS_CNTRL_OBJECT_NULL);
+    return;
+  }
+
+  errorCode = cntrl_->getErrorID();
+  if (errorCode) {
+    setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    return;
+  }
 
   seq_.setCntrl(cntrl_);
 }
@@ -65,6 +105,8 @@ ecmcAxisReal::~ecmcAxisReal() {
 }
 
 void ecmcAxisReal::initVars() {
+  drv_                      = NULL;
+  cntrl_                    = NULL;
   currentDriveType_         = ECMC_NO_DRIVE;
 }
 

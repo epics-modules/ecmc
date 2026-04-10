@@ -52,7 +52,10 @@ ecmcMasterSlaveStateMachine::ecmcMasterSlaveStateMachine(ecmcAsynPortDriver *asy
           index_,
           name_.c_str());
 
-  initAsyn();
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(errorCode);
+  }
 };
 
 ecmcMasterSlaveStateMachine::~ecmcMasterSlaveStateMachine(){

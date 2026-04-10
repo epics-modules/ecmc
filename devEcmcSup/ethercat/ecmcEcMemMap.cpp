@@ -40,7 +40,10 @@ ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
   if (bytesPerElement_ > 0) {
     elements_ = byteSize_ / bytesPerElement_;
   }
-  initAsyn();
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(errorCode);
+  }
 }
 
 void ecmcEcMemMap::initVars() {

@@ -14,22 +14,12 @@
 #include <stdio.h>
 #include "ecmcErrorsList.h"
 
-ecmcMonitor::ecmcMonitor(ecmcAxisData *axisData,
-                         ecmcEncoder **encArray) : ecmcEcEntryLink(&(axisData->
-                                                                     status_.
-                                                                     errorCode),
-                                                                   &(axisData->
-                                                                     status_.
-                                                                     warningCode))
+ecmcMonitor::ecmcMonitor(ecmcAxisData &axisData,
+                         ecmcEncoder **encArray)
+  : ecmcEcEntryLink(&(axisData.status_.errorCode),
+                    &(axisData.status_.warningCode))
 {
-  if (!axisData) {
-    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
-    exit(EXIT_FAILURE);
-  }
-  data_ = axisData;
+  data_ = &axisData;
   setExternalPtrs(&(data_->status_.errorCode), &(data_->status_.warningCode));
   initVars();
   encArray_ = encArray;

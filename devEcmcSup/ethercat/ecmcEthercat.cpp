@@ -77,8 +77,8 @@ int ecAddSlave(uint16_t alias,
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
-  ec->addSlave(alias, position, vendorId, productCode);
-  return 0;
+  int errorCode = ec->addSlave(alias, position, vendorId, productCode);
+  return errorCode < 0 ? -errorCode : 0;
 }
 
 int ecSlaveConfigDC(

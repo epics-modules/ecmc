@@ -14,7 +14,7 @@
 #include "ecmcErrorsList.h"
 #include <stdio.h>
 
-ecmcTrajectoryS::ecmcTrajectoryS(ecmcAxisData *axisData,
+ecmcTrajectoryS::ecmcTrajectoryS(ecmcAxisData &axisData,
                                  double        sampleTime) :
   ecmcTrajectoryBase(axisData, sampleTime) {
   initVars();

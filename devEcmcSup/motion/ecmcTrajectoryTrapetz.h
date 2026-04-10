@@ -42,7 +42,7 @@
  */
 class ecmcTrajectoryTrapetz : public ecmcTrajectoryBase {
 public:
-  ecmcTrajectoryTrapetz(ecmcAxisData *axisData,
+  ecmcTrajectoryTrapetz(ecmcAxisData &axisData,
                         double        sampleTime);
   ~ecmcTrajectoryTrapetz();
 

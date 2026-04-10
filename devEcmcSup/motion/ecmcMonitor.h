@@ -27,7 +27,7 @@ enum ecmcSwitchPolarity {
 
 class ecmcMonitor : public ecmcEcEntryLink {
 public:
-  explicit ecmcMonitor(ecmcAxisData *axisData,
+  explicit ecmcMonitor(ecmcAxisData &axisData,
                        ecmcEncoder **encArray);
 
   void               initVars();

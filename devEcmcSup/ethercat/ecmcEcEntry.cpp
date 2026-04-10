@@ -103,7 +103,10 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
     bitLength_);
 
   if (useInRealtime) {
-    initAsyn();
+    int errorCode = initAsyn();
+    if (errorCode) {
+      setErrorID(errorCode);
+    }
   }
 }
 
@@ -127,7 +130,10 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
   dataType_       = dt;
   bitLength_      = getEcDataTypeBits(dt);
   bindProcessImageHandlers();
-  initAsyn();
+  int errorCode = initAsyn();
+  if (errorCode) {
+    setErrorID(errorCode);
+  }
 }
 
 void ecmcEcEntry::initVars() {

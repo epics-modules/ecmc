@@ -53,7 +53,7 @@ enum ecmcTrajTypes {
  */
 class ecmcTrajectoryBase : public ecmcError {
 public:
-  explicit ecmcTrajectoryBase(ecmcAxisData *axisData,
+  explicit ecmcTrajectoryBase(ecmcAxisData &axisData,
                               double        sampleTime);
   virtual ~ecmcTrajectoryBase();
 

@@ -24,9 +24,9 @@
 class ecmcDriveStepper : public ecmcDriveBase {
 public:
   explicit ecmcDriveStepper(ecmcAsynPortDriver *asynPortDriver,
-                            ecmcAxisData       *axisData);
+                            ecmcAxisData       &axisData);
   ecmcDriveStepper(ecmcAsynPortDriver *asynPortDriver,
-                   ecmcAxisData       *axisData,
+                   ecmcAxisData       &axisData,
                    double              scale);
   ~ecmcDriveStepper();
   int  validate();

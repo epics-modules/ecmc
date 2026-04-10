@@ -210,12 +210,11 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   updateFirstPollDone_ = false;
   if (!drvlocal.ecmcAxis) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis reference is NULL; application exits.\n",
+      "%s/%s:%d: ERROR: Axis reference is NULL.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__);
-
-    exit(EXIT_FAILURE);
+    return;
   }
   drvlocal.axisId          = axisNo;
   drvlocal.old_eeAxisError = eeAxisErrorIOCcomError;

@@ -24,10 +24,10 @@
 class ecmcPIDController : public ecmcError {
 public:
   ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
-                    ecmcAxisData       *axisData,
+                    ecmcAxisData       &axisData,
                     double              sampleTime);
   ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
-                    ecmcAxisData       *axisData,
+                    ecmcAxisData       &axisData,
                     double              kp,
                     double              ki,
                     double              kd,

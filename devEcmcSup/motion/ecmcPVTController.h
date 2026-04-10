@@ -65,7 +65,7 @@ class ecmcPVTController: public ecmcEcEntryLink {
     void   initPVT();
     int    setAxesBusy(bool busy);
     void   setAxesDAQTrgMode();
-    void   initAsyn();
+    int    initAsyn();
     void   refreshAsyn();
     void   setTriggerOutput(bool high);
     int    validateAxisBindings();

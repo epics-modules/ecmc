@@ -41,7 +41,7 @@ using namespace ruckig;
 
 class ecmcTrajectoryS : public ecmcTrajectoryBase {
 public:
-  ecmcTrajectoryS(ecmcAxisData *axisData,
+  ecmcTrajectoryS(ecmcAxisData &axisData,
                   double        sampleTime);
   ~ecmcTrajectoryS();
 

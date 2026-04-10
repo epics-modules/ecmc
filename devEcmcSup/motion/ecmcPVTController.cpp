@@ -68,7 +68,10 @@ ecmcPVTController::ecmcPVTController(ecmcAsynPortDriver *asynPortDriver,
   axesBusyState_       = false;
   axesBusyStateValid_  = false;
   softTrigger_         = 0;
-  initAsyn();
+  int errorCode        = initAsyn();
+  if (errorCode) {
+    setErrorID(errorCode);
+  }
 }
 
 ecmcPVTController::~ecmcPVTController() {
@@ -673,7 +676,7 @@ void ecmcPVTController::refreshAsyn() {
   asynSoftTrigger_->refreshParamRT(1);
 }
 
-void ecmcPVTController::initAsyn() {
+int ecmcPVTController::initAsyn() {
 
  if (asynPortDriver_ == NULL) {
     LOGERR("%s/%s:%d: ERROR: PVT controller AsynPortDriver object is NULL (0x%x).\n",
@@ -681,7 +684,7 @@ void ecmcPVTController::initAsyn() {
            __FUNCTION__,
            __LINE__,
            ERROR_AXIS_ASYN_PORT_OBJ_NULL);
-           return;
+           return ERROR_AXIS_ASYN_PORT_OBJ_NULL;
   }
 
   ecmcAsynDataItem *paramTemp = NULL;
@@ -698,7 +701,7 @@ void ecmcPVTController::initAsyn() {
            __FILE__,
            __FUNCTION__,
            __LINE__);
-           return;
+           return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   }
   paramTemp->setAllowWriteToEcmc(false);
   paramTemp->refreshParam(1);
@@ -708,4 +711,5 @@ void ecmcPVTController::initAsyn() {
            __FUNCTION__,
            __LINE__);
 
+  return 0;
 }
