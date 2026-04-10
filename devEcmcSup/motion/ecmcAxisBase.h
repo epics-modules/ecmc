@@ -238,6 +238,7 @@ public:
   int        setAutoResetError(bool enable);
   void       setTargetVel(double velTarget);
   void       setTargetPos(double posTarget);
+  void       setTargetPosAndCmd(double posTarget);
   void       setTargetPosToCurrSetPos();
   void       setTweakDist(double dist);
   double     getTweakDist();

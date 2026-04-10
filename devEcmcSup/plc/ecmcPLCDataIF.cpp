@@ -667,7 +667,7 @@ int ecmcPLCDataIF::writeAxis() {
     break;
 
   case ECMC_AXIS_DATA_POS_TARGET:
-    axis->setTargetPos(data_);
+    axis->setTargetPosAndCmd(data_);
     return 0;
 
     break;

@@ -179,6 +179,7 @@ public:
   ecmcAsynDataItem *axAsynParams_[ECMC_ASYN_AX_PAR_COUNT];
 private:
   int      setSummaryInterlocks();
+  interlockTypes getInterlockForMotion() const;
   stopMode refreshInterlocksInternal();
 };
 

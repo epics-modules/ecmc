@@ -25,6 +25,75 @@ ecmcAxisData::ecmcAxisData() {
 
 ecmcAxisData::~ecmcAxisData() {}
 
+interlockTypes ecmcAxisData::getInterlockForMotion() const {
+  if ((interlocks_.interlockStatus == ECMC_INTERLOCK_NONE) ||
+      (interlocks_.interlockStatus == ECMC_INTERLOCK_NO_EXECUTE)) {
+    return interlocks_.interlockStatus;
+  }
+
+  if (interlocks_.safetyInterlock) return ECMC_INTERLOCK_SAFETY;
+  if (interlocks_.bothLimitsLowInterlock) return ECMC_INTERLOCK_BOTH_LIMITS;
+  if (interlocks_.velocityDiffDriveInterlock ||
+      interlocks_.velocityDiffTrajInterlock) {
+    return ECMC_INTERLOCK_VELOCITY_DIFF;
+  }
+  if (interlocks_.cntrlOutputHLDriveInterlock ||
+      interlocks_.cntrlOutputHLTrajInterlock) {
+    return ECMC_INTERLOCK_CONT_HIGH_LIMIT;
+  }
+  if (interlocks_.etherCatMasterInterlock) {
+    return ECMC_INTERLOCK_ETHERCAT_MASTER_NOT_OK;
+  }
+  if (interlocks_.hardwareInterlock) return ECMC_INTERLOCK_EXTERNAL;
+  if (interlocks_.lagDriveInterlock || interlocks_.lagTrajInterlock) {
+    return ECMC_INTERLOCK_POSITION_LAG;
+  }
+  if (interlocks_.analogInterlock) return ECMC_INTERLOCK_ANALOG;
+  if (interlocks_.stallInterlock) return ECMC_INTERLOCK_STALL;
+
+  const bool useVelocityDirection =
+    (status_.command == ECMC_CMD_MOVEVEL) ||
+    (status_.command == ECMC_CMD_JOG) ||
+    (status_.command == ECMC_CMD_MOVEPVTABS) ||
+    (status_.statusWord_.trajsource != ECMC_DATA_SOURCE_INTERNAL);
+  const bool movingBwd =
+    (status_.currentTargetPosition < status_.currentPositionSetpoint) ||
+    (status_.currentPositionSetpoint < statusOld_.currentPositionSetpoint) ||
+    (useVelocityDirection && (status_.currentVelocitySetpoint < 0));
+  const bool movingFwd =
+    (status_.currentTargetPosition > status_.currentPositionSetpoint) ||
+    (status_.currentPositionSetpoint > statusOld_.currentPositionSetpoint) ||
+    (useVelocityDirection && (status_.currentVelocitySetpoint > 0));
+
+  if (movingBwd && !movingFwd) {
+    if (interlocks_.bwdLimitInterlock) return ECMC_INTERLOCK_HARD_BWD;
+    if (interlocks_.bwdSoftLimitInterlock) return ECMC_INTERLOCK_SOFT_BWD;
+  } else if (movingFwd && !movingBwd) {
+    if (interlocks_.fwdLimitInterlock) return ECMC_INTERLOCK_HARD_FWD;
+    if (interlocks_.fwdSoftLimitInterlock) return ECMC_INTERLOCK_SOFT_FWD;
+  } else {
+    return interlocks_.interlockStatus;
+  }
+
+  if (interlocks_.maxVelocityDriveInterlock ||
+      interlocks_.maxVelocityTrajInterlock) {
+    return ECMC_INTERLOCK_MAX_SPEED;
+  }
+  if (interlocks_.plcInterlock) return ECMC_INTERLOCK_PLC_NORMAL;
+  if (movingBwd && !movingFwd && interlocks_.plcInterlockBWD) {
+    return ECMC_INTERLOCK_PLC_BWD;
+  }
+  if (movingFwd && !movingBwd && interlocks_.plcInterlockFWD) {
+    return ECMC_INTERLOCK_PLC_FWD;
+  }
+  if (interlocks_.encDiffInterlock) return ECMC_INTERLOCK_ENC_DIFF;
+  if (interlocks_.axisErrorStateInterlock) {
+    return ECMC_INTERLOCK_AXIS_ERROR_STATE;
+  }
+
+  return ECMC_INTERLOCK_NONE;
+}
+
 stopMode ecmcAxisData::refreshInterlocksInternal() {
   setSummaryInterlocks();
 
@@ -175,10 +244,14 @@ stopMode ecmcAxisData::refreshInterlocks() {
   stopMode stop = refreshInterlocksInternal();
 
   // Latch the first interlock seen for the current motion command.
-  if ((interlocks_.interlockStatus != ECMC_INTERLOCK_NONE) && 
+  if ((interlocks_.interlockStatus != ECMC_INTERLOCK_NONE) &&
       (interlocks_.interlockStatus != ECMC_INTERLOCK_NO_EXECUTE) &&
       (interlocks_.lastActiveInterlock == ECMC_INTERLOCK_NONE)) {
-    interlocks_.lastActiveInterlock = interlocks_.interlockStatus;
+    interlockTypes motionInterlock = getInterlockForMotion();
+    if ((motionInterlock != ECMC_INTERLOCK_NONE) &&
+        (motionInterlock != ECMC_INTERLOCK_NO_EXECUTE)) {
+      interlocks_.lastActiveInterlock = motionInterlock;
+    }
   }
 
   if (oldInterlock != interlocks_.interlockStatus) {

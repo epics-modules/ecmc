@@ -1067,7 +1067,7 @@ int setAxisTargetPos(int axisIndex, double value) {
   CHECK_AXIS_RETURN_IF_ERROR_AND_BLOCK_COM(axisIndex)
   CHECK_AXIS_SEQ_RETURN_IF_ERROR(axisIndex)
 
-  axes[axisIndex]->getSeq()->setTargetPos(value);
+  axes[axisIndex]->setTargetPosAndCmd(value);
   return 0;
 }
 

@@ -3100,6 +3100,12 @@ void ecmcAxisBase::setTargetPos(double posTarget) {
   refreshAsynTargetValue();  
 }
 
+void ecmcAxisBase::setTargetPosAndCmd(double posTarget) {
+  getSeq()->setTargetPos(posTarget);
+  data_.control_.positionTarget = getSeq()->getTargetPos();
+  refreshAsynTargetValue();
+}
+
 void ecmcAxisBase::setTargetPosToCurrSetPos() {
   setTargetPos(data_.status_.currentPositionSetpoint);
 }

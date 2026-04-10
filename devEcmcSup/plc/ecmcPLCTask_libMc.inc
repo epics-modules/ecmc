@@ -166,7 +166,7 @@ inline double mc_move_abs(double axIndex,double execute,double pos, double vel, 
     if(mc_errorCode){
       return mc_errorCode;
     }
-    axes[index]->setTargetPos(pos);
+    axes[index]->setTargetPosAndCmd(pos);
     axes[index]->setTargetVel(vel);
     axes[index]->setDec(dec);
     axes[index]->setAcc(acc);
@@ -214,7 +214,7 @@ inline double mc_move_rel(double axIndex,double execute,double pos, double vel, 
     if(mc_errorCode){
       return mc_errorCode;
     }
-    axes[index]->setTargetPos(pos);
+    axes[index]->setTargetPosAndCmd(pos);
     axes[index]->setTargetVel(vel);
     axes[index]->setDec(dec);
     axes[index]->setAcc(acc);
@@ -612,7 +612,7 @@ inline double mc_move_ext_pos(double axIndex,double execute, double vel, double 
       return mc_errorCode;
     }
     double pos = axis->getExtSetPos();
-    axis->setTargetPos(pos);
+    axis->setTargetPosAndCmd(pos);
     axis->setTargetVel(vel);
     axis->setDec(dec);
     axis->setAcc(acc);
