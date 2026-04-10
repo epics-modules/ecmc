@@ -306,6 +306,10 @@ void ecmcDriveBase::writeEntries() {
                       (uint64_t)controlWord_);
 
   if (errorCode) {
+    if (data_->status_.statusWord_.instartup &&
+        (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+      return;
+    }
     setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
                ECMC_SEVERITY_EMERGENCY);
   }
@@ -332,6 +336,10 @@ void ecmcDriveBase::writeEntries() {
     }
 
     if (errorCode) {
+      if (data_->status_.statusWord_.instartup &&
+          (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
                  ECMC_SEVERITY_EMERGENCY);
     }
@@ -358,6 +366,10 @@ void ecmcDriveBase::writeEntries() {
     }
 
     if (errorCode) {
+      if (data_->status_.statusWord_.instartup &&
+          (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
                  ECMC_SEVERITY_EMERGENCY);
     }
@@ -369,6 +381,10 @@ void ecmcDriveBase::writeEntries() {
                         (uint64_t)brakeOutputCmd_);
 
     if (errorCode) {
+      if (data_->status_.statusWord_.instartup &&
+          (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
                  ECMC_SEVERITY_EMERGENCY);
     }
@@ -383,6 +399,10 @@ void ecmcDriveBase::writeEntries() {
       (uint64_t)reduceTorqueOutputCmd_);
 
     if (errorCode) {
+      if (data_->status_.statusWord_.instartup &&
+          (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
                  ECMC_SEVERITY_EMERGENCY);
     }
@@ -396,6 +416,10 @@ void ecmcDriveBase::writeEntries() {
     hwReset_ = 0;
 
     if (errorCode) {
+      if (data_->status_.statusWord_.instartup &&
+          (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode,
                  ECMC_SEVERITY_EMERGENCY);
     }
@@ -452,6 +476,11 @@ void ecmcDriveBase::readEntries(bool masterOK) {
                                    &statusWord_);
 
   if (errorCode) {
+    if (data_->status_.statusWord_.instartup &&
+        (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+      statusWord_ = 0;
+      return;
+    }
     setErrorID(__FILE__,
                __FUNCTION__,
                __LINE__,
@@ -469,6 +498,10 @@ void ecmcDriveBase::readEntries(bool masterOK) {
     if (errorCode) {
       hwWarning_    = 0;
       hwWarningOld_ = 0;
+      if (data_->status_.statusWord_.instartup &&
+          (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -498,6 +531,10 @@ void ecmcDriveBase::readEntries(bool masterOK) {
     if (errorCode) {
       hwErrorAlarm0_    = 0;
       hwErrorAlarm0Old_ = 0;
+      if (data_->status_.statusWord_.instartup &&
+          (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -527,6 +564,10 @@ void ecmcDriveBase::readEntries(bool masterOK) {
     if (errorCode) {
       hwErrorAlarm1_    = 0;
       hwErrorAlarm1Old_ = 0;
+      if (data_->status_.statusWord_.instartup &&
+          (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -556,6 +597,10 @@ void ecmcDriveBase::readEntries(bool masterOK) {
     if (errorCode) {
       hwErrorAlarm2_    = 0;
       hwErrorAlarm2Old_ = 0;
+      if (data_->status_.statusWord_.instartup &&
+          (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,

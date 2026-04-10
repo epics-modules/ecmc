@@ -287,7 +287,8 @@ stopMode ecmcAxisData::refreshInterlocks() {
     }
   }
 
-  if (oldInterlock != interlocks_.interlockStatus) {
+  if ((oldInterlock != interlocks_.interlockStatus) &&
+      !status_.statusWord_.instartup) {
     if (interlocks_.interlockStatus) {
       LOGERR("%s/%s:%d: INFO: Axis[%d]: Motion interlocked (type %d).\n",
              __FILE__,

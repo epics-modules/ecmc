@@ -576,7 +576,7 @@ int waitForEcMasterScan(int timeoutSeconds) {
     clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
 
     if (!ec->getScanBusyNotRT()) {
-      LOGINFO("EtherCAT bus ready (not scaning).\n");
+      LOGINFO("EtherCAT bus ready (not scanning).\n");
       return 0;
     } else {
       LOGINFO("Waiting for master to complete scan of slaves.\n");
@@ -594,14 +594,18 @@ int waitForThreadToStart(int timeoutSeconds) {
   timeToPause.tv_sec  = 1;
   timeToPause.tv_nsec = 0;
 
+  if (ec->getInitDone()) {
+    LOGINFO("Starting up EtherCAT bus. Max wait time %d second(s).\n",
+            timeoutSeconds);
+  } else {
+    LOGINFO("Starting up Realtime thread without EtherCAT support.\n");
+  }
+
   for (int i = 0; i < timeoutSeconds; i++) {
     if (ec->getInitDone()) {
-      LOGINFO(
-        "Starting up EtherCAT bus: %d second(s). Max wait time %d second(s).\n",
-        i,
-        timeoutSeconds);
+      LOGINFO(".\n");
     } else {
-      LOGINFO("Starting up Realtime thread without EtherCAT support.\n");
+      LOGINFO(".\n");
     }
     clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
 

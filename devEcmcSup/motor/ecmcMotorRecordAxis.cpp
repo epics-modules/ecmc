@@ -1661,7 +1661,7 @@ void ecmcMotorRecordAxis::callParamCallbacksUpdateError() {
     setIntegerParam(pC_->ecmcMotorRecordErrId_, EPICS_nErrorId);
 
     asynPrint(pPrintOutAsynUser,
-              ASYN_TRACE_INFO,
+              ASYN_TRACE_FLOW,
               "%spoll(%d) callParamCallbacksUpdateError"
               " Error=%d old=%d ErrID=0x%x old=0x%x Warn=%d nCmd=%d old=%d txt=%s\n",
               modNamEMC,
@@ -1755,9 +1755,10 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   asynStatus status = readEcmcAxisStatusData();
 
   if(drvlocal.axisInStartup) {
-
+    drvlocal.nErrorIdMcu = 0;
+    drvlocal.status_.errorCode = 0;
     updateError();
-    return asynError;  
+    return asynSuccess;
   }
 
   if(drvlocal.ecmcSummaryInterlock) {
@@ -3130,7 +3131,7 @@ void ecmcMotorRecordAxis::updateError() {
     sErrorMessage[0]          = '\0';
     drvlocal.sErrorMessage[0] = '\0';
     asynPrint(pPrintOutAsynUser,
-              ASYN_TRACE_INFO,
+              ASYN_TRACE_FLOW,
               "%spoll(%d) bError=%d drvlocal.status_.errorCode=0x%x\n",
               modNamEMC,
               axisNo_,

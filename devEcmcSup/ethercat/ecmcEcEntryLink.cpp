@@ -12,6 +12,21 @@
 
 #include "ecmcEcEntryLink.h"
 
+extern app_mode_type appModeStat;
+
+int ecmcEcEntryLink::setDomainError(const char *fileName,
+                                     const char *functionName,
+                                     int         lineNumber) {
+  if (appModeStat == ECMC_MODE_STARTUP) {
+    return ERROR_EC_ENTRY_EC_DOMAIN_ERROR;
+  }
+
+  return setErrorID(fileName,
+                    functionName,
+                    lineNumber,
+                    ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+}
+
 ecmcEcEntryLink::ecmcEcEntryLink(int *errorPtr, int *warningPtr) : ecmcError(
     errorPtr,
     warningPtr) {
@@ -124,10 +139,7 @@ int ecmcEcEntryLink::readEcEntryValue(int entryIndex, uint64_t *value) {
   const int bitNumber       = entryInfoArray_[entryIndex].bitNumber;
 
   if (!checkDomainOK(entryIndex)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+    return setDomainError(__FILE__, __FUNCTION__, __LINE__);
   }
 
   uint64_t tempRaw = 0;
@@ -155,10 +167,7 @@ int ecmcEcEntryLink::readEcEntryValueDouble(int entryIndex, double *value) {
   ecmcEcEntry * const entry = entryInfoArray_[entryIndex].entry;
 
   if (!checkDomainOK(entryIndex)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+    return setDomainError(__FILE__, __FUNCTION__, __LINE__);
   }
 
   double tempDouble = 0;
@@ -186,10 +195,7 @@ int ecmcEcEntryLink::writeEcEntryBits(int entryIndex, int bits, uint64_t value) 
   
   // Still write value to entry (above) even if domain error to keep value up to date
   if (!checkDomainOK(entryIndex)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+    return setDomainError(__FILE__, __FUNCTION__, __LINE__);
   }
   return 0;
 }
@@ -200,10 +206,7 @@ int ecmcEcEntryLink::readEcEntryBits(int entryIndex, int bits, uint64_t *value) 
   const int bitNumber       = entryInfoArray_[entryIndex].bitNumber;
 
   if (!checkDomainOK(entryIndex)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+    return setDomainError(__FILE__, __FUNCTION__, __LINE__);
   }
 
   uint64_t tempRaw = 0;
@@ -241,10 +244,7 @@ int ecmcEcEntryLink::writeEcEntryValue(int entryIndex, uint64_t value) {
 
   // Still write value to entry (above) even if domain error to keep value up to date
   if (!checkDomainOK(entryIndex)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+    return setDomainError(__FILE__, __FUNCTION__, __LINE__);
   }
 
   return 0;
@@ -262,10 +262,7 @@ int ecmcEcEntryLink::writeEcEntryValueDouble(int entryIndex, double value) {
 
   // Still write value to entry (above) even if domain error to keep value up to date
   if (!checkDomainOK(entryIndex)) {
-    return setErrorID(__FILE__,
-                      __FUNCTION__,
-                      __LINE__,
-                      ERROR_EC_ENTRY_EC_DOMAIN_ERROR);
+    return setDomainError(__FILE__, __FUNCTION__, __LINE__);
   }
 
   return 0;

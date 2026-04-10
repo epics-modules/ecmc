@@ -539,12 +539,14 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
         rawPosDoubleOld_ = rawPosDouble_;
         encInitilized_ = 1;
 
-        LOGERR(
-          "%s/%s:%d: INFO (axis %d): Encoder initialized (readybit==OK).\n",
-          __FILE__,
-          __FUNCTION__,
-          __LINE__,
-          data_->status_.axisId);
+        if (!data_->status_.statusWord_.instartup) {
+          LOGERR(
+            "%s/%s:%d: INFO (axis %d): Encoder initialized (readybit==OK).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            data_->status_.axisId);
+        }
       }
     } else {
       // else latch value at positive edge of masterOK
@@ -556,12 +558,14 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
         rawPosUintOld_ = rawPosUint_;
         rawPosDoubleOld_ = rawPosDouble_;
         encInitilized_ = 1;
-        LOGERR(
-          "%s/%s:%d: INFO (axis %d): Encoder initialized (domain==true ).\n",
-          __FILE__,
-          __FUNCTION__,
-          __LINE__,
-          data_->status_.axisId);
+        if (!data_->status_.statusWord_.instartup) {
+          LOGERR(
+            "%s/%s:%d: INFO (axis %d): Encoder initialized (domain==true ).\n",
+            __FILE__,
+            __FUNCTION__,
+            __LINE__,
+            data_->status_.axisId);
+        }
       }
     }
   }

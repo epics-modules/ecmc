@@ -16,6 +16,9 @@
 #include <string>
 #include "ecmcErrorsList.h"
 
+extern app_mode_type appModeStat;
+extern double mcuFrequency;
+
 ecmcEc::ecmcEc(ecmcAsynPortDriver *asynPortDriver) {
   initVars();
   setErrorID(ERROR_EC_STATUS_NOT_OK);
@@ -41,7 +44,7 @@ void ecmcEc::initVars() {
   masterLinkUp_          = 0;
   statusWordMaster_      = 0;
   ecStatOk_              = 0;
-  delayEcOKCycles_       = 0;
+  delayEcOKCycles_       = -1;
   startupCounter_        = 0;
   domainCounter_         = 0;
   allowOffline_          = 0;
@@ -356,7 +359,7 @@ bool ecmcEc::checkSlavesConfState() {
   for (int i = 0; i < slaveCounter_; i++) {
     retVal = checkSlaveConfState(i);
 
-    if (retVal && !getErrorID()) {
+    if (retVal && !getErrorID() && (appModeStat != ECMC_MODE_STARTUP)) {
       LOGERR(
         "%s/%s:%d: ERROR: Slave with bus position %d reports error (0x%x).\n",
         __FILE__,
@@ -500,21 +503,30 @@ bool ecmcEc::checkState(void) {
   if (masterState_.al_states != EC_AL_STATE_OP) {
     switch (masterState_.al_states) {
     case EC_AL_STATE_INIT:
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_AL_STATE_INIT);
+      // Expected transient while the master is moving to OP.
+      if (appModeStat != ECMC_MODE_STARTUP) {
+        setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_AL_STATE_INIT);
+      }
       masterOK_ = false;
       return false;
 
       break;
 
     case EC_AL_STATE_PREOP:
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_AL_STATE_PREOP);
+      // Expected transient while the master is moving to OP.
+      if (appModeStat != ECMC_MODE_STARTUP) {
+        setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_AL_STATE_PREOP);
+      }
       masterOK_ = false;
       return false;
 
       break;
 
     case EC_AL_STATE_SAFEOP:
-      setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_AL_STATE_SAFEOP);
+      // Expected transient while the master is moving to OP.
+      if (appModeStat != ECMC_MODE_STARTUP) {
+        setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_AL_STATE_SAFEOP);
+      }
       masterOK_ = false;
       return false;
 
@@ -1051,10 +1063,17 @@ int ecmcEc::statusOK() {
   const bool ecReady = slavesOK_ && domainsOK_ && masterOK_;
 
   // Auto reset error at startup
-  if (inStartupPhase_ && ecReady &&
-      (startupCounter_ > delayEcOKCycles_)) {
-    inStartupPhase_ = false;
-    errorReset();
+  const int delayEcOKCycles = delayEcOKCycles_ >= 0 ? delayEcOKCycles_ :
+                              static_cast<int>(mcuFrequency);
+  if (inStartupPhase_) {
+    if (ecReady) {
+      if (startupCounter_ > delayEcOKCycles) {
+        inStartupPhase_ = false;
+        errorReset();
+      }
+    } else {
+      startupCounter_ = 0;
+    }
   }
 
   // printf("slavesOK_ %d domainsOK_ %d masterOK_ %d inStartupPhase_%d\n",slavesOK_,domainsOK_,masterOK_,inStartupPhase_);

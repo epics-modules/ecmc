@@ -175,10 +175,14 @@ void ecmcAxisReal::execute(bool masterOK) {
     }
     cntrl_->reset();
     drv_->setVelSet(0);
-    setErrorID(__FILE__,
-               __FUNCTION__,
-               __LINE__,
-               ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
+    if (data_.status_.statusWord_.instartup) {
+      setErrorID(ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
+    } else {
+      setErrorID(__FILE__,
+                 __FUNCTION__,
+                 __LINE__,
+                 ERROR_AXIS_HARDWARE_STATUS_NOT_OK);
+    }
   }
 
   // Write to hardware

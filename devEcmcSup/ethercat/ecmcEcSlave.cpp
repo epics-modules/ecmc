@@ -13,6 +13,8 @@
 #include "ecmcEcSlave.h"
 #include "ecmcErrorsList.h"
 
+extern app_mode_type appModeStat;
+
 ecmcEcSlave::ecmcEcSlave(
   ecmcAsynPortDriver *asynPortDriver,  /** Asyn port driver*/
   int                 masterId,
@@ -342,7 +344,8 @@ int ecmcEcSlave::checkConfigState(void) {
   slaveStateOld_ = slaveState_;
 
   if (!slaveState_.online) {
-    if (getErrorID() != ERROR_EC_SLAVE_NOT_ONLINE) {
+    if ((appModeStat != ECMC_MODE_STARTUP) &&
+        (getErrorID() != ERROR_EC_SLAVE_NOT_ONLINE)) {
       LOGERR("%s/%s:%d: ERROR: Slave %d: Not online (0x%x).\n",
              __FILE__,
              __FUNCTION__,
@@ -351,6 +354,9 @@ int ecmcEcSlave::checkConfigState(void) {
              ERROR_EC_SLAVE_NOT_ONLINE);
     }
 
+    if (appModeStat == ECMC_MODE_STARTUP) {
+      return ERROR_EC_SLAVE_NOT_ONLINE;
+    }
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -358,7 +364,8 @@ int ecmcEcSlave::checkConfigState(void) {
   }
 
   if (!slaveState_.operational) {
-    if (getErrorID() != ERROR_EC_SLAVE_NOT_OPERATIONAL) {
+    if ((appModeStat != ECMC_MODE_STARTUP) &&
+        (getErrorID() != ERROR_EC_SLAVE_NOT_OPERATIONAL)) {
       LOGERR("%s/%s:%d: ERROR: Slave %d: Not operational (0x%x).\n",
              __FILE__,
              __FUNCTION__,
@@ -367,6 +374,9 @@ int ecmcEcSlave::checkConfigState(void) {
              ERROR_EC_SLAVE_NOT_OPERATIONAL);
     }
 
+    if (appModeStat == ECMC_MODE_STARTUP) {
+      return ERROR_EC_SLAVE_NOT_OPERATIONAL;
+    }
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -429,6 +439,9 @@ int ecmcEcSlave::checkConfigState(void) {
   case 8:
 
     // OK
+    if (getErrorID()) {
+      errorReset();
+    }
     return 0;
 
     break;

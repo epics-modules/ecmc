@@ -311,6 +311,9 @@ void ecmcMonitor::readEntries() {
     errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_LOWLIM, &tempRaw);
   
     if (errorCode) {
+      if (statusWord.instartup && (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -336,6 +339,9 @@ void ecmcMonitor::readEntries() {
     errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HIGHLIM, &tempRaw);
   
     if (errorCode) {
+      if (statusWord.instartup && (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -361,6 +367,9 @@ void ecmcMonitor::readEntries() {
     errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_HOMESENSOR, &tempRaw);
   
     if (errorCode) {
+      if (statusWord.instartup && (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -387,6 +396,9 @@ void ecmcMonitor::readEntries() {
     errorCode = readEcEntryValue(ECMC_MON_ENTRY_INDEX_EXTINTERLOCK, &tempRaw);
 
     if (errorCode) {
+      if (statusWord.instartup && (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -411,6 +423,9 @@ void ecmcMonitor::readEntries() {
     errorCode = readEcEntryValueDouble(ECMC_MON_ENTRY_INDEX_ANALOG, &tempDouble);
 
     if (errorCode) {
+      if (statusWord.instartup && (errorCode == ERROR_EC_ENTRY_EC_DOMAIN_ERROR)) {
+        return;
+      }
       setErrorID(__FILE__,
                  __FUNCTION__,
                  __LINE__,
@@ -805,6 +820,13 @@ int ecmcMonitor::checkLimits() {
   const bool moving = statusWord.moving;
   const bool axisEnabled = statusWord.enabled && statusOldWord.enabled;
   const bool isHomingCmd = status.command == ECMC_CMD_HOMING;
+
+  if (statusWord.instartup) {
+    interlocks.bothLimitsLowInterlock = false;
+    interlocks.bwdLimitInterlock = false;
+    interlocks.fwdLimitInterlock = false;
+    return 0;
+  }
 
   // Both limit switches
   interlocks.bothLimitsLowInterlock = !limitBwdOk && !limitFwdOk;

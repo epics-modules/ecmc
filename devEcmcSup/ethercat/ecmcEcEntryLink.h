@@ -54,6 +54,9 @@ public:
   bool           checkDomainOKAllEntries();
 
 protected:
+  int            setDomainError(const char *fileName,
+                                const char *functionName,
+                                int         lineNumber);
   int            validateEntryBit(int index);
   int            getEntryBitCount(int  index,
                                   int *bitCount);
