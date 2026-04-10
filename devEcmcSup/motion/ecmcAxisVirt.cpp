@@ -98,7 +98,7 @@ int ecmcAxisVirt::validate() {
 
   for (int i = 0; i < data_.status_.encoderCount; i++) {
     if (encArray_[i] == NULL) {
-      LOGERR("%s/%s:%d: ax%d.enc%d NULL (0x%x).\n",
+      LOGERR("%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] object is NULL (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -115,7 +115,7 @@ int ecmcAxisVirt::validate() {
     error = encArray_[i]->validate();
 
     if (error) {
-      LOGERR("%s/%s:%d: ax%d.enc%d (0x%x).\n",
+      LOGERR("%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] validation failed (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,

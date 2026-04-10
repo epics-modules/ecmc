@@ -52,7 +52,11 @@ void ecmcAxisPVTSequence::addPoint(ecmcPvtPoint *pnt) {
       addSegment(points_[pointCount_-2], points_[pointCount_-1]);
     };
   } catch (std::bad_alloc& ex) {
-    printf("ecmcAxisPVTSequence::addPoint() : Exception\n");
+    LOGERR("%s/%s:%d: ERROR: PVT sequence add point failed: %s.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ex.what());
   }
 }
 
@@ -262,11 +266,11 @@ double ecmcAxisPVTSequence::acceleration(double time, int *valid) {
 
 void   ecmcAxisPVTSequence::print() {
   if(segmentCount_<=0) {
-    printf("PVT object empty\n");
+    LOGINFO("INFO: PVT sequence is empty.\n");
     return;
   }
 
-  printf("time [s], pos[egu], vel[egu]\n");
+  LOGINFO("INFO: PVT sequence points: time [s], pos [egu], vel [egu/s].\n");
   for(size_t i=0; i < pointCount_; i++) {
     points_[i]->print();
   }
@@ -274,26 +278,27 @@ void   ecmcAxisPVTSequence::print() {
 
 void   ecmcAxisPVTSequence::printRT() {
   if(segmentCount_<=0) {
-    printf("PVT object empty\n");
+    LOGINFO("INFO: PVT sequence is empty.\n");
     return;
   }
-  printf("RT traj:\n");
-  printf("time [s], pos[egu], vel[egu/s], acc [egu/s/s]\n");
+  LOGINFO("INFO: PVT realtime trajectory samples: time [s], pos [egu], vel [egu/s], acc [egu/s/s].\n");
   
     do {
-      printf("%lf, %lf, %lf, %lf\n",getCurrTime(),
-                                    getCurrPosition(),
-                                    getCurrVelocity(),
-                                    getCurrAcceleration());
+      LOGINFO("INFO: PVT realtime sample: time=%lf, pos=%lf, vel=%lf, acc=%lf.\n",
+              getCurrTime(),
+              getCurrPosition(),
+              getCurrVelocity(),
+              getCurrAcceleration());
       nextSampleStep();
     }
   
     while(!isLastSample());
     // also print last sample
-    printf("%lf, %lf, %lf, %lf\n",getCurrTime(),
-                                  getCurrPosition(),
-                                  getCurrVelocity(),
-                                  getCurrAcceleration());
+    LOGINFO("INFO: PVT realtime sample: time=%lf, pos=%lf, vel=%lf, acc=%lf.\n",
+            getCurrTime(),
+            getCurrPosition(),
+            getCurrVelocity(),
+            getCurrAcceleration());
 }
 
 bool ecmcAxisPVTSequence::getBusy() { 
@@ -321,7 +326,11 @@ void ecmcAxisPVTSequence::clear() {
 int ecmcAxisPVTSequence::validateRT() {
   
   if(segmentCount_==0 || data_ == NULL ) {
-    printf("ecmcAxisPVTSequence::validateRT(): Error: Segment count 0\n");
+    LOGERR("%s/%s:%d: ERROR: PVT validation failed: segment count is zero or axis data is NULL (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           ERROR_SEQ_PVT_CFG_INVALID);
     return ERROR_SEQ_PVT_CFG_INVALID;
   }
   return 0;

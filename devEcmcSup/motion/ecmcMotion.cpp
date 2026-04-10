@@ -1600,13 +1600,21 @@ const char* getAxisPLCExpr(int axisIndex, int *error) {
            axisIndex);
 
   if ((axisIndex >= ECMC_MAX_AXES) || (axisIndex < 0)) {
-    LOGERR("ERROR: Axis index out of range.\n");
+    LOGERR("%s/%s:%d: ERROR: Axis index %d out of range.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
     *error = ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;
     return "";
   }
 
   if (axes[axisIndex] == NULL) {
-    LOGERR("ERROR: Axis object NULL\n");
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Axis object is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
     *error = ERROR_MAIN_AXIS_OBJECT_NULL;
     return "";
   }
@@ -1615,13 +1623,20 @@ const char* getAxisPLCExpr(int axisIndex, int *error) {
 
   if ((plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES) ||
       (plcIndex < ECMC_MAX_PLCS)) {
-    LOGERR("ERROR: PLC index out of range.\n");
+    LOGERR("%s/%s:%d: ERROR: PLC index %d out of range.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           plcIndex);
     *error = ERROR_PLCS_INDEX_OUT_OF_RANGE;
     return "";
   }
 
   if (!plcs) {
-    LOGERR("ERROR: PLC object NULL.\n");
+    LOGERR("%s/%s:%d: ERROR: PLC object is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     *error = ERROR_MAIN_PLCS_NULL;
     return "";
   }
@@ -3844,7 +3859,7 @@ int createAxis(int index, int type, int drvType, int trajType) {
   catch (std::exception& e) {
     delete axes[index];
     axes[index] = NULL;
-    LOGERR("%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXIS OBJECT.\n",
+    LOGERR("%s/%s:%d: ERROR: Exception while allocating axis object: %s.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -3892,7 +3907,7 @@ int addAxisGroup(const char *name) {
   catch (std::exception& e) {
     delete axisGroups[index];
     axisGroups[index] = NULL;
-    LOGERR("%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXISGROUP OBJECT.\n",
+    LOGERR("%s/%s:%d: ERROR: Exception while allocating axis group object: %s.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -3968,7 +3983,7 @@ int addAxisToGroupByIndex(int axIndex, int grpIndex) {
     axisGroups[grpIndex]->addAxis(axes[axIndex]);    
   }
   catch (std::exception& e) {
-    LOGERR("%s/%s:%d: EXCEPTION %s WHEN ADDING AXIS to GROUP.\n",
+    LOGERR("%s/%s:%d: ERROR: Exception while adding axis to group: %s.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -4566,7 +4581,11 @@ void* getAxisPointer(int  axisIndex) {
            __LINE__,
            axisIndex);
   if (axisIndex >= ECMC_MAX_AXES || axisIndex <= 0) {
-    LOGERR("ERROR: Axis index out of range.\n");
+    LOGERR("%s/%s:%d: ERROR: Axis index %d out of range.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex);
     return NULL;
   }
   return (void*)axes[axisIndex];  

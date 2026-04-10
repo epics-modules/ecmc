@@ -3089,7 +3089,7 @@ int ecmcAxisSequencer::validate() {
     if (homeSeqId == ECMC_SEQ_HOME_LOW_LIM_SINGLE_TURN_ABS ||
         homeSeqId == ECMC_SEQ_HOME_HIGH_LIM_SINGLE_TURN_ABS) {
       LOGERR(
-        "%s/%s:%d: ERROR (axis %d): Homing sequence %d requires integer absolute encoder bits and is not supported for floating point encoder entries (0x%x).\n",
+        "%s/%s:%d: ERROR: Axis[%d]: Homing sequence %d requires integer absolute encoder bits and is not supported for floating-point encoder entries (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,

@@ -23,7 +23,10 @@ ecmcTrajectoryBase::ecmcTrajectoryBase(ecmcAxisData *axisData,
   initVars();
 
   if (!data_) {
-    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
+    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     exit(EXIT_FAILURE);
   }
   sampleTime_ = sampleTime;

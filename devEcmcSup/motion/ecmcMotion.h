@@ -26,11 +26,19 @@ extern "C" {
 #define CHECK_AXIS_RETURN_IF_ERROR(axisIndex)\
         {\
           if (axisIndex >= ECMC_MAX_AXES || axisIndex < 0) {\
-            LOGERR("ERROR: Axis index out of range.\n");\
+            LOGERR("%s/%s:%d: ERROR: Axis index %d out of range.\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   axisIndex);\
             return ERROR_MAIN_AXIS_INDEX_OUT_OF_RANGE;\
           }\
           if (axes[axisIndex] == NULL) {\
-            LOGERR("ERROR: Axis object NULL\n");\
+            LOGERR("%s/%s:%d: ERROR: Axis[%d]: Axis object is NULL.\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   axisIndex);\
             return ERROR_MAIN_AXIS_OBJECT_NULL;\
           }\
         }\
@@ -39,7 +47,11 @@ extern "C" {
         {\
           CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
           if (axes[axisIndex]->getBlockCom()) {\
-            LOGERR("ERROR: External Commands Disabled\n");\
+            LOGERR("%s/%s:%d: ERROR: Axis[%d]: External commands are disabled.\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   axisIndex);\
             axes[axisIndex]->setExternalCommandBlockedError();\
             return ERROR_MAIN_AXIS_EXTERNAL_COM_DISABLED;\
           }\
@@ -50,7 +62,11 @@ extern "C" {
           CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
           if (axes[axisIndex]->\
               getEnc() == NULL) {\
-            LOGERR("ERROR: Encoder object NULL.\n");\
+            LOGERR("%s/%s:%d: ERROR: Axis[%d]: Encoder object is NULL.\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   axisIndex);\
             return ERROR_MAIN_ENCODER_OBJECT_NULL;\
           }\
         }\
@@ -60,7 +76,11 @@ extern "C" {
           CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
           if (axes[axisIndex]->\
               getConfigEnc() == NULL) {\
-            LOGERR("ERROR: Encoder object NULL.\n");\
+            LOGERR("%s/%s:%d: ERROR: Axis[%d]: Config encoder object is NULL.\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   axisIndex);\
             return ERROR_MAIN_ENCODER_OBJECT_NULL;\
           }\
         }\
@@ -69,7 +89,11 @@ extern "C" {
         {\
           CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
           if (axes[axisIndex]->getCntrl() == NULL) {\
-            LOGERR("ERROR: Controller object NULL.\n");\
+            LOGERR("%s/%s:%d: ERROR: Axis[%d]: Controller object is NULL.\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   axisIndex);\
             return ERROR_MAIN_CONTROLLER_OBJECT_NULL;\
           }\
         }\
@@ -78,7 +102,11 @@ extern "C" {
         {\
           CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
           if (axes[axisIndex]->getDrv() == NULL) {\
-            LOGERR("ERROR: Drive object NULL.\n");\
+            LOGERR("%s/%s:%d: ERROR: Axis[%d]: Drive object is NULL.\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   axisIndex);\
             return ERROR_MAIN_DRIVE_OBJECT_NULL;\
           }\
         }\
@@ -87,7 +115,11 @@ extern "C" {
         {\
           CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
           if (axes[axisIndex]->getTraj() == NULL) {\
-            LOGERR("ERROR: Trajectory object NULL.\n");\
+            LOGERR("%s/%s:%d: ERROR: Axis[%d]: Trajectory object is NULL.\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   axisIndex);\
             return ERROR_MAIN_TRAJECTORY_OBJECT_NULL;\
           }\
         }\
@@ -96,7 +128,11 @@ extern "C" {
         {\
           CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
           if (axes[axisIndex]->getSeq() == NULL) {\
-            LOGERR("ERROR: Sequence object NULL.\n");\
+            LOGERR("%s/%s:%d: ERROR: Axis[%d]: Sequence object is NULL.\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   axisIndex);\
             return ERROR_MAIN_SEQUENCE_OBJECT_NULL;\
           }\
         }\
@@ -105,7 +141,11 @@ extern "C" {
         {\
           CHECK_AXIS_RETURN_IF_ERROR(axisIndex);\
           if (axes[axisIndex]->getMon() == NULL) {\
-            LOGERR("ERROR: Monitor object NULL.\n");\
+            LOGERR("%s/%s:%d: ERROR: Axis[%d]: Monitor object is NULL.\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   axisIndex);\
             return ERROR_MAIN_MONITOR_OBJECT_NULL;\
           }\
         }\
@@ -113,7 +153,11 @@ extern "C" {
 #define CHECK_MST_SLBV_SM_IDNEX_RETURN_IF_ERROR(smIndex)\
         {\
           if (smIndex >= ECMC_MAX_MST_SLVS_SMS || smIndex < 0) {\
-            LOGERR("ERROR: master Slave state machine index out of range.\n");\
+            LOGERR("%s/%s:%d: ERROR: Master/slave state machine index %d out of range.\n",\
+                   __FILE__,\
+                   __FUNCTION__,\
+                   __LINE__,\
+                   smIndex);\
             return ERROR_MST_SLV_SM_INDEX_OUT_OF_RANGE;\
           }\
         }\

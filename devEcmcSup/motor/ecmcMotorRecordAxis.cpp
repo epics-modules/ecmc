@@ -342,7 +342,11 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
                                          int         axisFlags,
                                          const char *axisOptionsStr) {
   if ((axisNo >= ECMC_MAX_AXES) || (axisNo < 0)) {
-    printf("ERROR: axisNo out of range. Allowed values 0..%d\n",
+    LOGERR("%s/%s:%d: ERROR: Axis index %d out of range. Allowed values 0..%d.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo,
            ECMC_MAX_AXES - 1);
     return asynError;
   }
@@ -402,17 +406,30 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
   pC = (ecmcMotorRecordController *)findAsynPortDriver(controllerPortName);
 
   if (!pC) {
-    printf("ERROR: Asyn port %s not found.\n", controllerPortName);
+    LOGERR("%s/%s:%d: ERROR: Asyn port %s not found.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           controllerPortName);
     return asynError;
   }
 
   if ((axisNo >= ECMC_MAX_AXES) || (axisNo < 0)) {
-    printf("ERROR: Axis index out of range.\n");
+    LOGERR("%s/%s:%d: ERROR: Axis index %d out of range. Allowed values 0..%d.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo,
+           ECMC_MAX_AXES - 1);
     return asynError;
   }
 
   if (axes[axisNo] == NULL) {
-    printf("ERROR: Axis object NULL.\n");
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Axis object is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisNo);
     return asynError;
   }
 

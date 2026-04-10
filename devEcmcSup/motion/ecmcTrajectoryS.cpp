@@ -138,18 +138,20 @@ bool ecmcTrajectoryS::updateRuckig() {
                  __FUNCTION__,
                  __LINE__,
                  ERROR_TRAJ_RUCKIG_INVALID_INPUT);
-      printf("Input pos %lf, vel %lf, acc %lf\n",
+      LOGERR("%s/%s:%d: ERROR: Ruckig input invalid: current(pos=%lf, vel=%lf, acc=%lf), target(pos=%lf, vel=%lf, acc=%lf), max(vel=%lf, acc=%lf, jerk=%lf) (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
              input_->current_position[0],
              input_->current_velocity[0],
-             input_->current_acceleration[0]);
-      printf("Target pos %lf, vel %lf, acc %lf\n",
+             input_->current_acceleration[0],
              input_->target_position[0],
              input_->target_velocity[0],
-             input_->target_acceleration[0]);
-      printf("Max vel %lf, acc %lf, jerk %lf\n",
+             input_->target_acceleration[0],
              input_->max_velocity[0],
              input_->max_acceleration[0],
-             input_->max_jerk[0]);
+             input_->max_jerk[0],
+             getErrorID());
       break;
 
     case Result::ErrorTrajectoryDuration:

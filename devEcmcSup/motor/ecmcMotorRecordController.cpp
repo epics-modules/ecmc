@@ -423,8 +423,10 @@ extern "C" int ecmcMotorRecordCreateController(const char *portName,
   }
 
   if (asynPortMotorRecord) {
-    printf(
-      "Error: ecmcMotorRecordController already initialized. ECMC only supports one ecmcMotorRecordController\n");
+    LOGERR("%s/%s:%d: ERROR: ecmcMotorRecordController is already initialized; ECMC only supports one motor record controller.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     return asynError;
   }
 
@@ -1477,8 +1479,12 @@ asynStatus ecmcCreateProfile(const char *asynPort,       /* specify which contro
 
   pC = (ecmcMotorRecordController*) findAsynPortDriver(asynPort);
   if (!pC) {
-    printf("%s:%s: Error port %s not found\n",
-           driverName, functionName, asynPort);
+    LOGERR("%s/%s:%d: ERROR: %s: port %s not found.\n",
+           __FILE__,
+           functionName,
+           __LINE__,
+           driverName,
+           asynPort);
     return asynError;
   }
   pC->lock();
@@ -1508,8 +1514,12 @@ asynStatus ecmcEnablePVTForAxis(const char *asynPort,         /* specify which c
 
   pC = (ecmcMotorRecordController*) findAsynPortDriver(asynPort);
   if (!pC) {
-    printf("%s:%s: Error port %s not found\n",
-           driverName, functionName, asynPort);
+    LOGERR("%s/%s:%d: ERROR: %s: port %s not found.\n",
+           __FILE__,
+           functionName,
+           __LINE__,
+           driverName,
+           asynPort);
     return asynError;
   }
   pC->lock();

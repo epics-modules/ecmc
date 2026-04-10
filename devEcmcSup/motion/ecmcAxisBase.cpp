@@ -1050,7 +1050,7 @@ bool ecmcAxisBase::getEnabledOnly() {
 
 int ecmcAxisBase::initAsyn() {
   if (asynPortDriver_ == NULL) {
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object NULL (0x%x).\n",
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object is NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1709,7 +1709,7 @@ int ecmcAxisBase::createAsynParam(const char        *nameFormat,
                                   ecmcAsynDataItem **asynParamOut) {
   if (asynPortDriver_ == NULL) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object NULL (%s) (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object is NULL for %s (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1750,7 +1750,7 @@ int ecmcAxisBase::createAsynParam(const char        *nameFormat,
 
   if (!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,

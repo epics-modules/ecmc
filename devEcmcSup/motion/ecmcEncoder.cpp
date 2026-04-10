@@ -33,7 +33,10 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
   index_ = index;
   initAsyn();
   if (!data_) {
-    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
+    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     exit(EXIT_FAILURE);
   }
 
@@ -41,7 +44,7 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
   positionFilter_ = new ecmcFilter(sampleTime, ECMC_FILTER_POS_DEF_SIZE);
 
   if (!velocityFilter_) {
-    LOGERR("%s/%s:%d: FAILED TO ALLOCATE MEMORY FOR VELOCITY-FILTER OBJECT.\n",
+    LOGERR("%s/%s:%d: ERROR: Failed to allocate velocity-filter object.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);
@@ -451,7 +454,7 @@ int ecmcEncoder::setRawMask(uint64_t mask) {
   int trailingZeros = countTrailingZerosInMask(mask);
 
   if (trailingZeros < 0) {
-    LOGERR("%s/%s:%d: Encoder Raw Mask Invalid, mask==0 (0x%x).\n",
+    LOGERR("%s/%s:%d: ERROR: Encoder raw mask is invalid: mask is zero (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_ENC_RAW_MASK_INVALID);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
                       ERROR_ENC_RAW_MASK_INVALID);
@@ -459,7 +462,7 @@ int ecmcEncoder::setRawMask(uint64_t mask) {
   int bitWidth = countBitWidthOfMask(mask, trailingZeros);
 
   if (bitWidth < 0) {
-    LOGERR("%s/%s:%d: Encoder Raw Mask Invalid. Mask not continuous (0x%x).\n",
+    LOGERR("%s/%s:%d: ERROR: Encoder raw mask is invalid: mask is not continuous (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_ENC_RAW_MASK_INVALID);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
                       ERROR_ENC_RAW_MASK_INVALID);
@@ -1101,7 +1104,7 @@ int ecmcEncoder::validate() {
       hwTriggedHomingEnabled_ = true;
     } else {
       LOGERR(
-        "%s/%s:%d: ERROR (axis %d): Encoder homing hw links invalid (homing set to ECMC_SEQ_HOME_TRIGG_EXTERN) (0x%x).\n",
+        "%s/%s:%d: ERROR: Axis[%d]: Encoder homing hardware links are invalid for ECMC_SEQ_HOME_TRIGG_EXTERN (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
@@ -1116,7 +1119,7 @@ int ecmcEncoder::validate() {
 
   if (encPosAct_ == NULL) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Encoder asyn param object NULL (encPosAct_) for encoder %d (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] encPosAct_ asyn parameter object is NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1132,7 +1135,7 @@ int ecmcEncoder::validate() {
 
   if (encVelAct_ == NULL) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Encoder asyn param object NULL (encVelAct_) for encoder %d (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] encVelAct_ asyn parameter object is NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1373,7 +1376,7 @@ int ecmcEncoder::initAsyn() {
   int localIndex = index_ + 1;  // For naming of params
   // Add Asynparms for new encoder
   if (asynPortDriver_ == NULL) {
-    LOGERR("%s/%s:%d: ERROR (axis %d): AsynPortDriver object NULL (0x%x).\n",
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object is NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1396,7 +1399,7 @@ int ecmcEncoder::initAsyn() {
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1416,7 +1419,7 @@ int ecmcEncoder::initAsyn() {
 
   if (!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1438,7 +1441,7 @@ int ecmcEncoder::initAsyn() {
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1458,7 +1461,7 @@ int ecmcEncoder::initAsyn() {
 
   if (!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1482,7 +1485,7 @@ int ecmcEncoder::initAsyn() {
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1502,7 +1505,7 @@ int ecmcEncoder::initAsyn() {
 
   if (!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1664,7 +1667,7 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
     if(!lookupTable_) {  // No lookup table
       lookupTableEnable_ = 0;
       LOGERR(
-        "%s/%s:%d: ERROR (axis %d, enc %d): Lookup table not loaded (0x%x).\n",
+        "%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] lookup table is not loaded (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
@@ -1680,7 +1683,7 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
     if(!lookupTable_->getValidatedOK()) {
       lookupTableEnable_ = 0;
       LOGERR(
-        "%s/%s:%d: ERROR (axis %d, enc %d): Lookup table not loaded (0x%x).\n",
+        "%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] lookup table is not valid (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,

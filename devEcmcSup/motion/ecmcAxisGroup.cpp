@@ -18,7 +18,12 @@ ecmcAxisGroup::ecmcAxisGroup(int index, const char *name){
   index_ = index;
   blocked_ = false;
   axisInGroup_.assign(ECMC_MAX_AXES, false);
-  printf("ecmcAxisGroup: Created axis group[%d] %s.\n", index_, name_.c_str());
+  LOGINFO("%s/%s:%d: INFO: Axis group[%d] %s created.\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__,
+          index_,
+          name_.c_str());
 };
 
 ecmcAxisGroup::~ecmcAxisGroup(){
@@ -42,7 +47,13 @@ void ecmcAxisGroup::addAxis(ecmcAxisBase *axis){
     axisInGroup_[axisId] = true;
   }
   axesCounter_++;
-  printf("ecmcAxisGroup: Added axis %d to group[%d] %s.\n", axisId,index_,name_.c_str());
+  LOGINFO("%s/%s:%d: INFO: Axis[%d]: Added to axis group[%d] %s.\n",
+          __FILE__,
+          __FUNCTION__,
+          __LINE__,
+          axisId,
+          index_,
+          name_.c_str());
 };
 
 // Check if all axes in group are enable

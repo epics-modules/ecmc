@@ -20,7 +20,10 @@ ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
   initVars();
 
   if (!data_) {
-    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
+    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     exit(EXIT_FAILURE);
   }
 }
@@ -33,7 +36,10 @@ ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
   initVars();
 
   if (!data_) {
-    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
+    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     exit(EXIT_FAILURE);
   }
 
@@ -140,7 +146,7 @@ void ecmcDriveDS402::readEntries(bool masterOK) {
       //}
     }
     if(!ds402Fault && masterOK){
-      LOGERR("%s/%s:%d: DS402 Startup fault cleared.\n",
+      LOGERR("%s/%s:%d: INFO: DS402 startup fault cleared.\n",
         __FILE__,
         __FUNCTION__,
         __LINE__);
@@ -151,7 +157,7 @@ void ecmcDriveDS402::readEntries(bool masterOK) {
   
   // Printout warning.. Do not stop
   if (ds402Warning && !ds402WarningOld_) {
-    LOGERR("%s/%s:%d: DS402 Warning bit high.\n",
+    LOGERR("%s/%s:%d: WARNING: DS402 warning bit is high.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);

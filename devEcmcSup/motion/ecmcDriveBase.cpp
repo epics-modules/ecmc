@@ -34,7 +34,10 @@ ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
   asynPortDriver_ = asynPortDriver;
 
   if (!data_) {
-    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
+    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     exit(EXIT_FAILURE);
   }
 
@@ -657,7 +660,7 @@ int ecmcDriveBase::validate() {
 
     if(cspEnc_ == NULL) {
       LOGERR(
-        "%s/%s:%d: ERROR (axis %d): No drive encoder selected for CSP operation (0x%x).\n",
+        "%s/%s:%d: ERROR: Axis[%d]: No drive encoder selected for CSP operation (0x%x).\n",
         __FILE__,
         __FUNCTION__,
         __LINE__,
@@ -675,7 +678,7 @@ int ecmcDriveBase::validate() {
     if (encFloat || posSetFloat) {
       if (!(encFloat && posSetFloat && encType == posSetType)) {
         LOGERR(
-          "%s/%s:%d: ERROR (axis %d): Floating point CSP requires drive encoder actual position and drive position setpoint to use the same EtherCAT datatype (0x%x).\n",
+          "%s/%s:%d: ERROR: Axis[%d]: Floating-point CSP requires drive encoder actual position and drive position setpoint to use the same EtherCAT datatype (0x%x).\n",
           __FILE__,
           __FUNCTION__,
           __LINE__,
@@ -696,7 +699,7 @@ int ecmcDriveBase::validate() {
   // Ensure mode is CSV, CSP
   if(data_->control_.drvMode != ECMC_DRV_MODE_CSV && data_->control_.drvMode != ECMC_DRV_MODE_CSP ) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Drive Mode Invalid (must be CSV or CSP) (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Drive mode is invalid; expected CSV or CSP (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -932,7 +935,7 @@ void ecmcDriveBase::errorReset() {
 int ecmcDriveBase::initAsyn() {
   if (asynPortDriver_ == NULL) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Drive AsynPortDriver object NULL (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Drive AsynPortDriver object is NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -954,7 +957,7 @@ int ecmcDriveBase::initAsyn() {
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to generate alias; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -972,7 +975,7 @@ int ecmcDriveBase::initAsyn() {
 
   if (!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -995,7 +998,7 @@ int ecmcDriveBase::initAsyn() {
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate alias. Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to generate alias; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1013,7 +1016,7 @@ int ecmcDriveBase::initAsyn() {
 
   if (!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,

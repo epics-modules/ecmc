@@ -27,7 +27,10 @@ ecmcPIDController::ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
   initAsyn();
 
   if (!data_) {
-    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
+    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     exit(EXIT_FAILURE);
   }
 }
@@ -49,7 +52,10 @@ ecmcPIDController::ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
   initAsyn();
 
   if (!data_) {
-    LOGERR("%s/%s:%d: DATA OBJECT NULL.\n", __FILE__, __FUNCTION__, __LINE__);
+    LOGERR("%s/%s:%d: ERROR: Axis data object is NULL.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
     exit(EXIT_FAILURE);
   }
   kp_         = kp;
@@ -246,7 +252,7 @@ int ecmcPIDController::validate() {
 
   if ((asynKp_ == NULL) || (asynKi_ == NULL) || (asynKd_ == NULL) ||
       (asynKff_ == NULL)) {
-    LOGERR("%s/%s:%d: Error: Axis %d: Kp,ki, kd or kff asyn param NULL .\n",
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Kp, Ki, Kd, or Kff asyn parameter is NULL.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -310,7 +316,7 @@ double ecmcPIDController::getInnerTol() {
 int ecmcPIDController::initAsyn() {
   // Add Asynparms for new encoder
   if (asynPortDriver_ == NULL) {
-    LOGERR("%s/%s:%d: ERROR (axis %d): AsynPortDriver object NULL (0x%x).\n",
+    LOGERR("%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object is NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -332,7 +338,7 @@ int ecmcPIDController::initAsyn() {
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -352,7 +358,7 @@ int ecmcPIDController::initAsyn() {
 
   if (!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -372,7 +378,7 @@ int ecmcPIDController::initAsyn() {
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -392,7 +398,7 @@ int ecmcPIDController::initAsyn() {
 
   if (!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -413,7 +419,7 @@ int ecmcPIDController::initAsyn() {
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -433,7 +439,7 @@ int ecmcPIDController::initAsyn() {
 
   if (!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -454,7 +460,7 @@ int ecmcPIDController::initAsyn() {
 
   if (charCount >= sizeof(buffer) - 1) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Failed to generate (%s). Buffer to small (0x%x).\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -474,7 +480,7 @@ int ecmcPIDController::initAsyn() {
 
   if (!paramTemp) {
     LOGERR(
-      "%s/%s:%d: ERROR (axis %d): Add create default parameter for %s failed.\n",
+      "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
