@@ -658,8 +658,9 @@ float ecmcEcData::read_float_offset(uint8_t *buffer,
                                     int      byteOffset,
                                     int      bitOffset) {
   uint32_t value = read_uint32_offset(buffer, byteOffset, bitOffset);
-
-  return *((float *)&value);
+  float floatValue = 0.0f;
+  memcpy(&floatValue, &value, sizeof(floatValue));
+  return floatValue;
 }
 
 // Write a float to the buffer at a specific byte and bit offset
@@ -667,7 +668,8 @@ void ecmcEcData::write_float_offset(uint8_t *buffer,
                                     int      byteOffset,
                                     int      bitOffset,
                                     float    value) {
-  uint32_t intValue = *((uint32_t *)&value);
+  uint32_t intValue = 0;
+  memcpy(&intValue, &value, sizeof(intValue));
 
   write_uint32_offset(buffer, byteOffset, bitOffset, intValue);
 }
@@ -677,8 +679,9 @@ double ecmcEcData::read_double_offset(uint8_t *buffer,
                                       int      byteOffset,
                                       int      bitOffset) {
   uint64_t value = read_uint64_offset(buffer, byteOffset, bitOffset);
-
-  return *((double *)&value);
+  double doubleValue = 0.0;
+  memcpy(&doubleValue, &value, sizeof(doubleValue));
+  return doubleValue;
 }
 
 // Write a double to the buffer at a specific byte and bit offset
@@ -686,7 +689,8 @@ void ecmcEcData::write_double_offset(uint8_t *buffer,
                                      int      byteOffset,
                                      int      bitOffset,
                                      double   value) {
-  uint64_t longValue = *((uint64_t *)&value);
+  uint64_t longValue = 0;
+  memcpy(&longValue, &value, sizeof(longValue));
 
   write_uint64_offset(buffer, byteOffset, bitOffset, longValue);
 }
