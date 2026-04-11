@@ -2515,7 +2515,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
                             "external commands unblocked");
   }
   if (controlWordActions[0]) {
-    ecmcRtLoggerLogError(
+    ecmcRtLoggerLogInfo(
       "%s/%s:%d: INFO: Axis[%d]: Control word request: %s (raw=0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -2846,7 +2846,7 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
     return asynError;
   }
 
-  ecmcRtLoggerLogError(
+  ecmcRtLoggerLogInfo(
     "%s/%s:%d: INFO: Axis[%d]: Primary encoder index set to %d.\n",
     __FILE__,
     __FUNCTION__,
@@ -2874,7 +2874,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void         *data,
   memcpy(&velo, data, bytes);
   data_.control_.velocityTarget = velo;
 
-  ecmcRtLoggerLogError(
+  ecmcRtLoggerLogInfo(
     "%s/%s:%d: INFO: Axis[%d]: Target velocity set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -2906,7 +2906,7 @@ asynStatus ecmcAxisBase::axisAsynWriteAcc(void         *data,
   data_.control_.accelerationTarget = acc;
   //setAcc(acc);
 
-  ecmcRtLoggerLogError(
+  ecmcRtLoggerLogInfo(
     "%s/%s:%d: INFO: Axis[%d]: Acceleration set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -2936,7 +2936,7 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
   //setDec(dec);
   data_.control_.decelerationTarget = dec;
 
-  ecmcRtLoggerLogError(
+  ecmcRtLoggerLogInfo(
     "%s/%s:%d: INFO: Axis[%d]: Deceleration set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -2966,7 +2966,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetTweakValue(void         *data,
   memcpy(&twk, data, bytes);
 
   data_.control_.tweakValue = twk;
-  ecmcRtLoggerLogError(
+  ecmcRtLoggerLogInfo(
     "%s/%s:%d: INFO: Axis[%d]: Tweak value set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -2994,7 +2994,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
   memcpy(&pos, data, bytes);
 
   data_.control_.positionTarget = pos;
-  ecmcRtLoggerLogError(
+  ecmcRtLoggerLogInfo(
     "%s/%s:%d: INFO: Axis[%d]: Target position set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -3039,7 +3039,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
     return asynError;
   }
 
-  ecmcRtLoggerLogError(
+  ecmcRtLoggerLogInfo(
     "%s/%s:%d: INFO: Axis[%d]: Encoder position set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -3088,7 +3088,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
   // Different target values if ABS or REL
   refreshAsynTargetValue();
 
-  ecmcRtLoggerLogError(
+  ecmcRtLoggerLogInfo(
     "%s/%s:%d: INFO: Axis[%d]: Command set to %s (%d).\n",
     __FILE__,
     __FUNCTION__,
@@ -3124,7 +3124,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
   data_.control_.cmdData = cmddata;
   //setCmdData(cmddata);
 
-  ecmcRtLoggerLogError(
+  ecmcRtLoggerLogInfo(
     "%s/%s:%d: INFO: Axis[%d]: Command data set to 0x%x.\n",
     __FILE__,
     __FUNCTION__,

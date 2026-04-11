@@ -320,12 +320,12 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
         // Allow sync of softlimit (motor to ecmc and the other way around)
         setIntegerParam(pC_->motorFlagsRwSoftLimits_,    syncLims);
         drvlocal.syncEcmcMrSoftlimits = syncLims;
-        LOGERR("%s/%s:%d: INFO: Axis[%d]: Motor record soft-limit sync %s.\n",
-               __FILE__,
-               __FUNCTION__,
-               __LINE__,
-               axisNo_,
-               syncLims ? "enabled" : "disabled");
+        LOGINFO("%s/%s:%d: INFO: Axis[%d]: Motor record soft-limit sync %s.\n",
+                __FILE__,
+                __FUNCTION__,
+                __LINE__,
+                axisNo_,
+                syncLims ? "enabled" : "disabled");
 #endif //motorFlagsRwSoftLimitsString
       }
 
@@ -951,7 +951,7 @@ asynStatus ecmcMotorRecordAxis::move(double position,
                                      double maxVelocity,
                                      double acceleration) {
   bool commandAccepted = false;
-  LOGERR(
+  LOGINFO(
       "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute %s requested (target=%lf, velocity=%lf, acceleration=%lf).\n",
       __FILE__,
       __FUNCTION__,
@@ -1766,7 +1766,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   double timeBefore = ecmcMotorRecordgetNowTimeSecs();  
 
   if (drvlocal.axisPrintDbg) {
-    LOGERR(
+    LOGINFO(
         "%s/%s:%d: INFO: Axis[%d]: poll()\n",
         __FILE__,
         __FUNCTION__,

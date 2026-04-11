@@ -796,7 +796,7 @@ int setAppModeRun(int mode) {
                                  TIMESPEC2NS(masterActivationTimeRealtime));
 
     if (ec->activate()) {
-      LOGERR("INFO:\t\tActivation of master failed.\n");
+      LOGERR("ERROR:\t\tActivation of master failed.\n");
       return ERROR_MAIN_EC_ACTIVATE_FAILED;
     }
   } else {
