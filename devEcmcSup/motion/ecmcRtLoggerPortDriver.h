@@ -13,7 +13,10 @@
 #define ECMC_RT_LOGGER_PORT_DRIVER_H_
 
 int         ecmcRtLoggerPortDriverStart();
-void        ecmcRtLoggerPortDriverPublishMessage(int level, const char *message);
+void        ecmcRtLoggerPortDriverPublishMessage(int level,
+                                                 int sourceType,
+                                                 int sourceIndex,
+                                                 const char *message);
 void        ecmcRtLoggerPortDriverPublishDropped(unsigned int dropped);
 const char *ecmcRtLoggerPortDriverGetPortName();
 

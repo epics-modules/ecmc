@@ -15,6 +15,11 @@
 #include "ecmcRtLogger.h"
 #include <stdio.h>
 
+#define ecmcRtLoggerLogInfo(...) \
+  ECMC_RT_LOG_AXIS_TRAJ_INFO((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+#define ecmcRtLoggerLogError(...) \
+  ECMC_RT_LOG_AXIS_TRAJ_ERROR((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+
 ecmcTrajectoryBase::ecmcTrajectoryBase(ecmcAxisData &axisData,
                                        double        sampleTime)
   : ecmcError(&(axisData.status_.errorCode),

@@ -19,6 +19,11 @@
 #include "ecmcMotion.h"
 #include "ecmcErrorsList.h"
 
+#define ecmcRtLoggerLogInfo(...) \
+  ECMC_RT_LOG_AXIS_BASE_INFO(data_.status_.axisId, __VA_ARGS__)
+#define ecmcRtLoggerLogError(...) \
+  ECMC_RT_LOG_AXIS_BASE_ERROR(data_.status_.axisId, __VA_ARGS__)
+
 namespace {
 const char *axisCommandToString(motionCommandTypes command) {
   switch (command) {

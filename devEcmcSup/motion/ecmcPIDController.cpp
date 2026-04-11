@@ -16,6 +16,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define ecmcRtLoggerLogInfo(...) \
+  ECMC_RT_LOG_AXIS_PID_INFO((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+#define ecmcRtLoggerLogError(...) \
+  ECMC_RT_LOG_AXIS_PID_ERROR((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+
 ecmcPIDController::ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
                                      ecmcAxisData       &axisData,
                                      double              sampleTime)

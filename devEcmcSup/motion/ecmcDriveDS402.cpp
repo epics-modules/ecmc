@@ -13,6 +13,11 @@
 #include "ecmcDriveDS402.h"
 #include "ecmcRtLogger.h"
 
+#define ecmcRtLoggerLogInfo(...) \
+  ECMC_RT_LOG_AXIS_DRV_INFO((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+#define ecmcRtLoggerLogError(...) \
+  ECMC_RT_LOG_AXIS_DRV_ERROR((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+
 ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
                                ecmcAxisData       &axisData) :
   ecmcDriveBase(asynPortDriver, axisData) {

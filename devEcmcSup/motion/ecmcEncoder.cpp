@@ -13,6 +13,11 @@
 #include "ecmcEncoder.h"
 #include "ecmcRtLogger.h"
 
+#define ecmcRtLoggerLogInfo(...) \
+  ECMC_RT_LOG_AXIS_ENC_INFO((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+#define ecmcRtLoggerLogError(...) \
+  ECMC_RT_LOG_AXIS_ENC_ERROR((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+
 ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
                          ecmcAxisData       &axisData,
                          double              sampleTime,

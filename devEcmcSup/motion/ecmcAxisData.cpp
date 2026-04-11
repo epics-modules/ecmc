@@ -14,6 +14,11 @@
 #include "ecmcRtLogger.h"
 #include "ecmcOctetIF.h"
 
+#define ecmcRtLoggerLogInfo(...) \
+  ECMC_RT_LOG_AXIS_DATA_INFO(status_.axisId, __VA_ARGS__)
+#define ecmcRtLoggerLogError(...) \
+  ECMC_RT_LOG_AXIS_DATA_ERROR(status_.axisId, __VA_ARGS__)
+
 namespace {
 const char *interlockToString(interlockTypes interlock) {
   switch (interlock) {

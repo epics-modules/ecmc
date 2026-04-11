@@ -34,6 +34,8 @@ enum ecmcRtLogLevel {
 
 struct ecmcRtLogEvent {
   int  level;
+  int  sourceType;
+  int  sourceIndex;
   char message[ECMC_RT_LOGGER_MSG_SIZE];
 };
 
@@ -92,7 +94,10 @@ void drainQueue() {
     const ecmcRtLogEvent event = queue_[readIndex];
     readIndex_.store((readIndex + 1) % ECMC_RT_LOGGER_QUEUE_SIZE,
                      std::memory_order_release);
-    ecmcRtLoggerPortDriverPublishMessage(event.level, event.message);
+    ecmcRtLoggerPortDriverPublishMessage(event.level,
+                                         event.sourceType,
+                                         event.sourceIndex,
+                                         event.message);
     printMessage(event.level, event.message);
   }
 
@@ -108,7 +113,11 @@ void loggerTask(void *arg) {
   }
 }
 
-void logMessageV(int level, const char *fmt, va_list args) {
+void logMessageV(int level,
+                 int sourceType,
+                 int sourceIndex,
+                 const char *fmt,
+                 va_list args) {
   if (!levelEnabled(level)) {
     return;
   }
@@ -135,6 +144,8 @@ void logMessageV(int level, const char *fmt, va_list args) {
   }
 
   queue_[writeIndex].level = level;
+  queue_[writeIndex].sourceType = sourceType;
+  queue_[writeIndex].sourceIndex = sourceIndex;
   strncpy(queue_[writeIndex].message, buffer, ECMC_RT_LOGGER_MSG_SIZE - 1);
   queue_[writeIndex].message[ECMC_RT_LOGGER_MSG_SIZE - 1] = '\0';
   writeIndex_.store(nextWriteIndex, std::memory_order_release);
@@ -195,16 +206,52 @@ unsigned int ecmcRtLoggerGetControlWord() {
   return controlWord_.load(std::memory_order_acquire);
 }
 
+void ecmcRtLoggerLogInfoSource(int sourceType,
+                               int sourceIndex,
+                               const char *fmt,
+                               ...) {
+  va_list args;
+  va_start(args, fmt);
+  logMessageV(ECMC_RT_LOG_LEVEL_INFO,
+              sourceType,
+              sourceIndex,
+              fmt,
+              args);
+  va_end(args);
+}
+
+void ecmcRtLoggerLogErrorSource(int sourceType,
+                                int sourceIndex,
+                                const char *fmt,
+                                ...) {
+  va_list args;
+  va_start(args, fmt);
+  logMessageV(ECMC_RT_LOG_LEVEL_ERROR,
+              sourceType,
+              sourceIndex,
+              fmt,
+              args);
+  va_end(args);
+}
+
 void ecmcRtLoggerLogInfo(const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  logMessageV(ECMC_RT_LOG_LEVEL_INFO, fmt, args);
+  logMessageV(ECMC_RT_LOG_LEVEL_INFO,
+              ECMC_RT_LOG_SOURCE_UNKNOWN,
+              -1,
+              fmt,
+              args);
   va_end(args);
 }
 
 void ecmcRtLoggerLogError(const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  logMessageV(ECMC_RT_LOG_LEVEL_ERROR, fmt, args);
+  logMessageV(ECMC_RT_LOG_LEVEL_ERROR,
+              ECMC_RT_LOG_SOURCE_UNKNOWN,
+              -1,
+              fmt,
+              args);
   va_end(args);
 }

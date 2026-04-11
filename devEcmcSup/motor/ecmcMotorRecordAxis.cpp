@@ -31,8 +31,10 @@ extern asynUser *pPrintOutAsynUser;
 
 #undef LOGERR
 #undef LOGINFO
-#define LOGERR(...)  ecmcRtLoggerLogError(__VA_ARGS__)
-#define LOGINFO(...) ecmcRtLoggerLogInfo(__VA_ARGS__)
+#define LOGERR(...) \
+  ECMC_RT_LOG_MOTOR_AXIS_ERROR((int)axisNo_, __VA_ARGS__)
+#define LOGINFO(...) \
+  ECMC_RT_LOG_MOTOR_AXIS_INFO((int)axisNo_, __VA_ARGS__)
 
 static const char *ecmcInterlockToString(int interlock) {
   switch (interlock) {
