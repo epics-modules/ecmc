@@ -24,6 +24,7 @@
 #include "ecmcAxisBase.h"
 #include "ecmcDataStorage.h"
 #include "ecmcEc.h"
+#include "ecmcRtLogger.h"
 #include "ecmcPluginLib.h"
 #include "ecmcPLCTask.h"
 #include "ecmcPLCDataIF.h"
@@ -45,11 +46,11 @@
 
 #define CHECK_PLC_RETURN_IF_ERROR(index) {\
           if (index >= ECMC_MAX_PLCS + ECMC_MAX_AXES || index < 0) {\
-            LOGERR("ERROR: PLC index out of range.\n");\
+            ecmcRtLoggerLogError("%s/%s:%d: ERROR: PLC index out of range.\n", __FILE__, __FUNCTION__, __LINE__);\
             return ERROR_PLCS_INDEX_OUT_OF_RANGE;\
           }\
           if (!plcs_[index]) {\
-            LOGERR("ERROR: PLC object NULL.\n");\
+            ecmcRtLoggerLogError("%s/%s:%d: ERROR: PLC object is NULL.\n", __FILE__, __FUNCTION__, __LINE__);\
             return ERROR_PLCS_PLC_NULL;\
           }\
 }\

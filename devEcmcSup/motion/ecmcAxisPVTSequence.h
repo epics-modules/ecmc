@@ -19,6 +19,7 @@
 #include <cstdio>
 #include "ecmcAxisData.h"
 #include "ecmcOctetIF.h"
+#include "ecmcRtLogger.h"
 
 #include <cmath>
 
@@ -34,7 +35,10 @@ class ecmcPvtPoint {
     }
 
     void print() {
-       LOGINFO("INFO: PVT point: time=%lf, pos=%lf, vel=%lf.\n",
+       ecmcRtLoggerLogInfo("%s/%s:%d: INFO: PVT point: time=%lf, pos=%lf, vel=%lf.\n",
+               __FILE__,
+               __FUNCTION__,
+               __LINE__,
                time_,
                position_,
                velocity_);
@@ -63,7 +67,7 @@ class ecmcPvtSegment {
       k1_ = startPnt_->velocity_;
       k2_ = 3 * range_ / (timeSpan_ * timeSpan_) - (2 * startPnt_->velocity_ + endPnt_->velocity_) / timeSpan_;
       k3_ = -2 * range_ / (timeSpan_ * timeSpan_ * timeSpan_) + (startPnt_->velocity_ + endPnt_->velocity_) / (timeSpan_ * timeSpan_);
-      LOGINFO4("%s/%s:%d: INFO: PVT segment coefficients: k1=%lf, k2=%lf, k3=%lf.\n",
+      ECMC_RT_LOGINFO4("%s/%s:%d: INFO: PVT segment coefficients: k1=%lf, k2=%lf, k3=%lf.\n",
                __FILE__,
                __FUNCTION__,
                __LINE__,
@@ -103,7 +107,7 @@ class ecmcPvtSegment {
     
     double position(double time) {
       if(!isTimeValid(time)) {
-        LOGERR("%s/%s:%d: ERROR: PVT segment position rejected: time %lf outside segment [%lf, %lf].\n",
+        ecmcRtLoggerLogError("%s/%s:%d: ERROR: PVT segment position rejected: time %lf outside segment [%lf, %lf].\n",
                __FILE__,
                __FUNCTION__,
                __LINE__,
@@ -119,7 +123,7 @@ class ecmcPvtSegment {
 
     double velocity(double time) {
       if(!isTimeValid(time)) {
-        LOGERR("%s/%s:%d: ERROR: PVT segment velocity rejected: time %lf outside segment [%lf, %lf].\n",
+        ecmcRtLoggerLogError("%s/%s:%d: ERROR: PVT segment velocity rejected: time %lf outside segment [%lf, %lf].\n",
                __FILE__,
                __FUNCTION__,
                __LINE__,
@@ -134,7 +138,7 @@ class ecmcPvtSegment {
 
     double acceleration(double time) {
       if(!isTimeValid(time)) {
-        LOGERR("%s/%s:%d: ERROR: PVT segment acceleration rejected: time %lf outside segment [%lf, %lf].\n",
+        ecmcRtLoggerLogError("%s/%s:%d: ERROR: PVT segment acceleration rejected: time %lf outside segment [%lf, %lf].\n",
                __FILE__,
                __FUNCTION__,
                __LINE__,

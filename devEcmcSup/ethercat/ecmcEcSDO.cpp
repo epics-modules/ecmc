@@ -14,6 +14,7 @@
 #include <exception>
 #include "ecmcEcSDO.h"
 #include "ecmcAsynPortDriverUtils.h"
+#include "ecmcRtLogger.h"
 ecmcEcSDO::ecmcEcSDO() {}
 
 ecmcEcSDO::~ecmcEcSDO() {}
@@ -27,7 +28,7 @@ int ecmcEcSDO::write(ec_master_t *master,
   uint32_t abortCode = 0;
 
   if (byteSize > 4) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, byte size to large (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -54,7 +55,7 @@ int ecmcEcSDO::write(ec_master_t *master,
                                            &abortCode);
 
   if (errorCode || abortCode) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed with sdo error code %d, abort code 0x%x (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -94,7 +95,7 @@ int ecmcEcSDO::addWriteComplete(ec_slave_config_t *sc,
         buffer.push_back((uint8_t)data);
       }
       catch (...) {
-        LOGERR(
+        ecmcRtLoggerLogError(
           "%s/%s:%d: ERROR: SDO data size error at sdo index 0x%x (0x%x).\n",
           __FILE__,
           __FUNCTION__,
@@ -111,7 +112,7 @@ int ecmcEcSDO::addWriteComplete(ec_slave_config_t *sc,
   }
 
   if ((addedBytes == 0) || (addedBytes != byteSize)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO data size error at sdo index 0x%x (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -130,7 +131,7 @@ int ecmcEcSDO::addWriteComplete(ec_slave_config_t *sc,
     );
 
   if (errorCode) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x: Write failed with sdo error code %d, abort code 0x%x (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -170,7 +171,7 @@ int ecmcEcSDO::addSdoConfigBuffer(ec_slave_config_t *sc,
         buffer.push_back((uint8_t)data);
       }
       catch (...) {
-        LOGERR(
+        ecmcRtLoggerLogError(
           "%s/%s:%d: ERROR: SDO data size error at sdo index 0x%x (0x%x).\n",
           __FILE__,
           __FUNCTION__,
@@ -187,7 +188,7 @@ int ecmcEcSDO::addSdoConfigBuffer(ec_slave_config_t *sc,
   }
 
   if ((addedBytes == 0) || (addedBytes != byteSize)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO data size error at sdo index 0x%x (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -207,7 +208,7 @@ int ecmcEcSDO::addSdoConfigBuffer(ec_slave_config_t *sc,
     );
 
   if (errorCode) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x: Write failed with sdo error code %d, abort code 0x%x (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -231,7 +232,7 @@ int ecmcEcSDO::addSdoConfigDT(ec_slave_config_t *slave,
   size_t byteSize = getEcDataTypeByteSize(dt);
 
   if ((byteSize > 8) || (byteSize == 0)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, byte size to large (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -250,7 +251,7 @@ int ecmcEcSDO::addSdoConfigDT(ec_slave_config_t *slave,
       (dt == ECMC_EC_B2) ||
       (dt == ECMC_EC_B3) ||
       (dt == ECMC_EC_B4)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, data type invalid (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -404,7 +405,7 @@ int ecmcEcSDO::addSdoConfigDT(ec_slave_config_t *slave,
   // Did the conversion from string to value succeed?
   // data should noe be in inbuffer
   if (!convSuccess) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write value conversion failed (value = %s), 0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -472,7 +473,7 @@ int ecmcEcSDO::addSdoConfigDT(ec_slave_config_t *slave,
   //    break;
   // #endif
   //  default:
-  //  LOGERR(
+  //  ecmcRtLoggerLogError(
   //    "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, data type invalid (0x%x).\n",
   //    __FILE__,
   //    __FUNCTION__,
@@ -491,7 +492,7 @@ int ecmcEcSDO::addSdoConfigDT(ec_slave_config_t *slave,
                                         byteSize);
 
   if (errorCode) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Failed with sdo error code %d (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -514,7 +515,7 @@ int ecmcEcSDO::addSdoConfig(ec_slave_config_t *slave,
                             uint32_t           value,
                             size_t             byteSize) {
   if (byteSize > 4) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, byte size to large (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -547,7 +548,7 @@ int ecmcEcSDO::addSdoConfig(ec_slave_config_t *slave,
   }
 
   if (errorCode) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed with sdo error code %d (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -582,7 +583,7 @@ int ecmcEcSDO::read(ec_master_t *master,
                                          &abortCode);
 
   if (errorCode || abortCode) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Read failed with sdo error code %d, abort code 0x%x (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -610,7 +611,7 @@ int ecmcEcSDO::writeAndVerify(ec_master_t *master,
                               uint32_t     value,
                               size_t       byteSize) {
   if (byteSize > 4) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, byte size to large (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -623,7 +624,7 @@ int ecmcEcSDO::writeAndVerify(ec_master_t *master,
   }
 
   if (write(master, slavePosition, sdoIndex, sdoSubIndex, value, byteSize)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -639,7 +640,7 @@ int ecmcEcSDO::writeAndVerify(ec_master_t *master,
 
   if (read(master, slavePosition, sdoIndex, sdoSubIndex, &readValue,
            &readBytes)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Read failed (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -657,7 +658,7 @@ int ecmcEcSDO::writeAndVerify(ec_master_t *master,
   }
 
   if ((value & verifyMask) != (readValue & verifyMask)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Verification failed (0x%x).\n",
       __FILE__,
       __FUNCTION__,

@@ -12,6 +12,7 @@
 
 #include <exception>
 #include "ecmcEcDomain.h"
+#include "ecmcRtLogger.h"
 
 ecmcEcDomain::ecmcEcDomain(ecmcAsynPortDriver *asynPortDriver,
                            ec_master_t        *master,
@@ -34,7 +35,7 @@ ecmcEcDomain::ecmcEcDomain(ecmcAsynPortDriver *asynPortDriver,
   domain_ = ecrt_master_create_domain(master);
 
   if (!domain_) {
-    LOGERR("%s/%s:%d: ERROR: EtherCAT create domain failed.\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: EtherCAT create domain failed.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);
@@ -115,7 +116,7 @@ int ecmcEcDomain::checkState() {
   // statusOk_= state_.wc_state ==  EC_WC_COMPLETE;
 
   // if(statusWord_ != statusWordOld_) {
-  //  LOGERR("%s/%s:%d: INFO: Domain[%d] status changed: %d.\n",
+  //  ecmcRtLoggerLogError("%s/%s:%d: INFO: Domain[%d] status changed: %d.\n",
   //       __FILE__,
   //       __FUNCTION__,
   //       __LINE__,
@@ -161,7 +162,7 @@ uint8_t * ecmcEcDomain::getDataPtr() {
   domainPd_ = ecrt_domain_data(domain_);
 
   if (!domainPd_) {
-    LOGERR("%s/%s:%d: ERROR: ecrt_domain_data() failed (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: ecrt_domain_data() failed (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -185,8 +186,8 @@ int ecmcEcDomain::initAsyn() {
                               objIndex_);
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+    ecmcRtLoggerLogError(
+      "%s/%s:%d: ERROR: Failed to generate alias. Buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -202,7 +203,7 @@ int ecmcEcDomain::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
@@ -224,8 +225,8 @@ int ecmcEcDomain::initAsyn() {
                        objIndex_);
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+    ecmcRtLoggerLogError(
+      "%s/%s:%d: ERROR: Failed to generate alias. Buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -240,7 +241,7 @@ int ecmcEcDomain::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,

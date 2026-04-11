@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcAxisReal.h"
+#include "ecmcRtLogger.h"
 
 ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
                            int                 axisID,
@@ -44,7 +45,7 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
       break;
 
     default:
-      LOGERR("%s/%s:%d: ERROR: Axis[%d]: Drive type %d is not supported (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: Drive type %d is not supported (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -63,7 +64,7 @@ ecmcAxisReal::ecmcAxisReal(ecmcAsynPortDriver *asynPortDriver,
                                    data_,
                                    data_.status_.sampleTime);
   } catch (std::bad_alloc& ex) {
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Mem alloc error.\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: Memory allocation failed.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -263,7 +264,7 @@ int ecmcAxisReal::validate() {
 
   for (int i = 0; i < data_.status_.encoderCount; i++) {
     if (encArray_[i] == NULL) {
-      LOGERR("%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] object is NULL (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] object is NULL (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -280,7 +281,7 @@ int ecmcAxisReal::validate() {
     error = encArray_[i]->validate();
 
     if (error) {
-      LOGERR("%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] validation failed (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] validation failed (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,

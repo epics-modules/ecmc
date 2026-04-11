@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcPLCDataIF.h"
+#include "ecmcRtLogger.h"
 
 ecmcPLCDataIF::ecmcPLCDataIF(int                 plcIndex,
                              double              plcSampleRateMs,
@@ -1355,7 +1356,7 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char *ecDataSource) {
     parseEcPath(ecDataSource, &masterId, &slaveId, alias, &bitId);
 
   if (errorCode) {
-    LOGERR("%s/%s:%d: ERROR: Parse %s failed (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Parse %s failed (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1365,7 +1366,7 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char *ecDataSource) {
   }
 
   if (ec_->getMasterIndex() != masterId) {
-    LOGERR("%s/%s:%d: ERROR: Master %s not configured (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Master %s not configured (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1397,7 +1398,7 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char *ecDataSource) {
   }
 
   if (slave == NULL) {
-    LOGERR("%s/%s:%d: ERROR: Slave %s not configured (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %s not configured (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1412,7 +1413,7 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char *ecDataSource) {
   ecmcEcEntry *entry = slave->findEntry(sEntryID);
 
   if (entry == NULL) {
-    LOGERR("%s/%s:%d: ERROR: Entry %s not configured (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Entry %s not configured (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1438,7 +1439,7 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char *ecDataSource) {
   ecmcEcDataType dt = getEntryDataType(ECMC_PLC_EC_ENTRY_INDEX);
 
   if ((dt == ECMC_EC_NONE) || (dt == ECMC_EC_U64) || (dt == ECMC_EC_S64)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: WARNING: Entry %s is of type S64, U64 or undefined. PLC values are doubles and might not be able to represent the ethercat value correct.\n",
       __FILE__,
       __FUNCTION__,
@@ -1581,8 +1582,8 @@ int ecmcPLCDataIF::initAsyn() {
   }
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+    ecmcRtLoggerLogError(
+      "%s/%s:%d: ERROR: Failed to generate alias. Buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -1600,7 +1601,7 @@ int ecmcPLCDataIF::initAsyn() {
                                                     0);
 
   if (!asynDataItem_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed (0x%x).\n",
       __FILE__,
       __FUNCTION__,

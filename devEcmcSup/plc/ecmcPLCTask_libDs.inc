@@ -17,12 +17,12 @@
     ds_errorCode = 0;                                               \
     if (dsIndex >= ECMC_MAX_DATA_STORAGE_OBJECTS || dsIndex < 0) {  \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE;     \
-      LOGERR("ERROR: Data Storage index out of range.\n");          \
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Data storage index out of range.\n", __FILE__, __FUNCTION__, __LINE__);          \
       return (double)ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE;     \
     }                                                               \
     if (dataStorages[dsIndex] == NULL) {                    \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
-      LOGERR("ERROR: Data Storage object NULL\n");                  \
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Data storage object is NULL.\n", __FILE__, __FUNCTION__, __LINE__);                  \
       return (double)ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
     }                                                               \
 }                                                                   \
@@ -31,12 +31,12 @@
     ds_errorCode = 0;                                               \
     if (dsIndex >= ECMC_MAX_DATA_STORAGE_OBJECTS || dsIndex < 0) {  \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE;     \
-      LOGERR("ERROR: Data Storage index out of range.\n");          \
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Data storage index out of range.\n", __FILE__, __FUNCTION__, __LINE__);          \
       return 0;                                                     \
     }                                                               \
     if (dataStorages[dsIndex] == NULL) {                    \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
-      LOGERR("ERROR: Data Storage object NULL\n");                  \
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Data storage object is NULL.\n", __FILE__, __FUNCTION__, __LINE__);                  \
       return 0;                                                     \
     }                                                               \
 }                                                                   \
@@ -45,12 +45,12 @@
     ds_errorCode = 0;                                               \
     if (dsIndex >= ECMC_MAX_DATA_STORAGE_OBJECTS || dsIndex < 0) {  \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_INDEX_OUT_OF_RANGE;     \
-      LOGERR("ERROR: Data Storage index out of range.\n");          \
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Data storage index out of range.\n", __FILE__, __FUNCTION__, __LINE__);          \
       return -1;                                                    \
     }                                                               \
     if (dataStorages[dsIndex] == NULL) {                    \
       ds_errorCode = ERROR_PLC_DATA_STORAGE_OBJECT_NULL;            \
-      LOGERR("ERROR: Data Storage object NULL\n");                  \
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Data storage object is NULL.\n", __FILE__, __FUNCTION__, __LINE__);                  \
       return -1;                                                    \
     }                                                               \
 }                                                                   \

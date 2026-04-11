@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcAxisData.h"
+#include "ecmcRtLogger.h"
 #include "ecmcOctetIF.h"
 
 namespace {
@@ -93,7 +94,7 @@ void printInterlockSummaryChange(int axisId,
                                  const char *summaryName,
                                  bool active,
                                  const char *causes) {
-  LOGINFO("%s/%s:%d: INFO: Axis[%d]: Interlock summary %s %s: active=%s.\n",
+  ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: Interlock summary %s %s: active=%s.\n",
           __FILE__,
           __FUNCTION__,
           __LINE__,
@@ -348,7 +349,7 @@ stopMode ecmcAxisData::refreshInterlocks() {
   if ((oldInterlock != interlocks_.interlockStatus) &&
       !status_.statusWord_.instartup) {
     if (interlocks_.interlockStatus) {
-      LOGERR("%s/%s:%d: INFO: Axis[%d]: Motion interlocked: %s (type %d).\n",
+      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: Motion interlocked: %s (type %d).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -356,7 +357,7 @@ stopMode ecmcAxisData::refreshInterlocks() {
              interlockToString(interlocks_.interlockStatus),
              interlocks_.interlockStatus);
     } else {
-      LOGERR("%s/%s:%d: INFO: Axis[%d]: Motion interlock cleared.\n",
+      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: Motion interlock cleared.\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,

@@ -13,6 +13,7 @@
 #include "ecmcEcMemMap.h"
 #include <stdlib.h>
 #include "ecmcErrorsList.h"
+#include "ecmcRtLogger.h"
 
 ecmcEcMemMap::ecmcEcMemMap(ecmcAsynPortDriver *asynPortDriver,
                            int                 masterId,
@@ -149,7 +150,7 @@ int ecmcEcMemMap::validate() {
 
   if (byteOffset_ < 0) {
     if (getErrorID() != ERROR_EC_ENTRY_INVALID_OFFSET) {
-      LOGERR("%s/%s:%d: ERROR: MemMap %s: Invalid data offset (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: MemMap %s: Invalid data offset (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -164,7 +165,7 @@ int ecmcEcMemMap::validate() {
 
   if (domainAdr_ == NULL) {
     if (getErrorID() != ERROR_EC_ENTRY_INVALID_DOMAIN_ADR) {
-      LOGERR("%s/%s:%d: ERROR: MemMap %s: Invalid domain address (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: MemMap %s: Invalid domain address (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -179,7 +180,7 @@ int ecmcEcMemMap::validate() {
 
   if (byteOffset_ + byteSize_ > domainSize_) {
     if (getErrorID() != ERROR_MEM_MAP_SIZE_OUT_OF_RANGE) {
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: ERROR: MemMap %s: Byte size, including offset, exceeds domain size (0x%x).\n",
         __FILE__,
         __FUNCTION__,
@@ -207,8 +208,8 @@ int ecmcEcMemMap::initAsyn() {
 
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+    ecmcRtLoggerLogError(
+      "%s/%s:%d: ERROR: Failed to generate alias. Buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -224,7 +225,7 @@ int ecmcEcMemMap::initAsyn() {
                                                        0);
 
   if (!memMapAsynParam_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,

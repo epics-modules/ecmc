@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcEncoder.h"
+#include "ecmcRtLogger.h"
 
 ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
                          ecmcAxisData       &axisData,
@@ -40,7 +41,7 @@ ecmcEncoder::ecmcEncoder(ecmcAsynPortDriver *asynPortDriver,
   positionFilter_ = new ecmcFilter(sampleTime, ECMC_FILTER_POS_DEF_SIZE);
 
   if (!velocityFilter_) {
-    LOGERR("%s/%s:%d: ERROR: Failed to allocate velocity-filter object.\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Failed to allocate velocity-filter object.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);
@@ -423,7 +424,7 @@ int ecmcEncoder::getBits() {
 
 int ecmcEncoder::setAbsBits(int absBits) {
   if (absBits > bits_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: Encoder abs. bit count invalid. (abs. bits > total bits) (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -452,7 +453,7 @@ int ecmcEncoder::setRawMask(uint64_t mask) {
   int trailingZeros = countTrailingZerosInMask(mask);
 
   if (trailingZeros < 0) {
-    LOGERR("%s/%s:%d: ERROR: Encoder raw mask is invalid: mask is zero (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Encoder raw mask is invalid: mask is zero (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_ENC_RAW_MASK_INVALID);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
                       ERROR_ENC_RAW_MASK_INVALID);
@@ -460,7 +461,7 @@ int ecmcEncoder::setRawMask(uint64_t mask) {
   int bitWidth = countBitWidthOfMask(mask, trailingZeros);
 
   if (bitWidth < 0) {
-    LOGERR("%s/%s:%d: ERROR: Encoder raw mask is invalid: mask is not continuous (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Encoder raw mask is invalid: mask is not continuous (0x%x).\n",
            __FILE__, __FUNCTION__, __LINE__, ERROR_ENC_RAW_MASK_INVALID);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
                       ERROR_ENC_RAW_MASK_INVALID);
@@ -541,7 +542,7 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
         encInitilized_ = 1;
 
         if (!data_->status_.statusWord_.instartup) {
-          LOGERR(
+          ecmcRtLoggerLogError(
             "%s/%s:%d: INFO (axis %d): Encoder initialized (readybit==OK).\n",
             __FILE__,
             __FUNCTION__,
@@ -560,7 +561,7 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
         rawPosDoubleOld_ = rawPosDouble_;
         encInitilized_ = 1;
         if (!data_->status_.statusWord_.instartup) {
-          LOGERR(
+          ecmcRtLoggerLogError(
             "%s/%s:%d: INFO (axis %d): Encoder initialized (domain==true ).\n",
             __FILE__,
             __FUNCTION__,
@@ -753,7 +754,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
     }
 
     if ((hwWarning_ > 0) && (hwWarningOld_ == 0)) {
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: WARNING (axis %d): Encoder hardware in warning state.\n",
         __FILE__,
         __FUNCTION__,
@@ -762,7 +763,7 @@ int ecmcEncoder::readHwWarningError(bool domainOK) {
     }
 
     if ((hwWarning_ == 0) && (hwWarningOld_ > 0)) {
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: INFO (axis %d): Encoder hardware warning state cleared.\n",
         __FILE__,
         __FUNCTION__,
@@ -997,7 +998,7 @@ int ecmcEncoder::validate() {
 
   if (hwActPosDefined_ && actPosEntryUsesFloatingPoint()) {
     if ((bits_ > 0) || (absBits_ > 0)) {
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: WARNING (axis %d): Encoder actual-position entry is floating point. Configured bits=%d and absBits=%d will be ignored.\n",
         __FILE__,
         __FUNCTION__,
@@ -1101,7 +1102,7 @@ int ecmcEncoder::validate() {
       // Everything is fine..
       hwTriggedHomingEnabled_ = true;
     } else {
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: ERROR: Axis[%d]: Encoder homing hardware links are invalid for ECMC_SEQ_HOME_TRIGG_EXTERN (0x%x).\n",
         __FILE__,
         __FUNCTION__,
@@ -1116,7 +1117,7 @@ int ecmcEncoder::validate() {
   }
 
   if (encPosAct_ == NULL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] encPosAct_ asyn parameter object is NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1132,7 +1133,7 @@ int ecmcEncoder::validate() {
   }
 
   if (encVelAct_ == NULL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] encVelAct_ asyn parameter object is NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1374,7 +1375,7 @@ int ecmcEncoder::initAsyn() {
   int localIndex = index_ + 1;  // For naming of params
   // Add Asynparms for new encoder
   if (asynPortDriver_ == NULL) {
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object is NULL (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object is NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1396,7 +1397,7 @@ int ecmcEncoder::initAsyn() {
                        localIndex);
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1416,7 +1417,7 @@ int ecmcEncoder::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
@@ -1438,7 +1439,7 @@ int ecmcEncoder::initAsyn() {
 
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1458,7 +1459,7 @@ int ecmcEncoder::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
@@ -1482,7 +1483,7 @@ int ecmcEncoder::initAsyn() {
 
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1502,7 +1503,7 @@ int ecmcEncoder::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
@@ -1664,7 +1665,7 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
     }
     if(!lookupTable_) {  // No lookup table
       lookupTableEnable_ = 0;
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] lookup table is not loaded (0x%x).\n",
         __FILE__,
         __FUNCTION__,
@@ -1680,7 +1681,7 @@ int  ecmcEncoder::setLookupTableEnable(bool enable) {
 
     if(!lookupTable_->getValidatedOK()) {
       lookupTableEnable_ = 0;
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: ERROR: Axis[%d]: Encoder[%d] lookup table is not valid (0x%x).\n",
         __FILE__,
         __FUNCTION__,

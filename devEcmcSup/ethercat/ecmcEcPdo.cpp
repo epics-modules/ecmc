@@ -12,6 +12,7 @@
 
 #include "ecmcEcPdo.h"
 #include "ecmcErrorsList.h"
+#include "ecmcRtLogger.h"
 
 ecmcEcPdo::ecmcEcPdo(ecmcAsynPortDriver *asynPortDriver,
                      int                 masterId,
@@ -34,7 +35,7 @@ ecmcEcPdo::ecmcEcPdo(ecmcAsynPortDriver *asynPortDriver,
                                                    pdoIndex_);
 
   if (errorCode) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: ecrt_slave_config_pdo_assign_add() failed with error code %d (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -84,7 +85,7 @@ ecmcEcEntry * ecmcEcPdo::addEntry(uint16_t       entryIndex,
                                   int            useInRealTime,
                                   int           *errorCode) {
   if (entryCounter_ >= (EC_MAX_ENTRIES)) {
-    LOGERR("%s/%s:%d: ERROR: Entries array full (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Entries array full (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,

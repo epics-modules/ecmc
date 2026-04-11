@@ -12,6 +12,7 @@
 
 #include "ecmcPIDController.h"
 #include "ecmcErrorsList.h"
+#include "ecmcRtLogger.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -233,7 +234,7 @@ int ecmcPIDController::validate() {
 
   // Output warning if CSP and any of the position control parameters have been set.
   if ((data_->control_.drvMode == ECMC_DRV_MODE_CSP) && settingMade_ && data_->control_.cspDrvEncIndex < 0) {
-    LOGERR("%s/%s:%d: WARNING: Axis %d: ecmc position control disabled (no dedicated CSP encoder selected). Settings of ecmc position control loop params will be discarded."
+    ecmcRtLoggerLogError("%s/%s:%d: WARNING: Axis %d: ecmc position control disabled (no dedicated CSP encoder selected). Settings of ecmc position control loop params will be discarded."
            " Position control loop params needs to be set directly in drive (where the position loop is executed).\n",
            __FILE__,
            __FUNCTION__,
@@ -243,7 +244,7 @@ int ecmcPIDController::validate() {
 
   if ((asynKp_ == NULL) || (asynKi_ == NULL) || (asynKd_ == NULL) ||
       (asynKff_ == NULL)) {
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Kp, Ki, Kd, or Kff asyn parameter is NULL.\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: Kp, Ki, Kd, or Kff asyn parameter is NULL.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -307,7 +308,7 @@ double ecmcPIDController::getInnerTol() {
 int ecmcPIDController::initAsyn() {
   // Add Asynparms for new encoder
   if (asynPortDriver_ == NULL) {
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object is NULL (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object is NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -328,7 +329,7 @@ int ecmcPIDController::initAsyn() {
                        data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -348,7 +349,7 @@ int ecmcPIDController::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
@@ -368,7 +369,7 @@ int ecmcPIDController::initAsyn() {
                        data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -388,7 +389,7 @@ int ecmcPIDController::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
@@ -409,7 +410,7 @@ int ecmcPIDController::initAsyn() {
                        data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -429,7 +430,7 @@ int ecmcPIDController::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
@@ -450,7 +451,7 @@ int ecmcPIDController::initAsyn() {
                        data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to generate %s; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -470,7 +471,7 @@ int ecmcPIDController::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,

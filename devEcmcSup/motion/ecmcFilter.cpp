@@ -12,6 +12,7 @@
 
 #include "ecmcFilter.h"
 #include "ecmcErrorsList.h"
+#include "ecmcRtLogger.h"
 
 ecmcFilter::ecmcFilter(double sampleTime) {
   initVars();
@@ -173,7 +174,7 @@ int ecmcFilter::setFilterSize(size_t size) {
   try {
     tempBuffer = new double[size];
   } catch (std::bad_alloc& ex) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Filter Mem Alloc Error. Old filter settings still valid (size=%zu)\n",
       __FILE__,
       __FUNCTION__,

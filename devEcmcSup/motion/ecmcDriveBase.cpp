@@ -12,6 +12,7 @@
 
 #include "ecmcDriveBase.h"
 #include "ecmcErrorsList.h"
+#include "ecmcRtLogger.h"
 
 ecmcDriveBase::ecmcDriveBase(ecmcAsynPortDriver *asynPortDriver,
                              ecmcAxisData       &axisData) : ecmcEcEntryLink(&(
@@ -445,7 +446,7 @@ void ecmcDriveBase::writeEntries() {
   if (!localEnabledNow && localEnabledOld_ && data_->status_.statusWord_.enable) {
     data_->status_.statusWord_.enable = false;
     enableAmpCmd_          = false;
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: WARNING (axis %d): Drive enabled lost while enable cmd is high.\n",
       __FILE__,
       __FUNCTION__,
@@ -654,7 +655,7 @@ int ecmcDriveBase::validate() {
     data_->control_.drvMode = ECMC_DRV_MODE_CSP;
 
     if(cspEnc_ == NULL) {
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: ERROR: Axis[%d]: No drive encoder selected for CSP operation (0x%x).\n",
         __FILE__,
         __FUNCTION__,
@@ -672,7 +673,7 @@ int ecmcDriveBase::validate() {
 
     if (encFloat || posSetFloat) {
       if (!(encFloat && posSetFloat && encType == posSetType)) {
-        LOGERR(
+        ecmcRtLoggerLogError(
           "%s/%s:%d: ERROR: Axis[%d]: Floating-point CSP requires drive encoder actual position and drive position setpoint to use the same EtherCAT datatype (0x%x).\n",
           __FILE__,
           __FUNCTION__,
@@ -693,7 +694,7 @@ int ecmcDriveBase::validate() {
 
   // Ensure mode is CSV, CSP
   if(data_->control_.drvMode != ECMC_DRV_MODE_CSV && data_->control_.drvMode != ECMC_DRV_MODE_CSP ) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Drive mode is invalid; expected CSV or CSP (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -929,7 +930,7 @@ void ecmcDriveBase::errorReset() {
 
 int ecmcDriveBase::initAsyn() {
   if (asynPortDriver_ == NULL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Drive AsynPortDriver object is NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -951,7 +952,7 @@ int ecmcDriveBase::initAsyn() {
                        data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to generate alias; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -969,7 +970,7 @@ int ecmcDriveBase::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
@@ -992,7 +993,7 @@ int ecmcDriveBase::initAsyn() {
                        data_->status_.axisId);
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to generate alias; buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1010,7 +1011,7 @@ int ecmcDriveBase::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,

@@ -23,7 +23,7 @@ extern ecmcEc *ec;
   ec_errorCode=0;                                        \
   if(bits>=ECMC_EC_LIB_MAX_BITS || bits<0){              \
     ec_errorCode=ERROR_PLC_EC_LIB_BITS_OUT_OF_RANGE;     \
-    LOGERR("ERROR: Bit position out of range.\n");       \
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Bit position out of range.\n", __FILE__, __FUNCTION__, __LINE__);       \
     return value;                                        \
   }                                                      \
 }                                                        \

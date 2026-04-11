@@ -263,8 +263,8 @@ ecmcAxisBase::ecmcAxisBase(ecmcAsynPortDriver *asynPortDriver,
     extTrajVeloFilter_ = new ecmcFilter(data_.status_.sampleTime);
     extEncVeloFilter_  = new ecmcFilter(data_.status_.sampleTime);
   } catch (std::bad_alloc& ex) {
-    LOGERR(
-      "%s/%s:%d: ERROR: Axis[%d]: Mem alloc error.\n",
+    ecmcRtLoggerLogError(
+      "%s/%s:%d: ERROR: Axis[%d]: Memory allocation failed.\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -486,9 +486,25 @@ void ecmcAxisBase::preExecute(bool masterOK) {
   if (logAxisStateChange &&
       statusWord.inrealtime &&
       ecmcRtLoggerIsEnabled()) {
-    ecmcRtLoggerQueueAxisState(status.axisId, axisState_);
+    if (axisState_ == ECMC_AXIS_STATE_STARTUP) {
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: State change (%d->%d).\n",
+                           __FILE__,
+                           __FUNCTION__,
+                           __LINE__,
+                           status.axisId,
+                           axisStateOld,
+                           axisState_);
+    } else {
+      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: State change (%d->%d).\n",
+                          __FILE__,
+                          __FUNCTION__,
+                          __LINE__,
+                          status.axisId,
+                          axisStateOld,
+                          axisState_);
+    }
   } else if (logAxisStateChange && (axisState_ == ECMC_AXIS_STATE_STARTUP)) {
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: State change (%d->%d).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: State change (%d->%d).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -706,7 +722,13 @@ int ecmcAxisBase::setErrorID(int errorID) {
       data_.status_.statusWord_.inrealtime &&
       ecmcRtLoggerIsEnabled() &&
       (errorID != ecmcError::getErrorID())) {
-    ecmcRtLoggerQueueAxisError(data_.status_.axisId, errorID);
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: %s (0x%x).\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__,
+                         data_.status_.axisId,
+                         ecmcError::convertErrorIdToString(errorID),
+                         errorID);
   }
 
   return ecmcError::setErrorID(errorID);
@@ -718,7 +740,13 @@ int ecmcAxisBase::setErrorID(int               errorID,
       data_.status_.statusWord_.inrealtime &&
       ecmcRtLoggerIsEnabled() &&
       (errorID != ecmcError::getErrorID())) {
-    ecmcRtLoggerQueueAxisError(data_.status_.axisId, errorID);
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: %s (0x%x).\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__,
+                         data_.status_.axisId,
+                         ecmcError::convertErrorIdToString(errorID),
+                         errorID);
     return ecmcError::setErrorID(errorID, severity);
   }
 
@@ -733,7 +761,12 @@ int ecmcAxisBase::setErrorID(const char *fileName,
       data_.status_.statusWord_.inrealtime &&
       ecmcRtLoggerIsEnabled() &&
       (errorID != ecmcError::getErrorID())) {
-    ecmcRtLoggerQueueAxisError(data_.status_.axisId, errorID);
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: %s (0x%x).\n",
+                         fileName,
+                         functionName,
+                         lineNumber,
+                         ecmcError::convertErrorIdToString(errorID),
+                         errorID);
     return ecmcError::setErrorID(errorID);
   }
 
@@ -749,7 +782,12 @@ int ecmcAxisBase::setErrorID(const char       *fileName,
       data_.status_.statusWord_.inrealtime &&
       ecmcRtLoggerIsEnabled() &&
       (errorID != ecmcError::getErrorID())) {
-    ecmcRtLoggerQueueAxisError(data_.status_.axisId, errorID);
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: %s (0x%x).\n",
+                         fileName,
+                         functionName,
+                         lineNumber,
+                         ecmcError::convertErrorIdToString(errorID),
+                         errorID);
     return ecmcError::setErrorID(errorID, severity);
   }
 
@@ -998,13 +1036,13 @@ void ecmcAxisBase::printAxisStatus() {
 
   // Only print header once per 25 status lines
   if (printHeaderCounter_ <= 0) {
-    LOGINFO(
+    ecmcRtLoggerLogInfo(
       "ecmc::  Ax     PosSet     PosAct     PosErr    PosTarg   DistLeft    CntrOut   VelFFSet     VelAct   VelFFRaw VelRaw  Error Co CD St IL LI TS ES En Ex Bu Ta Hd L- L+ Ho\n");
     printHeaderCounter_ = 25;
   }
   printHeaderCounter_--;
   
-  LOGINFO(
+  ecmcRtLoggerLogInfo(
     "ecmc:: %3d %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %10.3lf %6lf %6x %2d %2d %2d %2d %2d %2d %2d %1d%1d %2d %2d %2d %2d %2d %2d %2d\n",
     data_.status_.axisId,
     data_.status_.currentPositionSetpoint,
@@ -1125,7 +1163,7 @@ bool ecmcAxisBase::getEnabledOnly() {
 
 int ecmcAxisBase::initAsyn() {
   if (asynPortDriver_ == NULL) {
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object is NULL (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object is NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1518,7 +1556,7 @@ int ecmcAxisBase::setBlockCom(int block) {
 }
 
 int ecmcAxisBase::setExternalCommandBlockedError() {
-  LOGERR("%s/%s:%d: ERROR: Axis[%d]: External commands blocked (0x%x).\n",
+  ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: External commands blocked (0x%x).\n",
          __FILE__,
          __FUNCTION__,
          __LINE__,
@@ -1533,7 +1571,7 @@ int ecmcAxisBase::setExternalCommandBlockedError() {
 int ecmcAxisBase::setModRange(double mod) {
   // Must be same mod factor in traj and enc
   if (mod < 0) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "ERROR: Axis[%d]: Modulo factor out of range. Must be a positive value (0x%x).\n",
       data_.status_.axisId,
       ERROR_AXIS_MODULO_OUT_OF_RANGE);
@@ -1553,7 +1591,7 @@ double ecmcAxisBase::getModRange() {
 
 int ecmcAxisBase::setModType(int type) {
   if ((type < 0) || (type >= ECMC_MOD_MOTION_MAX)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "ERROR: Axis[%d]: Modulo type out of range (0x%x).\n",
       data_.status_.axisId, ERROR_AXIS_MODULO_TYPE_OUT_OF_RANGE);
 
@@ -1783,7 +1821,7 @@ int ecmcAxisBase::createAsynParam(const char        *nameFormat,
                                   size_t             bytes,
                                   ecmcAsynDataItem **asynParamOut) {
   if (asynPortDriver_ == NULL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: AsynPortDriver object is NULL for %s (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1805,7 +1843,7 @@ int ecmcAxisBase::createAsynParam(const char        *nameFormat,
                        getAxisID());
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to generate (%s). Buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1824,7 +1862,7 @@ int ecmcAxisBase::createAsynParam(const char        *nameFormat,
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Failed to create default parameter for %s.\n",
       __FILE__,
       __FUNCTION__,
@@ -1845,7 +1883,7 @@ int ecmcAxisBase::movePVTAbs() {
 
 int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    LOGINFO("%s/%s:%d: INFO: Axis[%d]: movePVTAbs().\n",
+    ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: movePVTAbs().\n",
             __FILE__,
             __FUNCTION__,
             __LINE__,
@@ -1853,7 +1891,7 @@ int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
   }
 
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Move PVT failed since traj source is set to PLC (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1909,7 +1947,7 @@ int ecmcAxisBase::moveAbsolutePosition(
   double accelerationSet,
   double decelerationSet) {
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    LOGINFO("%s/%s:%d: INFO: Axis[%d]: moveAbsolutePosition().\n",
+    ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: moveAbsolutePosition().\n",
             __FILE__,
             __FUNCTION__,
             __LINE__,
@@ -1917,7 +1955,7 @@ int ecmcAxisBase::moveAbsolutePosition(
   }
 
   if(getBlocked()) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1929,7 +1967,7 @@ int ecmcAxisBase::moveAbsolutePosition(
   }
 
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Move to abs position failed since traj source is set to PLC (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1992,7 +2030,7 @@ int ecmcAxisBase::moveRelativePosition(
   double decelerationSet) {
   
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    LOGINFO("%s/%s:%d: INFO: Axis[%d]: moveRelativePosition().\n",
+    ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: moveRelativePosition().\n",
             __FILE__,
             __FUNCTION__,
             __LINE__,
@@ -2000,7 +2038,7 @@ int ecmcAxisBase::moveRelativePosition(
   }
 
   if(getBlocked()) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -2012,7 +2050,7 @@ int ecmcAxisBase::moveRelativePosition(
   }
 
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Move to abs position failed since traj source is set to PLC (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -2075,7 +2113,7 @@ int ecmcAxisBase::moveVelocity(
   double decelerationSet) {
   
   if(getBlocked()) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Blocked (master/slave lock) (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -2087,7 +2125,7 @@ int ecmcAxisBase::moveVelocity(
   }
 
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Move to abs position failed since traj source is set to PLC (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -2150,7 +2188,7 @@ int ecmcAxisBase::moveHome(int    nCmdData,
                            double decelerationSet
                            ) {
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Homing failed since traj source is set to PLC (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -2162,7 +2200,7 @@ int ecmcAxisBase::moveHome(int    nCmdData,
   }
 
   if (getBusy()) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Homing rejected: axis is busy (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -2240,7 +2278,7 @@ int ecmcAxisBase::moveHome(int    nCmdData,
 // Homing with configs from encoder object
 int ecmcAxisBase::moveHome() {
   if (getTrajDataSourceType() != ECMC_DATA_SOURCE_INTERNAL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Homing failed since traj source is set to PLC (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -2252,7 +2290,7 @@ int ecmcAxisBase::moveHome() {
   }
 
   if (getBusy()) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Homing rejected: axis is busy (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -2350,7 +2388,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   asynStatus returnVal = asynSuccess;
 
   if (sizeof(data_.control_.controlWord_) != bytes) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Control word size mismatch.\n",
       __FILE__,
       __FUNCTION__,
@@ -2477,7 +2515,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
                             "external commands unblocked");
   }
   if (controlWordActions[0]) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: INFO: Axis[%d]: Control word request: %s (raw=0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -2573,7 +2611,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       
       // Ensure valid command
       if(!commandValid(data_.control_.command)) {
-        LOGERR(
+        ecmcRtLoggerLogError(
           "%s/%s:%d: ERROR: Axis[%d]: Invalid command = 0x%x. Command aborted.\n",
           __FILE__,
           __FUNCTION__,
@@ -2639,7 +2677,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
           returnVal = asynError;
         }
       } else {
-        LOGERR("%s/%s:%d: INFO: Axis[%d]: Execute request ignored: axis is busy.\n",
+        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: Execute request ignored: axis is busy.\n",
                __FILE__,
                __FUNCTION__,
                __LINE__,
@@ -2780,7 +2818,7 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
                                                     asynParamType asynParType)
 {
   if ((bytes != 4) || (asynParType != asynParamInt32)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Primary encoder index datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
@@ -2796,7 +2834,7 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
   int errorCode = selectPrimaryEncoder(index, 1);
 
   if (errorCode) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Set Primary encoder index failed (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -2808,7 +2846,7 @@ asynStatus ecmcAxisBase::axisAsynWritePrimEncCtrlId(void         *data,
     return asynError;
   }
 
-  LOGERR(
+  ecmcRtLoggerLogError(
     "%s/%s:%d: INFO: Axis[%d]: Primary encoder index set to %d.\n",
     __FILE__,
     __FUNCTION__,
@@ -2822,7 +2860,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void         *data,
                                                  size_t        bytes,
                                                  asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Target velocity size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
@@ -2836,7 +2874,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetVelo(void         *data,
   memcpy(&velo, data, bytes);
   data_.control_.velocityTarget = velo;
 
-  LOGERR(
+  ecmcRtLoggerLogError(
     "%s/%s:%d: INFO: Axis[%d]: Target velocity set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -2852,7 +2890,7 @@ asynStatus ecmcAxisBase::axisAsynWriteAcc(void         *data,
                                           size_t        bytes,
                                           asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Acceleration size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
@@ -2868,7 +2906,7 @@ asynStatus ecmcAxisBase::axisAsynWriteAcc(void         *data,
   data_.control_.accelerationTarget = acc;
   //setAcc(acc);
 
-  LOGERR(
+  ecmcRtLoggerLogError(
     "%s/%s:%d: INFO: Axis[%d]: Acceleration set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -2882,7 +2920,7 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
                                           size_t        bytes,
                                           asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Deceleration size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
@@ -2898,7 +2936,7 @@ asynStatus ecmcAxisBase::axisAsynWriteDec(void         *data,
   //setDec(dec);
   data_.control_.decelerationTarget = dec;
 
-  LOGERR(
+  ecmcRtLoggerLogError(
     "%s/%s:%d: INFO: Axis[%d]: Deceleration set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -2914,7 +2952,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetTweakValue(void         *data,
                                                     size_t        bytes,
                                                     asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Tweak value size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
@@ -2928,7 +2966,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetTweakValue(void         *data,
   memcpy(&twk, data, bytes);
 
   data_.control_.tweakValue = twk;
-  LOGERR(
+  ecmcRtLoggerLogError(
     "%s/%s:%d: INFO: Axis[%d]: Tweak value set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -2942,7 +2980,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
                                                 size_t        bytes,
                                                 asynParamType asynParType) {
   if ((bytes != 8) || (asynParType != asynParamFloat64)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Target position size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
@@ -2956,7 +2994,7 @@ asynStatus ecmcAxisBase::axisAsynWriteTargetPos(void         *data,
   memcpy(&pos, data, bytes);
 
   data_.control_.positionTarget = pos;
-  LOGERR(
+  ecmcRtLoggerLogError(
     "%s/%s:%d: INFO: Axis[%d]: Target position set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -2970,7 +3008,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
                                                 size_t        bytes,
                                                 asynParamType asynParType) {
   if ((sizeof(double) != bytes) || (asynParType != asynParamFloat64)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Encoder position size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
@@ -2990,7 +3028,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
   }
 
   if (getBusy()) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Encoder position write rejected: axis is busy.\n",
       __FILE__,
       __FUNCTION__,
@@ -3001,7 +3039,7 @@ asynStatus ecmcAxisBase::axisAsynWriteSetEncPos(void         *data,
     return asynError;
   }
 
-  LOGERR(
+  ecmcRtLoggerLogError(
     "%s/%s:%d: INFO: Axis[%d]: Encoder position set to %lf.\n",
     __FILE__,
     __FUNCTION__,
@@ -3016,7 +3054,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
                                               size_t        bytes,
                                               asynParamType asynParType) {
   if ((bytes != 4) || (asynParType != asynParamInt32)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Command size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
@@ -3035,7 +3073,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
   }
 
   if(!commandValid((motionCommandTypes)command)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Invalid command 0x%x. Keeping old command %d.\n",
       __FILE__,
       __FUNCTION__,
@@ -3050,7 +3088,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCommand(void         *data,
   // Different target values if ABS or REL
   refreshAsynTargetValue();
 
-  LOGERR(
+  ecmcRtLoggerLogError(
     "%s/%s:%d: INFO: Axis[%d]: Command set to %s (%d).\n",
     __FILE__,
     __FUNCTION__,
@@ -3066,7 +3104,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
                                               size_t        bytes,
                                               asynParamType asynParType) {
   if ((bytes != 4) || (asynParType != asynParamInt32)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Axis[%d]: Command data size or datatype mismatch.\n",
       __FILE__,
       __FUNCTION__,
@@ -3086,7 +3124,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmdData(void         *data,
   data_.control_.cmdData = cmddata;
   //setCmdData(cmddata);
 
-  LOGERR(
+  ecmcRtLoggerLogError(
     "%s/%s:%d: INFO: Axis[%d]: Command data set to 0x%x.\n",
     __FILE__,
     __FUNCTION__,
@@ -3165,7 +3203,7 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
   
   // Comamnd only makes sense if REAL axis
   if(data_.status_.axisType != ECMC_AXIS_TYPE_REAL) {
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Command only valid for axes of type REAL.\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: Command only valid for axes of type REAL.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -3177,7 +3215,7 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
   }
 
   if(data_.status_.statusWord_.inrealtime ) {
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Command not allowed in realtime.\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: Command not allowed in realtime.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -3197,7 +3235,7 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
 
   if ((localIndex >= ECMC_MAX_ENCODERS) ||
       (localIndex >= data_.status_.encoderCount)) {
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Encoder index out of range.\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis[%d]: Encoder index out of range.\n",
             __FILE__,
             __FUNCTION__,
             __LINE__,
@@ -3211,7 +3249,7 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
 
 
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    LOGINFO("%s/%s:%d: INFO: Axis[%d]: selectCSPDriveEncoder(): CSP encoder selected for drive control.\n",
+    ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: selectCSPDriveEncoder(): CSP encoder selected for drive control.\n",
             __FILE__,
             __FUNCTION__,
             __LINE__,
@@ -3546,11 +3584,19 @@ void ecmcAxisBase::autoEnableSM() {
   
   if(!data_.status_.statusWord_.enable) {
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      LOGINFO("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): enabling axis.\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.status_.axisId);
+      if (data_.status_.statusWord_.inrealtime && ecmcRtLoggerIsEnabled()) {
+        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): enabling axis.\n",
+                            __FILE__,
+                            __FUNCTION__,
+                            __LINE__,
+                            data_.status_.axisId);
+      } else {
+        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): enabling axis.\n",
+                __FILE__,
+                __FUNCTION__,
+                __LINE__,
+                data_.status_.axisId);
+      }
     }
 
     setEnable(true);
@@ -3571,11 +3617,19 @@ void ecmcAxisBase::autoEnableSM() {
     autoEnableTimeCounter_ = 0;
     autoEnableRequest_= false;
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      LOGINFO("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): axis enabled, triggering motion.\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.status_.axisId);
+      if (data_.status_.statusWord_.inrealtime && ecmcRtLoggerIsEnabled()) {
+        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): axis enabled, triggering motion.\n",
+                            __FILE__,
+                            __FUNCTION__,
+                            __LINE__,
+                            data_.status_.axisId);
+      } else {
+        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): axis enabled, triggering motion.\n",
+                __FILE__,
+                __FUNCTION__,
+                __LINE__,
+                data_.status_.axisId);
+      }
     }
     
     setExecute(0,1); // need ignore busy
@@ -3607,12 +3661,21 @@ void ecmcAxisBase::autoDisableSM() {
 
   if(autoDisbleTimeCounter_ > autoDisableAfterS_ && data_.control_.controlWord_.enableCmd) {
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      LOGINFO("%s/%s:%d: INFO: Axis[%d]: autoDisableSM(): auto-disabling axis after %lf s idle.\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_.status_.axisId,
-              autoDisableAfterS_);
+      if (data_.status_.statusWord_.inrealtime && ecmcRtLoggerIsEnabled()) {
+        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoDisableSM(): auto-disabling axis after %lf s idle.\n",
+                            __FILE__,
+                            __FUNCTION__,
+                            __LINE__,
+                            data_.status_.axisId,
+                            autoDisableAfterS_);
+      } else {
+        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoDisableSM(): auto-disabling axis after %lf s idle.\n",
+                __FILE__,
+                __FUNCTION__,
+                __LINE__,
+                data_.status_.axisId,
+                autoDisableAfterS_);
+      }
     }
 
     setEnable(0);
@@ -3731,7 +3794,7 @@ bool ecmcAxisBase::commandValid(motionCommandTypes command) {
       valid = false;   // NOT valid!!
       break;
     case ECMC_CMD_MOVEPVTABS:
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: ERROR: Axis[%d]: PVT motion can only be executed from the dedicated \"Profile move\" pvs.\n",
         __FILE__,
         __FUNCTION__,

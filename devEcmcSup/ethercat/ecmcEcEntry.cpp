@@ -13,6 +13,7 @@
 #include "ecmcEcEntry.h"
 #include <stdlib.h>
 #include "ecmcErrorsList.h"
+#include "ecmcRtLogger.h"
 
 #define EC_MASK_B2 0x03
 #define EC_MASK_B3 0x07
@@ -82,7 +83,7 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
                                                     bitLength_);
 
   if (errorCode) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: ecrt_slave_config_pdo_mapping_add() failed with error code %d (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -93,7 +94,7 @@ ecmcEcEntry::ecmcEcEntry(ecmcAsynPortDriver *asynPortDriver,
                ERROR_EC_ENTRY_ASSIGN_ADD_FAIL);
   }
 
-  LOGINFO5(
+  ECMC_RT_LOGINFO5(
     "INFO: Entry %s added: pdoIndex 0x%x, entryIndex 0x%x, entrySubIndex 0x%x, direction %d, bits %d.\n",
     idString_.c_str(),
     pdoIndex_,
@@ -195,7 +196,7 @@ uint8_t ecmcEcEntry::getEntrySubIndex() {
 
 int ecmcEcEntry::getEntryInfo(ec_pdo_entry_info_t *info) {
   if (info == NULL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Entry (0x%x:0x%x): output parameter pointer NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -589,7 +590,7 @@ int ecmcEcEntry::compileRegInfo() {
 
   if (byteOffset_ < 0) {
     int errorCode = -byteOffset_;
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: ecrt_slave_config_reg_pdo_entry() failed with error code %d (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -601,7 +602,7 @@ int ecmcEcEntry::compileRegInfo() {
                       __LINE__,
                       ERROR_EC_ENTRY_REGISTER_FAIL);
   }
-  LOGINFO5(
+  ECMC_RT_LOGINFO5(
     "%s/%s:%d: INFO: Entry %s registered in domain: bits %d, byteOffset %d, bitOffset %d.\n",
     __FILE__,
     __FUNCTION__,
@@ -619,7 +620,7 @@ bool ecmcEcEntry::getSimEntry() {
 
 int ecmcEcEntry::validate() {
   if (byteOffset_ < 0) {
-    LOGERR("%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid data offset (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid data offset (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -633,7 +634,7 @@ int ecmcEcEntry::validate() {
   }
 
   if (domainAdr_ == NULL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid domain address (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -648,7 +649,7 @@ int ecmcEcEntry::validate() {
   }
 
   if (dataType_ == ECMC_EC_NONE) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Entry (0x%x:0x%x): Invalid data type (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -687,8 +688,8 @@ int ecmcEcEntry::initAsyn() {
                                     idStringChar_);
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+    ecmcRtLoggerLogError(
+      "%s/%s:%d: ERROR: Failed to generate alias. Buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -707,7 +708,7 @@ int ecmcEcEntry::initAsyn() {
                                                       0);
 
   if (!entryAsynParam_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,

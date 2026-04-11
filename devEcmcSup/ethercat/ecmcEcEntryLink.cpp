@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcEcEntryLink.h"
+#include "ecmcRtLogger.h"
 
 extern app_mode_type appModeStat;
 
@@ -54,7 +55,7 @@ int ecmcEcEntryLink::setEntryAtIndex(ecmcEcEntry *entry,
     entryInfoArray_[index].bitNumber = bitIndex;
     return 0;
   } else {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Assigning entry to object entry list at index %d failed.(0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -70,7 +71,7 @@ int ecmcEcEntryLink::setEntryAtIndex(ecmcEcEntry *entry,
 
 int ecmcEcEntryLink::validateEntry(int index) {
   if ((index >= ECMC_EC_ENTRY_LINKS_MAX) || (index < 0)) {
-    LOGERR("%s/%s:%d: ERROR: Entry list index %d out of range.(0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Entry list index %d out of range.(0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -84,7 +85,7 @@ int ecmcEcEntryLink::validateEntry(int index) {
   }
 
   if (entryInfoArray_[index].entry == NULL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Entry ethercat data pointer NULL at index %d (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -99,7 +100,7 @@ int ecmcEcEntryLink::validateEntry(int index) {
 
 int ecmcEcEntryLink::validateEntryBit(int index) {
   if ((index >= ECMC_EC_ENTRY_LINKS_MAX) || (index < 0)) {
-    LOGERR("%s/%s:%d: ERROR: Entry list index %d out of range.(0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Entry list index %d out of range.(0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -109,7 +110,7 @@ int ecmcEcEntryLink::validateEntryBit(int index) {
   }
 
   if (entryInfoArray_[index].entry == NULL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Entry ethercat data pointer NULL at index %d (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -123,7 +124,7 @@ int ecmcEcEntryLink::validateEntryBit(int index) {
                                        entryInfoArray_[index].bitNumber>
       entryInfoArray_[index].entry->getBits() -
       1) {
-    LOGERR("%s/%s:%d: ERROR: Invalid bit index.(0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Invalid bit index.(0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,

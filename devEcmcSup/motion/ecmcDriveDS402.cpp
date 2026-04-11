@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcDriveDS402.h"
+#include "ecmcRtLogger.h"
 
 ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
                                ecmcAxisData       &axisData) :
@@ -127,7 +128,7 @@ void ecmcDriveDS402::readEntries(bool masterOK) {
       //}
     }
     if(!ds402Fault && masterOK){
-      LOGERR("%s/%s:%d: INFO: DS402 startup fault cleared.\n",
+      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: DS402 startup fault cleared.\n",
         __FILE__,
         __FUNCTION__,
         __LINE__);
@@ -138,7 +139,7 @@ void ecmcDriveDS402::readEntries(bool masterOK) {
   
   // Printout warning.. Do not stop
   if (ds402Warning && !ds402WarningOld_) {
-    LOGERR("%s/%s:%d: WARNING: DS402 warning bit is high.\n",
+    ecmcRtLoggerLogError("%s/%s:%d: WARNING: DS402 warning bit is high.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);

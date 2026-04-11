@@ -14,6 +14,7 @@
 #include "ecmcPLC.h"
 #include "ecmcOctetIF.h"        // Log Macros
 #include "ecmcErrorsList.h"
+#include "ecmcRtLogger.h"
 #include "ecmcDefinitions.h"
 #include "ecmcMotion.h"
 #include "ecmcAxisBase.h"
@@ -53,7 +54,7 @@ int createPLC(int index,  double cycleTimeMs, int axisPLC) {
   }
 
   if (cycleTimeMs / 1000 < (1 / mcuFrequency)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: PLC cycletime out of range."
       " Cycle time must be higher than realtime thread (time >= %lf ms)."
       " (0x%x).\n",
@@ -171,7 +172,7 @@ int loadPLCLibFile(int   index,
     return errorCode;
   }
   catch (const std::exception& e) {
-    LOGERR("%s/%s:%d: Invalid PLC-lib file %s: %s (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: Invalid PLC-lib file %s: %s (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -237,13 +238,19 @@ const char* getPLCExpr(int plcIndex, int *error) {
            plcIndex);
 
   if ((plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES) || (plcIndex < 0)) {
-    LOGERR("ERROR: PLC index out of range.\n");
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: PLC index out of range.\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__);
     *error = ERROR_PLCS_INDEX_OUT_OF_RANGE;
     return "";
   }
 
   if (!plcs) {
-    LOGERR("ERROR: PLC object NULL.\n");
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: PLC object is NULL.\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__);
     *error = ERROR_MAIN_PLCS_NULL;
     return "";
   }

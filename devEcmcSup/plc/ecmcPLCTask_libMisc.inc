@@ -17,11 +17,11 @@
     m2m_errorCode = 0;                                     \
     if (shmIndex >= ECMC_SHM_ELEMENTS || shmIndex < 0) {   \
       m2m_errorCode = ERROR_SHM_INDEX_OUT_OF_RANGE;        \
-      LOGERR("ERROR: SHM index out of range.\n");          \
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: SHM index out of range.\n", __FILE__, __FUNCTION__, __LINE__);          \
     }                                                      \
     if (shmObj.valid == 0) {                \
       m2m_errorCode = ERROR_SHM_NULL;                      \
-      LOGERR("ERROR: SHM object NULL.\n");                 \
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: SHM object is NULL.\n", __FILE__, __FUNCTION__, __LINE__);                 \
     }                                                      \
 }                                                          \
 
@@ -29,12 +29,12 @@
         {\
           if (lutIndex >= ECMC_MAX_LUTS ||                       \
               lutIndex < 0) {                                    \
-            LOGERR("ERROR: LUT list index out of range.\n");     \
+            ecmcRtLoggerLogError("%s/%s:%d: ERROR: LUT list index out of range.\n", __FILE__, __FUNCTION__, __LINE__);     \
             lut_errorCode = ERROR_LUT_INDEX_OUT_OF_RANGE;        \
           }                                                      \
           if (luts[lutIndex] == NULL) {                \
             lut_errorCode = ERROR_LUT_INDEX_OUT_OF_RANGE;        \
-            LOGERR("ERROR: LUT object NULL.\n");                 \
+            ecmcRtLoggerLogError("%s/%s:%d: ERROR: LUT object is NULL.\n", __FILE__, __FUNCTION__, __LINE__);                 \
           }                                                      \
         }\
 
@@ -123,7 +123,7 @@ inline double m2m_stat() {
   
   if (shmObj.valid == 0) {
     m2m_errorCode = ERROR_SHM_NULL;
-    LOGERR("ERROR: SHM object NULL.\n");
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: SHM object is NULL.\n", __FILE__, __FUNCTION__, __LINE__);
     return -ERROR_SHM_NULL;
   }                 
 

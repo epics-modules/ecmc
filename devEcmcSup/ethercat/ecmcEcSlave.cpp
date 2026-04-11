@@ -12,6 +12,7 @@
 
 #include "ecmcEcSlave.h"
 #include "ecmcErrorsList.h"
+#include "ecmcRtLogger.h"
 #include "ecmcGeneral.h"
 
 extern app_mode_type appModeStat;
@@ -54,7 +55,7 @@ ecmcEcSlave::ecmcEcSlave(
   if (!(slaveConfig_ =
           ecrt_master_slave_config(master_, alias_, slavePosition_, vendorId_,
                                    productCode_))) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Failed to get slave configuration (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -65,7 +66,7 @@ ecmcEcSlave::ecmcEcSlave(
       ERROR_EC_SLAVE_CONFIG_FAILED);
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_SLAVE_CONFIG_FAILED);
   }
-  LOGINFO5(
+  ECMC_RT_LOGINFO5(
     "%s/%s:%d: INFO: Slave %d created: alias %d, vendorId 0x%x, productCode 0x%x.\n",
     __FILE__,
     __FUNCTION__,
@@ -166,7 +167,7 @@ int ecmcEcSlave::getEntryCount() {
 int ecmcEcSlave::addSyncManager(ec_direction_t direction,
                                 uint8_t        syncMangerIndex) {
   if (simSlave_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Simulation slave: Functionality not supported (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -182,7 +183,7 @@ int ecmcEcSlave::addSyncManager(ec_direction_t direction,
   }
 
   if (syncManCounter_ >= EC_MAX_SYNC_MANAGERS) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Sync manager array full (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -213,7 +214,7 @@ int ecmcEcSlave::addSyncManager(ec_direction_t direction,
 
   int errorCode = syncManager->getErrorID();
   if (errorCode) {
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Sync manager creation failed: %s (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Sync manager creation failed: %s (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -233,7 +234,7 @@ int ecmcEcSlave::addSyncManager(ec_direction_t direction,
 
 ecmcEcSyncManager * ecmcEcSlave::getSyncManager(int syncManagerIndex) {
   if (simSlave_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Simulation slave: Functionality not supported (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -250,7 +251,7 @@ ecmcEcSyncManager * ecmcEcSlave::getSyncManager(int syncManagerIndex) {
   }
 
   if (syncManagerIndex >= EC_MAX_SYNC_MANAGERS) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Sync manager array index out of range (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -270,7 +271,7 @@ ecmcEcSyncManager * ecmcEcSlave::getSyncManager(int syncManagerIndex) {
 
 int ecmcEcSlave::getSlaveInfo(mcu_ec_slave_info_light *info) {
   if (info == NULL) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Info structure NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -293,7 +294,7 @@ int ecmcEcSlave::getSlaveInfo(mcu_ec_slave_info_light *info) {
 
 int ecmcEcSlave::checkConfigState(void) {
   if (simSlave_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Simulation slave: Functionality not supported (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -327,7 +328,7 @@ int ecmcEcSlave::checkConfigState(void) {
   statusWordOld_ = statusWord_;
 
   if (slaveState_.al_state != slaveStateOld_.al_state) {
-    LOGINFO5("%s/%s:%d: INFO: Slave position: %d. State 0x%x.\n",
+    ECMC_RT_LOGINFO5("%s/%s:%d: INFO: Slave position: %d. State 0x%x.\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -338,7 +339,7 @@ int ecmcEcSlave::checkConfigState(void) {
   bool updateAlarmState = false;
 
   if (slaveState_.online != slaveStateOld_.online) {
-    LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s.\n",
+    ECMC_RT_LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s.\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -350,7 +351,7 @@ int ecmcEcSlave::checkConfigState(void) {
   }
 
   if (slaveState_.operational != slaveStateOld_.operational) {
-    LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s operational.\n",
+    ECMC_RT_LOGINFO5("%s/%s:%d: INFO: Slave position: %d %s operational.\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -376,7 +377,7 @@ int ecmcEcSlave::checkConfigState(void) {
   if (!slaveState_.online) {
     if ((appModeStat != ECMC_MODE_STARTUP) &&
         (getErrorID() != ERROR_EC_SLAVE_NOT_ONLINE)) {
-      LOGERR("%s/%s:%d: ERROR: Slave %d: Not online (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %d: Not online (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -396,7 +397,7 @@ int ecmcEcSlave::checkConfigState(void) {
   if (!slaveState_.operational) {
     if ((appModeStat != ECMC_MODE_STARTUP) &&
         (getErrorID() != ERROR_EC_SLAVE_NOT_OPERATIONAL)) {
-      LOGERR("%s/%s:%d: ERROR: Slave %d: Not operational (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %d: Not operational (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -418,7 +419,7 @@ int ecmcEcSlave::checkConfigState(void) {
   case 1:
 
     if (getErrorID() != ERROR_EC_SLAVE_STATE_INIT) {
-      LOGERR("%s/%s:%d: ERROR: Slave %d: State INIT (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %d: State INIT (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -435,7 +436,7 @@ int ecmcEcSlave::checkConfigState(void) {
   case 2:
 
     if (getErrorID() != ERROR_EC_SLAVE_STATE_PREOP) {
-      LOGERR("%s/%s:%d: ERROR: Slave %d: State PREOP (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %d: State PREOP (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -452,7 +453,7 @@ int ecmcEcSlave::checkConfigState(void) {
   case 4:
 
     if (getErrorID() != ERROR_EC_SLAVE_STATE_SAFEOP) {
-      LOGERR("%s/%s:%d: ERROR: Slave %d: State SAFEOP (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %d: State SAFEOP (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -479,7 +480,7 @@ int ecmcEcSlave::checkConfigState(void) {
   default:
 
     if (getErrorID() != ERROR_EC_SLAVE_STATE_UNDEFINED) {
-      LOGERR("%s/%s:%d: ERROR: Slave %d: State UNDEFINED (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %d: State UNDEFINED (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -500,7 +501,7 @@ int ecmcEcSlave::checkConfigState(void) {
 ecmcEcEntry * ecmcEcSlave::getEntry(int entryIndex) {
   if (!simSlave_) {
     if (entryIndex >= EC_MAX_ENTRIES) {
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry index out of range (0x%x).\n",
         __FILE__,
         __FUNCTION__,
@@ -517,7 +518,7 @@ ecmcEcEntry * ecmcEcSlave::getEntry(int entryIndex) {
     }
 
     if (entryList_[entryIndex] == NULL) {
-      LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry NULL (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry NULL (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -531,7 +532,7 @@ ecmcEcEntry * ecmcEcSlave::getEntry(int entryIndex) {
     return entryList_[entryIndex];
   } else {
     if (entryIndex >= SIMULATION_ENTRIES) {
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry index out of range (0x%x).\n",
         __FILE__,
         __FUNCTION__,
@@ -548,7 +549,7 @@ ecmcEcEntry * ecmcEcSlave::getEntry(int entryIndex) {
     }
 
     if (simEntries_[entryIndex] == NULL) {
-      LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry NULL (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry NULL (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -611,7 +612,7 @@ int ecmcEcSlave::addEntry(
     err = addSyncManager(direction, syncMangerIndex);
 
     if (err) {
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Add sync manager failed (0x%x).\n",
         __FILE__,
         __FUNCTION__,
@@ -634,7 +635,7 @@ int ecmcEcSlave::addEntry(
                                              &err);
 
   if (!entry) {
-    LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Add entry failed (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Add entry failed (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -675,7 +676,7 @@ int ecmcEcSlave::addDataItem(ecmcEcEntry   *startEntry,
                                       id);
 
   if (!entry) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Add data item failed (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -715,7 +716,7 @@ int ecmcEcSlave::configDC(
   uint32_t sync1Cycle,     /**< SYNC1 cycle time [ns]. */
   int32_t  sync1Shift /**< SYNC1 shift time [ns]. */) {
   if (slaveConfig_ == 0) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -786,7 +787,7 @@ int ecmcEcSlave::findEntryIndex(std::string id) {
       }
     }
   }
-  LOGERR("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry not found (0x%x).\n",
+  ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry not found (0x%x).\n",
          __FILE__,
          __FUNCTION__,
          __LINE__,
@@ -811,7 +812,7 @@ int ecmcEcSlave::setWatchDogConfig(
   // the value is not written, so the default is used.
   uint16_t watchdogIntervals) {
   if (!slaveConfig_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -834,7 +835,7 @@ int ecmcEcSlave::addSDOWrite(uint16_t sdoIndex,
                              uint32_t writeValue,
                              int      byteSize) {
   if (!slaveConfig_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -862,7 +863,7 @@ int ecmcEcSlave::addSDOWriteDT(uint16_t       sdoIndex,
                                const char    *value,
                                ecmcEcDataType dt) {
   if (!slaveConfig_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -903,8 +904,8 @@ int ecmcEcSlave::initAsyn() {
                                     slavePosition_);
 
   if (charCount >= sizeof(buffer) - 1) {
-    LOGERR(
-      "%s/%s:%d: Error: Failed to generate alias. Buffer to small (0x%x).\n",
+    ecmcRtLoggerLogError(
+      "%s/%s:%d: ERROR: Failed to generate alias. Buffer too small (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
@@ -920,7 +921,7 @@ int ecmcEcSlave::initAsyn() {
                                                 0);
 
   if (!paramTemp) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Add create default parameter for %s failed.\n",
       __FILE__,
       __FUNCTION__,
@@ -955,7 +956,7 @@ int ecmcEcSlave::validate() {
   if(enableSDOCheck_) {
     for(uint ch = 0; ch < sdoChVerify_.size(); ch++) {
       if(sdoChVerify_[ch].needSdo && !sdoChVerify_[ch].sdosDone) {
-        LOGERR(
+        ecmcRtLoggerLogError(
           "%s/%s:%d: ERROR: Important SDO settings, i.e. max current or other, missing for slave %d, ch %d.\n"
           "Use \"ecmcConfigOrDie \"Cfg.EcSetSlaveSDOSettingsDone(<slave_id>,<ch_id>,1)\"\" after addSlave.cmd to override\n",
           __FILE__,
@@ -998,7 +999,7 @@ int ecmcEcSlave::addSDOWriteComplete(uint16_t    sdoIndex,
                                      const char *dataBuffer,
                                      int         byteSize) {
   if (!slaveConfig_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1024,7 +1025,7 @@ int ecmcEcSlave::addSDOWriteBuffer(uint16_t    sdoIndex,
                                    const char *dataBuffer,
                                    int         byteSize) {
   if (!slaveConfig_) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Slave Config NULL (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1055,7 +1056,7 @@ int ecmcEcSlave::addSDOAsync(uint16_t       sdoIndex, /**< SDO index. */
       (dt == ECMC_EC_B2) ||
       (dt == ECMC_EC_B3) ||
       (dt == ECMC_EC_B4)) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d: Async SDO 0x%x:%x datatype invalid (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1082,7 +1083,7 @@ int ecmcEcSlave::addSDOAsync(uint16_t       sdoIndex, /**< SDO index. */
     asyncSDOvector_.push_back(temp);
   }
   catch (std::exception& e) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave %d: Failed to create async SDO object (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1105,7 +1106,7 @@ int ecmcEcSlave::activate() {
     ecmcEcEntry *tempEntry = getEntry(entryIndex);
 
     if (tempEntry == NULL) {
-      LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -1135,7 +1136,7 @@ int ecmcEcSlave::compileRegInfo() {
     ecmcEcEntry *tempEntry = getEntry(entryIndex);
 
     if (tempEntry == NULL) {
-      LOGERR("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Entry NULL (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,

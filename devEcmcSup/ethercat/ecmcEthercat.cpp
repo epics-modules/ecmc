@@ -13,6 +13,7 @@
 #include "ecmcOctetIF.h"        // Log Macros
 #include "ecmcErrorsList.h"
 #include "ecmcDefinitions.h"
+#include "ecmcRtLogger.h"
 
 #include "ecmcEthercat.h"
 #include "ecmcEc.h"
@@ -556,7 +557,7 @@ int ecAddSdoDT(uint16_t slavePosition,
   ecmcEcDataType dt = getEcDataTypeFromStr(datatype);
 
   if (dt == ECMC_EC_NONE) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: SDO object 0x%x:%x at slave position %d: Write failed, data type invalid (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -654,7 +655,7 @@ int ecWriteSdo(uint16_t slavePosition,
                            byteSize);
 
   if (allowOffline && errorCode) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: WARNING: SDO write failed. Slave allowed to be offline.\n",
       __FILE__,
       __FUNCTION__,
@@ -770,7 +771,7 @@ int ecVerifySdo(uint16_t slavePosition,
   }
 
   if (readValue != verValue) {
-    LOGERR("%s/%s:%d: ERROR: Verification of SDO failed (%u != %u) (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Verification of SDO failed (%u != %u) (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -1062,7 +1063,10 @@ int ecApplyConfig(int masterIndex) {
   int errorCode = 0;
 
   if ((errorCode = ec->compileRegInfo())) {
-    LOGERR("ERROR:\tCompileRegInfo failed\n");
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: CompileRegInfo failed.\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__);
     return errorCode;
   }
   return 0;
@@ -1172,7 +1176,7 @@ int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
                               revisionNum);
 
   if (allowOffline && errorCode) {
-    LOGERR("%s/%s:%d: WARNING: Slave offline. Domain allowed to be offline.\n",
+    ecmcRtLoggerLogError("%s/%s:%d: WARNING: Slave offline. Domain allowed to be offline.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);

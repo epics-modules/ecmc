@@ -12,6 +12,7 @@
 
 #include "ecmcEcSyncManager.h"
 #include "ecmcErrorsList.h"
+#include "ecmcRtLogger.h"
 
 ecmcEcSyncManager::ecmcEcSyncManager(ecmcAsynPortDriver *asynPortDriver,
                                      int                 masterId,
@@ -35,7 +36,7 @@ ecmcEcSyncManager::ecmcEcSyncManager(ecmcAsynPortDriver *asynPortDriver,
                                                  EC_WD_DEFAULT);
 
   if (errorCode) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: ecrt_slave_config_sync_manager() failed with error code %d (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -81,7 +82,7 @@ ecmcEcSyncManager::~ecmcEcSyncManager() {
 
 int ecmcEcSyncManager::addPdo(uint16_t pdoIndex) {
   if (pdoCounter_ >= EC_MAX_PDOS - 1) {
-    LOGERR("%s/%s:%d: ERROR: PDO array full (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: PDO array full (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -119,7 +120,7 @@ int ecmcEcSyncManager::addPdo(uint16_t pdoIndex) {
 
 ecmcEcPdo * ecmcEcSyncManager::getPdo(int index) {
   if (index >= EC_MAX_PDOS) {
-    LOGERR("%s/%s:%d: ERROR: PDO index out of range (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: PDO index out of range (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -139,7 +140,7 @@ int ecmcEcSyncManager::getPdoCount() {
 
 int ecmcEcSyncManager::getInfo(ec_sync_info_t *info) {
   if (info == NULL) {
-    LOGERR("%s/%s:%d: ERROR: Output parameter pointer NULL (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Output parameter pointer is NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,

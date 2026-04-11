@@ -12,6 +12,7 @@
 
 #include "ecmcTrajectoryS.h"
 #include "ecmcErrorsList.h"
+#include "ecmcRtLogger.h"
 #include <stdio.h>
 
 ecmcTrajectoryS::ecmcTrajectoryS(ecmcAxisData &axisData,
@@ -138,7 +139,7 @@ bool ecmcTrajectoryS::updateRuckig() {
                  __FUNCTION__,
                  __LINE__,
                  ERROR_TRAJ_RUCKIG_INVALID_INPUT);
-      LOGERR("%s/%s:%d: ERROR: Ruckig input invalid: current(pos=%lf, vel=%lf, acc=%lf), target(pos=%lf, vel=%lf, acc=%lf), max(vel=%lf, acc=%lf, jerk=%lf) (0x%x).\n",
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Ruckig input invalid: current(pos=%lf, vel=%lf, acc=%lf), target(pos=%lf, vel=%lf, acc=%lf), max(vel=%lf, acc=%lf, jerk=%lf) (0x%x).\n",
              __FILE__,
              __FUNCTION__,
              __LINE__,
@@ -194,7 +195,7 @@ bool ecmcTrajectoryS::updateRuckig() {
       break;
     }
 
-    // LOGERR("%s/%s:%d: ERROR: Ruckig error  %d (0x%x).\n",
+    // ecmcRtLoggerLogError("%s/%s:%d: ERROR: Ruckig error  %d (0x%x).\n",
     //    __FILE__,
     //    __FUNCTION__,
     //    __LINE__,
@@ -363,7 +364,7 @@ int ecmcTrajectoryS::setExecute(bool execute) {
 int ecmcTrajectoryS::validate() {
   if (targetJerk_ == 0) {
     setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_TRAJ_RUCKIG_JERK_ZERO);
-    LOGERR("%s/%s:%d: ERROR: Jerk zero (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Jerk zero (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,

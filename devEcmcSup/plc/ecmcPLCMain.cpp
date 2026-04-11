@@ -11,6 +11,7 @@
 \*************************************************************************/
 
 #include "ecmcPLCMain.h"
+#include "ecmcRtLogger.h"
 
 ecmcPLCMain::ecmcPLCMain(ecmcEc             *ec,
                          double              mcuFreq,
@@ -254,13 +255,19 @@ int ecmcPLCMain::execute(int plcIndex, bool ecOK) {
 
 std::string * ecmcPLCMain::getExpr(int plcIndex, int *error) {
   if ((plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES) || (plcIndex < 0)) {
-    LOGERR("ERROR: PLC index out of range.\n");
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: PLC index out of range.\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__);
     *error =  ERROR_PLCS_INDEX_OUT_OF_RANGE;
     return NULL;
   }
 
   if (!plcs_[plcIndex]) {
-    LOGERR("ERROR: PLC NULL\n");
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: PLC object is NULL.\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__);
     *error =  ERROR_PLCS_PLC_NULL;
     return NULL;
   }
@@ -338,7 +345,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
   plcFile.open(fileName);
 
   if (!plcFile.good()) {
-    LOGERR("%s/%s:%d: ERROR PLC%d: File not found: %s (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR PLC%d: File not found: %s (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -377,7 +384,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
       lineNoComments.append("\n");
       errorCode = appendExprLine(plcIndex, lineNoComments.c_str());
       if (errorCode) {
-        LOGERR(
+        ecmcRtLoggerLogError(
           "%s/%s:%d: ERROR PLC%d: Error appending file at line %d: %s (0x%x).\n",
           __FILE__,
           __FUNCTION__,
@@ -397,7 +404,7 @@ int ecmcPLCMain::loadPLCFile(int plcIndex, char *fileName) {
   errorCode = setEnable(plcIndex, 1);
 
   if (errorCode) {
-    LOGERR("%s/%s:%d: ERROR PLC%d: Error Enabling PLC file: %s (0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR PLC%d: Error Enabling PLC file: %s (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
@@ -461,7 +468,10 @@ int ecmcPLCMain::getCompiled(int plcIndex, int *compiled) {
 
 int ecmcPLCMain::getCompiled(int plcIndex) {
   if ((plcIndex >= ECMC_MAX_PLCS + ECMC_MAX_AXES) || (plcIndex < 0)) {
-    LOGERR("ERROR: PLC index out of range.\n");
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: PLC index out of range.\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__);
     return 0;
   }
   return plcs_[plcIndex]->getCompiled();
@@ -800,7 +810,7 @@ int ecmcPLCMain::parseEC(int plcIndex, const char *exprStr) {
 
       if (charCount >= sizeof(varName) - 1) {
         free(strLocal);
-        LOGERR("%s/%s:%d:  Error: Variable name %s (0x%x).\n",
+        ecmcRtLoggerLogError("%s/%s:%d:  ERROR: Variable name %s (0x%x).\n",
                __FILE__,
                __FUNCTION__,
                __LINE__,
@@ -960,7 +970,7 @@ int ecmcPLCMain::parsePLC(int plcIndex, const char *exprStr) {
           }
         }
       } else {
-        LOGERR("%s/%s:%d: Invalid variable name: %s (0x%x).\n",
+        ecmcRtLoggerLogError("%s/%s:%d: Invalid variable name: %s (0x%x).\n",
                __FILE__,
                __FUNCTION__,
                __LINE__,
@@ -1256,7 +1266,7 @@ ecmcPLCTask * ecmcPLCMain::getPLCTaskForAxis(int axisId) {
   int index = ECMC_MAX_PLCS + axisId;
 
   if ((index >= ECMC_MAX_PLCS + ECMC_MAX_AXES) || (index < ECMC_MAX_PLCS)) {
-    LOGERR("%s/%s:%d: ERROR: Axis PLC index out of range.\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Axis PLC index out of range.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);
@@ -1268,7 +1278,7 @@ ecmcPLCTask * ecmcPLCMain::getPLCTaskForAxis(int axisId) {
     try {
       error = createPLC(index, 0);
       if (error) {
-        LOGERR("%s/%s:%d: ERROR: Fail create PLC for axis %d (0x%x).\n",
+        ecmcRtLoggerLogError("%s/%s:%d: ERROR: Fail create PLC for axis %d (0x%x).\n",
                __FILE__,
                __FUNCTION__,
                __LINE__,
@@ -1280,7 +1290,7 @@ ecmcPLCTask * ecmcPLCMain::getPLCTaskForAxis(int axisId) {
     catch (std::exception& e) {
       delete plcs_[index];
       plcs_[index] = NULL;
-      LOGERR(
+      ecmcRtLoggerLogError(
         "%s/%s:%d: EXCEPTION %s WHEN ALLOCATE MEMORY FOR AXIS PLC OBJECT.\n",
         __FILE__,
         __FUNCTION__,
@@ -1340,7 +1350,7 @@ int ecmcPLCMain::addPLCDefaultVariable(int             plcIndex,
   }
 
   if (!*dataIFOut) {
-    LOGERR(
+    ecmcRtLoggerLogError(
       "%s/%s:%d: Failed allocation of ecmcPLCDataIF object %s (0x%x).\n",
       __FILE__,
       __FUNCTION__,
@@ -1369,7 +1379,7 @@ int ecmcPLCMain::addLib(int plcIndex, ecmcPLCLib* lib) {
   
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   if(!lib) {
-    LOGERR("%s/%s:%d: PLC lib NULL(0x%x).\n",
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: PLC library is NULL (0x%x).\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,

@@ -12,21 +12,33 @@
 #ifndef ECMC_RT_LOGGER_H_
 #define ECMC_RT_LOGGER_H_
 
-#include <stdint.h>
-
-enum ecmcRtLogEventType {
-  ECMC_RT_LOG_EVENT_AXIS_ERROR = 0,
-  ECMC_RT_LOG_EVENT_SEQ_ERROR  = 1,
-  ECMC_RT_LOG_EVENT_AXIS_STATE = 2,
-  ECMC_RT_LOG_EVENT_HOME_STATE = 3
-};
+#include "ecmcOctetIF.h"
 
 int  ecmcRtLoggerStart();
 void ecmcRtLoggerSetEnabled(int enabled);
 int  ecmcRtLoggerIsEnabled();
-void ecmcRtLoggerQueueAxisError(int axisId, int errorCode);
-void ecmcRtLoggerQueueSeqError(int axisId, int errorCode);
-void ecmcRtLoggerQueueAxisState(int axisId, int axisState);
-void ecmcRtLoggerQueueHomeState(int axisId, int cmdData, int seqState);
+void ecmcRtLoggerLogInfo(const char *fmt, ...);
+void ecmcRtLoggerLogError(const char *fmt, ...);
+
+#define ECMC_RT_LOGINFO4(fmt, ...) \
+  do { \
+    if (PRINT_STDOUT_BIT4()) { \
+      ecmcRtLoggerLogInfo(fmt, ## __VA_ARGS__); \
+    } \
+  } while (0)
+
+#define ECMC_RT_LOGINFO5(fmt, ...) \
+  do { \
+    if (PRINT_STDOUT_BIT5()) { \
+      ecmcRtLoggerLogInfo(fmt, ## __VA_ARGS__); \
+    } \
+  } while (0)
+
+#define ECMC_RT_LOGINFO12(fmt, ...) \
+  do { \
+    if (PRINT_STDOUT_BIT12()) { \
+      ecmcRtLoggerLogInfo(fmt, ## __VA_ARGS__); \
+    } \
+  } while (0)
 
 #endif  /* ECMC_RT_LOGGER_H_ */
