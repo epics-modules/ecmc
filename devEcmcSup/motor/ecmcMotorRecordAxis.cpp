@@ -32,9 +32,9 @@ extern asynUser *pPrintOutAsynUser;
 #undef LOGERR
 #undef LOGINFO
 #define LOGERR(...) \
-  ECMC_RT_LOG_MOTOR_AXIS_ERROR((int)axisNo_, __VA_ARGS__)
+  ECMC_RT_LOG_MOTOR_AXIS_ERROR((int)drvlocal.axisId, __VA_ARGS__)
 #define LOGINFO(...) \
-  ECMC_RT_LOG_MOTOR_AXIS_INFO((int)axisNo_, __VA_ARGS__)
+  ECMC_RT_LOG_MOTOR_AXIS_INFO((int)drvlocal.axisId, __VA_ARGS__)
 
 static const char *ecmcInterlockToString(int interlock) {
   switch (interlock) {
@@ -202,6 +202,7 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   memset(&drvlocal,       0,    sizeof(drvlocal));
   memset(&drvlocal.dirty, 0xFF, sizeof(drvlocal.dirty));
   strcpy(profileMessage_, "");
+  drvlocal.axisId       = axisNo;
 
   //restorePowerOnOffNeeded_ = 0;
   drvlocal.ecmcAxis    = ecmcAxisRef;
@@ -224,7 +225,6 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
       __LINE__);
     return;
   }
-  drvlocal.axisId          = axisNo;
   drvlocal.old_eeAxisError = eeAxisErrorIOCcomError;
   drvlocal.axisFlags       = axisFlags;
   triggstop_ = 1;
@@ -349,12 +349,13 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
                                          int         axisFlags,
                                          const char *axisOptionsStr) {
   if ((axisNo >= ECMC_MAX_AXES) || (axisNo < 0)) {
-    LOGERR("%s/%s:%d: ERROR: Axis index %d out of range. Allowed values 0..%d.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisNo,
-           ECMC_MAX_AXES - 1);
+    ECMC_RT_LOG_MOTOR_AXIS_ERROR(axisNo,
+                                 "%s/%s:%d: ERROR: Axis index %d out of range. Allowed values 0..%d.\n",
+                                 __FILE__,
+                                 __FUNCTION__,
+                                 __LINE__,
+                                 axisNo,
+                                 ECMC_MAX_AXES - 1);
     return asynError;
   }
 
@@ -413,30 +414,33 @@ extern "C" int ecmcMotorRecordCreateAxis(const char *controllerPortName,
   pC = (ecmcMotorRecordController *)findAsynPortDriver(controllerPortName);
 
   if (!pC) {
-    LOGERR("%s/%s:%d: ERROR: Asyn port %s not found.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           controllerPortName);
+    ECMC_RT_LOG_MOTOR_AXIS_ERROR(axisNo,
+                                 "%s/%s:%d: ERROR: Asyn port %s not found.\n",
+                                 __FILE__,
+                                 __FUNCTION__,
+                                 __LINE__,
+                                 controllerPortName);
     return asynError;
   }
 
   if ((axisNo >= ECMC_MAX_AXES) || (axisNo < 0)) {
-    LOGERR("%s/%s:%d: ERROR: Axis index %d out of range. Allowed values 0..%d.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisNo,
-           ECMC_MAX_AXES - 1);
+    ECMC_RT_LOG_MOTOR_AXIS_ERROR(axisNo,
+                                 "%s/%s:%d: ERROR: Axis index %d out of range. Allowed values 0..%d.\n",
+                                 __FILE__,
+                                 __FUNCTION__,
+                                 __LINE__,
+                                 axisNo,
+                                 ECMC_MAX_AXES - 1);
     return asynError;
   }
 
   if (axes[axisNo] == NULL) {
-    LOGERR("%s/%s:%d: ERROR: Axis[%d]: Axis object is NULL.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           axisNo);
+    ECMC_RT_LOG_MOTOR_AXIS_ERROR(axisNo,
+                                 "%s/%s:%d: ERROR: Axis[%d]: Axis object is NULL.\n",
+                                 __FILE__,
+                                 __FUNCTION__,
+                                 __LINE__,
+                                 axisNo);
     return asynError;
   }
 
