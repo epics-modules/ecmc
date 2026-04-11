@@ -656,9 +656,17 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParam
   if((enabledBwd == 0 && enabledFwd == 0) || (fValueBwd == 0 && fValueFwd == 0)) {
     asynMotorAxis::setDoubleParam(pC_->motorLowLimitRO_,  0);
     asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, 0);
+    if (force) {
+      asynMotorAxis::setDoubleParam(pC_->motorLowLimit_,  0);
+      asynMotorAxis::setDoubleParam(pC_->motorHighLimit_, 0);
+    }
   } else {
     asynMotorAxis::setDoubleParam(pC_->motorLowLimitRO_,  fValueBwd);
     asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, fValueFwd);
+    if (force) {
+      asynMotorAxis::setDoubleParam(pC_->motorLowLimit_,  fValueBwd);
+      asynMotorAxis::setDoubleParam(pC_->motorHighLimit_, fValueFwd);
+    }
   }
   
   if(updateParams) {
@@ -668,9 +676,14 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParam
 }
 
 asynStatus ecmcMotorRecordAxis::syncSoftLimitInterfaces(bool updateParams) {
+  return syncSoftLimitInterfaces(updateParams, false);
+}
+
+asynStatus ecmcMotorRecordAxis::syncSoftLimitInterfaces(bool updateParams,
+                                                        bool seedWritableMotorLimits) {
   asynStatus status = syncEcmcSoftLimits(true, false);
   if (status == asynSuccess) {
-    status = syncMotorSoftLimits(false, false);
+    status = syncMotorSoftLimits(seedWritableMotorLimits, false);
   }
 
   if (updateParams) {
@@ -1801,7 +1814,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 
   // Inits first poll
   if (!updateFirstPollDone_) {
-    syncSoftLimitInterfaces(true);
+    syncSoftLimitInterfaces(true, true);
     updateFirstPollDone_ = true;
   }
 

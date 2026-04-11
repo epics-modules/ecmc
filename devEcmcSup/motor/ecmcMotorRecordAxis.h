@@ -160,6 +160,8 @@ private:
   asynStatus syncMotorSoftLimits();
   asynStatus syncMotorSoftLimits(bool force, bool updateParams);
   asynStatus syncSoftLimitInterfaces(bool updateParams);
+  asynStatus syncSoftLimitInterfaces(bool updateParams,
+                                     bool seedWritableMotorLimits);
   asynStatus readScaling(int axisID);
   asynStatus readMonitoring(int axisID);
   asynStatus readBackVelocities(int axisID);
