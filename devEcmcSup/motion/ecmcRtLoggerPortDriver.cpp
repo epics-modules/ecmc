@@ -65,7 +65,7 @@ public:
       filterIndexParam_(0),
       messageCount_(0),
       droppedCount_(0),
-      filterMode_(ECMC_RT_LOG_FILTER_ALL),
+      filterMode_(ECMC_RT_LOG_FILTER_NONE),
       filterTypeMask_(INT_MAX),
       filterIndex_(-1) {
     createRequiredParam(ECMC_RT_LOGGER_PAR_LAST_MESSAGE,
@@ -110,7 +110,7 @@ public:
     setIntegerParam(controlParam_, (int)ecmcRtLoggerGetControlWord());
     setIntegerParam(lastSourceTypeParam_, ECMC_RT_LOG_SOURCE_UNKNOWN);
     setIntegerParam(lastSourceIndexParam_, -1);
-    setIntegerParam(filterModeParam_, ECMC_RT_LOG_FILTER_ALL);
+    setIntegerParam(filterModeParam_, ECMC_RT_LOG_FILTER_NONE);
     setIntegerParam(filterTypeMaskParam_, INT_MAX);
     setIntegerParam(filterIndexParam_, -1);
     callParamCallbacks();
