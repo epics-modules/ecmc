@@ -14,11 +14,6 @@
 #include "ecmcRtLogger.h"
 #include "ecmcOctetIF.h"
 
-#define ecmcRtLoggerLogInfo(...) \
-  ECMC_RT_LOG_AXIS_DATA_INFO(status_.axisId, __VA_ARGS__)
-#define ecmcRtLoggerLogError(...) \
-  ECMC_RT_LOG_AXIS_DATA_ERROR(status_.axisId, __VA_ARGS__)
-
 namespace {
 const char *interlockToString(interlockTypes interlock) {
   switch (interlock) {
@@ -99,14 +94,15 @@ void printInterlockSummaryChange(int axisId,
                                  const char *summaryName,
                                  bool active,
                                  const char *causes) {
-  ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: Interlock summary %s %s: active=%s.\n",
-          __FILE__,
-          __FUNCTION__,
-          __LINE__,
-          axisId,
-          summaryName,
-          active ? "active" : "cleared",
-          causes[0] ? causes : "none");
+  ECMC_RT_LOG_AXIS_DATA_INFO(axisId,
+                             "%s/%s:%d: INFO: Axis[%d]: Interlock summary %s %s: active=%s.\n",
+                             __FILE__,
+                             __FUNCTION__,
+                             __LINE__,
+                             axisId,
+                             summaryName,
+                             active ? "active" : "cleared",
+                             causes[0] ? causes : "none");
 }
 }
 
@@ -354,19 +350,21 @@ stopMode ecmcAxisData::refreshInterlocks() {
   if ((oldInterlock != interlocks_.interlockStatus) &&
       !status_.statusWord_.instartup) {
     if (interlocks_.interlockStatus) {
-      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: Motion interlocked: %s (type %d).\n",
-             __FILE__,
-             __FUNCTION__,
-             __LINE__,
-             status_.axisId,
-             interlockToString(interlocks_.interlockStatus),
-             interlocks_.interlockStatus);
+      ECMC_RT_LOG_AXIS_DATA_INFO(status_.axisId,
+                                 "%s/%s:%d: INFO: Axis[%d]: Motion interlocked: %s (type %d).\n",
+                                 __FILE__,
+                                 __FUNCTION__,
+                                 __LINE__,
+                                 status_.axisId,
+                                 interlockToString(interlocks_.interlockStatus),
+                                 interlocks_.interlockStatus);
     } else {
-      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: Motion interlock cleared.\n",
-             __FILE__,
-             __FUNCTION__,
-             __LINE__,
-             status_.axisId);
+      ECMC_RT_LOG_AXIS_DATA_INFO(status_.axisId,
+                                 "%s/%s:%d: INFO: Axis[%d]: Motion interlock cleared.\n",
+                                 __FILE__,
+                                 __FUNCTION__,
+                                 __LINE__,
+                                 status_.axisId);
     }
   }
   return stop;
