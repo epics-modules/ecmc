@@ -225,6 +225,7 @@ protected:
   double actVel_;
   double actVelLocal_;
   bool homed_;
+  bool suspiciousActPosLogged_;
   bool encLatchFunctEnabled_;
   bool encLatchStatus_;
   bool encLatchStatusOld_;
