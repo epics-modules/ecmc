@@ -14,9 +14,17 @@
 
 #include "ecmcOctetIF.h"
 
+#define ECMC_RT_LOGGER_CONTROL_INFO_ENABLE  0x1
+#define ECMC_RT_LOGGER_CONTROL_ERROR_ENABLE 0x2
+#define ECMC_RT_LOGGER_CONTROL_DEFAULT \
+  (ECMC_RT_LOGGER_CONTROL_INFO_ENABLE | ECMC_RT_LOGGER_CONTROL_ERROR_ENABLE)
+
 int  ecmcRtLoggerStart();
 void ecmcRtLoggerSetEnabled(int enabled);
 int  ecmcRtLoggerIsEnabled();
+const char *ecmcRtLoggerGetAsynPortName();
+void ecmcRtLoggerSetControlWord(unsigned int controlWord);
+unsigned int ecmcRtLoggerGetControlWord();
 void ecmcRtLoggerLogInfo(const char *fmt, ...);
 void ecmcRtLoggerLogError(const char *fmt, ...);
 

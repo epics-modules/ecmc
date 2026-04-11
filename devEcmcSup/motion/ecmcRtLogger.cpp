@@ -18,6 +18,7 @@
 
 #include "epicsThread.h"
 #include "ecmcOctetIF.h"
+#include "ecmcRtLoggerPortDriver.h"
 
 namespace {
 
@@ -41,7 +42,18 @@ std::atomic<size_t> readIndex_(0);
 std::atomic<unsigned int> droppedCount_(0);
 std::atomic<int> enabled_(0);
 std::atomic<int> started_(0);
+std::atomic<unsigned int> controlWord_(ECMC_RT_LOGGER_CONTROL_DEFAULT);
 ecmcRtLogEvent queue_[ECMC_RT_LOGGER_QUEUE_SIZE] = {};
+
+bool levelEnabled(int level) {
+  const unsigned int controlWord = controlWord_.load(std::memory_order_acquire);
+
+  if (level == ECMC_RT_LOG_LEVEL_ERROR) {
+    return (controlWord & ECMC_RT_LOGGER_CONTROL_ERROR_ENABLE) != 0;
+  }
+
+  return (controlWord & ECMC_RT_LOGGER_CONTROL_INFO_ENABLE) != 0;
+}
 
 void printMessage(int level, const char *message) {
   if (level == ECMC_RT_LOG_LEVEL_ERROR) {
@@ -58,6 +70,8 @@ void reportDroppedEvents() {
   if (dropped == 0) {
     return;
   }
+
+  ecmcRtLoggerPortDriverPublishDropped(dropped);
 
   LOGERR("%s/%s:%d: ERROR: RT log queue dropped %u events.\n",
          __FILE__,
@@ -78,6 +92,7 @@ void drainQueue() {
     const ecmcRtLogEvent event = queue_[readIndex];
     readIndex_.store((readIndex + 1) % ECMC_RT_LOGGER_QUEUE_SIZE,
                      std::memory_order_release);
+    ecmcRtLoggerPortDriverPublishMessage(event.level, event.message);
     printMessage(event.level, event.message);
   }
 
@@ -94,6 +109,10 @@ void loggerTask(void *arg) {
 }
 
 void logMessageV(int level, const char *fmt, va_list args) {
+  if (!levelEnabled(level)) {
+    return;
+  }
+
   char buffer[ECMC_RT_LOGGER_MSG_SIZE];
   va_list argsCopy;
   va_copy(argsCopy, args);
@@ -128,6 +147,13 @@ int ecmcRtLoggerStart() {
     return 0;
   }
 
+  if (ecmcRtLoggerPortDriverStart()) {
+    LOGERR("%s/%s:%d: WARNING: Failed to create RT logger asyn port driver. Continuing with IOC log output only.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__);
+  }
+
   epicsThreadId threadId = epicsThreadCreate(
     ECMC_RT_LOGGER_THREAD,
     epicsThreadPriorityLow,
@@ -155,6 +181,18 @@ void ecmcRtLoggerSetEnabled(int enabled) {
 int ecmcRtLoggerIsEnabled() {
   return started_.load(std::memory_order_acquire) &&
          enabled_.load(std::memory_order_acquire);
+}
+
+const char *ecmcRtLoggerGetAsynPortName() {
+  return ecmcRtLoggerPortDriverGetPortName();
+}
+
+void ecmcRtLoggerSetControlWord(unsigned int controlWord) {
+  controlWord_.store(controlWord, std::memory_order_release);
+}
+
+unsigned int ecmcRtLoggerGetControlWord() {
+  return controlWord_.load(std::memory_order_acquire);
 }
 
 void ecmcRtLoggerLogInfo(const char *fmt, ...) {
