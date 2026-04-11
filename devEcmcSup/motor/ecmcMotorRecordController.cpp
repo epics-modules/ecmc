@@ -20,6 +20,7 @@ FILENAME... ecmcMotorRecordController.cpp
 #include "ecmcGlobalsExtern.h"
 #include "ecmcPVTController.h"
 #include "ecmcPluginClient.h"
+#include "ecmcRtLogger.h"
 
 static const char *driverName = "ecmcMotorController";
 
@@ -28,6 +29,11 @@ static const char *driverName = "ecmcMotorController";
 #endif // ifndef ASYN_TRACE_INFO
 
 extern asynUser *pPrintOutAsynUser;
+
+#undef LOGERR
+#undef LOGINFO
+#define LOGERR(...)  ecmcRtLoggerLogError(__VA_ARGS__)
+#define LOGINFO(...) ecmcRtLoggerLogInfo(__VA_ARGS__)
 
 const char *modNamEMC = "ecmcMotorRecord:: ";
 

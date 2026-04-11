@@ -16,6 +16,7 @@
 #include "ecmcMotorRecordController.h"
 #include "ecmcGlobalsExtern.h"
 #include "ecmcPluginClient.h"
+#include "ecmcRtLogger.h"
 
 #ifndef ASYN_TRACE_INFO
 #define ASYN_TRACE_INFO      0x0040
@@ -27,6 +28,11 @@
 
 static ecmcMotorRecordController *pC;
 extern asynUser *pPrintOutAsynUser;
+
+#undef LOGERR
+#undef LOGINFO
+#define LOGERR(...)  ecmcRtLoggerLogError(__VA_ARGS__)
+#define LOGINFO(...) ecmcRtLoggerLogInfo(__VA_ARGS__)
 
 static const char *ecmcInterlockToString(int interlock) {
   switch (interlock) {
