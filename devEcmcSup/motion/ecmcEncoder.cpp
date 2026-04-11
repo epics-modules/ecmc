@@ -86,7 +86,6 @@ void ecmcEncoder::initVars() {
   actPosLocal_            = 0;
   actVelLocal_            = 0;
   homed_                  = false;
-  suspiciousActPosLogged_ = false;
   enablePositionFilter_   = false;
   enableVelocityFilter_   = true;
   scaleNum_               = 0;
@@ -386,34 +385,10 @@ int64_t ecmcEncoder::handleOverUnderFlow(uint64_t rawPosOld,
     // Overflow
     if ((rawPosOld > rawPos) && (rawPosOld - rawPos > rawLimit)) {
       turns++;
-      ecmcRtLoggerLogInfo(
-        "%s/%s:%d: INFO: Axis[%d]: Encoder overflow detected (rawOld=%" PRIu64 ", raw=%" PRIu64 ", rawLimit=%" PRIu64 ", turns=%" PRId64 "->%" PRId64 ", bits=%d).\n",
-        __FILE__,
-        __FUNCTION__,
-        __LINE__,
-        data_->status_.axisId,
-        rawPosOld,
-        rawPos,
-        rawLimit,
-        rawTurns,
-        turns,
-        bits);
     } else {
       // Underflow
       if ((rawPosOld < rawPos) && (rawPos - rawPosOld > rawLimit)) {
         turns--;
-        ecmcRtLoggerLogInfo(
-          "%s/%s:%d: INFO: Axis[%d]: Encoder underflow detected (rawOld=%" PRIu64 ", raw=%" PRIu64 ", rawLimit=%" PRIu64 ", turns=%" PRId64 "->%" PRId64 ", bits=%d).\n",
-          __FILE__,
-          __FUNCTION__,
-          __LINE__,
-          data_->status_.axisId,
-          rawPosOld,
-          rawPos,
-          rawLimit,
-          rawTurns,
-          turns,
-          bits);
       }
     }
   } else {
@@ -632,44 +607,6 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
   }
 
   actPosLocal_ = scale_ * rawPosMultiTurn_ + engOffset_;
-
-  const double positionJump = actPosLocal_ - actPosOld_;
-  const bool suspiciousActPos =
-    std::isfinite(actPosLocal_) &&
-    (std::abs(actPosLocal_) > 1.0e12 || std::abs(positionJump) > 1.0e9);
-
-  if (suspiciousActPos && !suspiciousActPosLogged_) {
-    ecmcRtLoggerLogError(
-      "%s/%s:%d: ERROR: Axis[%d]: Suspicious encoder actual position detected (type=%d, float=%d, actPos=%g, prevActPos=%g, jump=%g, rawOld=%" PRIu64 ", raw=%" PRIu64 ", rawDouble=%g, rawMultiTurn=%g, rawOffset=%g, turnsOld=%" PRId64 ", turns=%" PRId64 ", rawRange=%" PRId64 ", rawLimit=%" PRIu64 ", rawMask=0x%" PRIx64 ", rawShift=%" PRIu64 ", scale=%g, engOffset=%g, bits=%d, absBits=%d, allowWrap=%d).\n",
-      __FILE__,
-      __FUNCTION__,
-      __LINE__,
-      data_->status_.axisId,
-      static_cast<int>(getActPosEntryDataType()),
-      actPosEntryUsesFloatingPoint() ? 1 : 0,
-      actPosLocal_,
-      actPosOld_,
-      positionJump,
-      rawPosUintOld_,
-      rawPosUint_,
-      rawPosDouble_,
-      rawPosMultiTurn_,
-      rawPosOffset_,
-      rawTurnsOld_,
-      rawTurns_,
-      rawRange_,
-      rawLimit_,
-      totalRawMask_,
-      totalRawRegShift_,
-      scale_,
-      engOffset_,
-      bits_,
-      absBits_,
-      allowOverUnderFlow_ ? 1 : 0);
-    suspiciousActPosLogged_ = true;
-  } else if (!suspiciousActPos) {
-    suspiciousActPosLogged_ = false;
-  }
 
   // Apply correction table if lookup table is enabled
   if(lookupTableEnable_ && homed_ ){
