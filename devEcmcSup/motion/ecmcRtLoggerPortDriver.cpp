@@ -17,6 +17,7 @@
 
 #include "asynPortDriver.h"
 #include "ecmcOctetIF.h"
+#include "ecmcRtLogger.h"
 
 namespace {
 
