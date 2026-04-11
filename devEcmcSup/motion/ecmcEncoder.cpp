@@ -613,7 +613,9 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
                                        rawTurns_,
                                        rawLimit_,
                                        bits_);
-    rawPosMultiTurn_ = rawTurns_ * rawRange_ + rawPosUint_ + rawPosOffset_;
+    const double rawWrapSpan = static_cast<double>(rawRange_) + 1.0;
+    rawPosMultiTurn_ = static_cast<double>(rawTurns_) * rawWrapSpan +
+                       static_cast<double>(rawPosUint_) + rawPosOffset_;
   }
 
   // Calculate absolute encoder data
@@ -791,8 +793,9 @@ int ecmcEncoder::readHwLatch(bool domainOK) {
                                           rawTurnsOld_,
                                           rawLimit_,
                                           bits_);
-      rawEncLatchPosMultiTurn_ = turns * rawRange_ + rawEncLatchPos_ +
-                                 rawPosOffset_;
+      const double rawWrapSpan = static_cast<double>(rawRange_) + 1.0;
+      rawEncLatchPosMultiTurn_ = static_cast<double>(turns) * rawWrapSpan +
+                                 rawEncLatchPos_ + rawPosOffset_;
     }
     actEncLatchPos_ = scale_ * rawEncLatchPosMultiTurn_ +
                       engOffset_;
