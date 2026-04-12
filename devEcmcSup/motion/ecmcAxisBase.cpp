@@ -23,6 +23,8 @@
   ECMC_RT_LOG_AXIS_BASE_INFO(data_.status_.axisId, __VA_ARGS__)
 #define ecmcRtLoggerLogError(...) \
   ECMC_RT_LOG_AXIS_BASE_ERROR(data_.status_.axisId, __VA_ARGS__)
+#define ecmcRtLoggerLogDebug(...) \
+  ECMC_RT_LOG_AXIS_BASE_DEBUG(data_.status_.axisId, __VA_ARGS__)
 
 namespace {
 const char *axisCommandToString(motionCommandTypes command) {
@@ -1888,7 +1890,7 @@ int ecmcAxisBase::movePVTAbs() {
 
 int ecmcAxisBase::movePVTAbs(bool ignoreBusy) {
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: movePVTAbs().\n",
+    ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Axis[%d]: movePVTAbs().\n",
             __FILE__,
             __FUNCTION__,
             __LINE__,
@@ -1952,7 +1954,7 @@ int ecmcAxisBase::moveAbsolutePosition(
   double accelerationSet,
   double decelerationSet) {
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: moveAbsolutePosition().\n",
+    ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Axis[%d]: moveAbsolutePosition().\n",
             __FILE__,
             __FUNCTION__,
             __LINE__,
@@ -2035,7 +2037,7 @@ int ecmcAxisBase::moveRelativePosition(
   double decelerationSet) {
   
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: moveRelativePosition().\n",
+    ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Axis[%d]: moveRelativePosition().\n",
             __FILE__,
             __FUNCTION__,
             __LINE__,
@@ -3254,7 +3256,7 @@ int ecmcAxisBase::selectCSPDriveEncoder(int index) {
 
 
   if(data_.control_.controlWord_.enableDbgPrintout) {
-    ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: selectCSPDriveEncoder(): CSP encoder selected for drive control.\n",
+    ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Axis[%d]: selectCSPDriveEncoder(): CSP encoder selected for drive control.\n",
             __FILE__,
             __FUNCTION__,
             __LINE__,
@@ -3589,19 +3591,11 @@ void ecmcAxisBase::autoEnableSM() {
   
   if(!data_.status_.statusWord_.enable) {
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      if (data_.status_.statusWord_.inrealtime && ecmcRtLoggerIsEnabled()) {
-        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): enabling axis.\n",
-                            __FILE__,
-                            __FUNCTION__,
-                            __LINE__,
-                            data_.status_.axisId);
-      } else {
-        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): enabling axis.\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_.status_.axisId);
-      }
+      ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Axis[%d]: autoEnableSM(): enabling axis.\n",
+                           __FILE__,
+                           __FUNCTION__,
+                           __LINE__,
+                           data_.status_.axisId);
     }
 
     setEnable(true);
@@ -3622,19 +3616,11 @@ void ecmcAxisBase::autoEnableSM() {
     autoEnableTimeCounter_ = 0;
     autoEnableRequest_= false;
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      if (data_.status_.statusWord_.inrealtime && ecmcRtLoggerIsEnabled()) {
-        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): axis enabled, triggering motion.\n",
-                            __FILE__,
-                            __FUNCTION__,
-                            __LINE__,
-                            data_.status_.axisId);
-      } else {
-        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoEnableSM(): axis enabled, triggering motion.\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_.status_.axisId);
-      }
+      ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Axis[%d]: autoEnableSM(): axis enabled, triggering motion.\n",
+                           __FILE__,
+                           __FUNCTION__,
+                           __LINE__,
+                           data_.status_.axisId);
     }
     
     setExecute(0,1); // need ignore busy
@@ -3666,21 +3652,12 @@ void ecmcAxisBase::autoDisableSM() {
 
   if(autoDisbleTimeCounter_ > autoDisableAfterS_ && data_.control_.controlWord_.enableCmd) {
     if(data_.control_.controlWord_.enableDbgPrintout) {
-      if (data_.status_.statusWord_.inrealtime && ecmcRtLoggerIsEnabled()) {
-        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoDisableSM(): auto-disabling axis after %lf s idle.\n",
-                            __FILE__,
-                            __FUNCTION__,
-                            __LINE__,
-                            data_.status_.axisId,
-                            autoDisableAfterS_);
-      } else {
-        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: autoDisableSM(): auto-disabling axis after %lf s idle.\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_.status_.axisId,
-                autoDisableAfterS_);
-      }
+      ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Axis[%d]: autoDisableSM(): auto-disabling axis after %lf s idle.\n",
+                           __FILE__,
+                           __FUNCTION__,
+                           __LINE__,
+                           data_.status_.axisId,
+                           autoDisableAfterS_);
     }
 
     setEnable(0);

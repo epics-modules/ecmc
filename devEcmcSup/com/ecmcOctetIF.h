@@ -92,6 +92,10 @@ extern unsigned int die_on_error_flags;
 # define ASYN_TRACE_WARNING ASYN_TRACE_INFO
 #endif
 
+#ifndef ASYN_TRACE_DEBUG
+# define ASYN_TRACE_DEBUG ASYN_TRACE_INFO
+#endif
+
 # define LOGINFO(fmt, ...)\
         {\
           (void)asynPrint(pPrintOutAsynUser,\
@@ -104,6 +108,14 @@ extern unsigned int die_on_error_flags;
         {\
           (void)asynPrint(pPrintOutAsynUser,\
                           ASYN_TRACE_WARNING,\
+                          fmt,\
+                          ## __VA_ARGS__);\
+        }
+
+# define LOGDEBUG(fmt, ...)\
+        {\
+          (void)asynPrint(pPrintOutAsynUser,\
+                          ASYN_TRACE_DEBUG,\
                           fmt,\
                           ## __VA_ARGS__);\
         }

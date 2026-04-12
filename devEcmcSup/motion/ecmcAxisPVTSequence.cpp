@@ -200,8 +200,11 @@ bool ecmcAxisPVTSequence::nextSampleStep(){
 
   // Shift in the next time from pvtController
   currTime_ = nextTime_;
-  
-  //printf("time %lf\n",currTime_);
+  ECMC_RT_LOGDEBUG12("%s/%s:%d: DEBUG: PVT sequence: current time=%lf.\n",
+                     __FILE__,
+                     __FUNCTION__,
+                     __LINE__,
+                     currTime_);
   // Increase time now done in pvtController
   //currTime_ = currTime_ + sampleTime_;
 
@@ -231,11 +234,15 @@ double ecmcAxisPVTSequence::getCurrPosition(){
     if(std::abs(currTime_- (segments_[currSegIndex_]->getStartPoint()->time_ + sampleTime_)) < (halfSampleTime_)) {
     // skip first and last segment (since they are acc and dec segments)    
     if(currSegIndex_ > 0 && currSegIndex_ < segmentCount_ && trgMode_ == TRG_INT_ON_SEG_CHANGE) {
-        //printf("pvt[%lu]: time %lf, posact %lf , posset %lf, poserr %lf\n",currSegIndex_ - 1,
-        //        (currTime_ - firstSegTime_),
-        //        data_->status_.currentPositionActual - positionOffset_,
-        //        data_->status_.currentPositionSetpoint - positionOffset_,
-        //        data_->status_.cntrlError);
+      ECMC_RT_LOGDEBUG12("%s/%s:%d: DEBUG: PVT sample[%zu]: time=%lf, posAct=%lf, posSet=%lf, posErr=%lf.\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__,
+                         currSegIndex_ - 1,
+                         (currTime_ - firstSegTime_),
+                         data_->status_.currentPositionActual - positionOffset_,
+                         data_->status_.currentPositionSetpoint - positionOffset_,
+                         data_->status_.cntrlError);
       resultPosActArray_.push_back(data_->status_.currentPositionActual);
       resultPosErrArray_.push_back(data_->status_.cntrlError);
     }

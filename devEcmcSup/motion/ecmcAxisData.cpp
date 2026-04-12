@@ -94,15 +94,15 @@ void printInterlockSummaryChange(int axisId,
                                  const char *summaryName,
                                  bool active,
                                  const char *causes) {
-  ECMC_RT_LOG_AXIS_DATA_INFO(axisId,
-                             "%s/%s:%d: INFO: Axis[%d]: Interlock summary %s %s: active=%s.\n",
-                             __FILE__,
-                             __FUNCTION__,
-                             __LINE__,
-                             axisId,
-                             summaryName,
-                             active ? "active" : "cleared",
-                             causes[0] ? causes : "none");
+  ECMC_RT_LOG_AXIS_DATA_DEBUG(axisId,
+                              "%s/%s:%d: DEBUG: Axis[%d]: Interlock summary %s %s: active=%s.\n",
+                              __FILE__,
+                              __FUNCTION__,
+                              __LINE__,
+                              axisId,
+                              summaryName,
+                              active ? "active" : "cleared",
+                              causes[0] ? causes : "none");
 }
 }
 

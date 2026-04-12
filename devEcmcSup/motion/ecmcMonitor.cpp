@@ -19,6 +19,8 @@
   ECMC_RT_LOG_AXIS_MON_INFO((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
 #define ecmcRtLoggerLogError(...) \
   ECMC_RT_LOG_AXIS_MON_ERROR((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+#define ecmcRtLoggerLogDebug(...) \
+  ECMC_RT_LOG_AXIS_MON_DEBUG((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
 
 ecmcMonitor::ecmcMonitor(ecmcAxisData &axisData,
                          ecmcEncoder **encArray)
@@ -1066,14 +1068,14 @@ int  ecmcMonitor::checkStall() {
         stallCheckAtTargetAtCycle_ = stallMinTimeoutCycles_;
       }
       if (dbgPrint) {
-        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: Stall check scheduled after %" PRIu64 " cycles (factor=%lf, min=%lf).\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->status_.axisId,
-                stallCheckAtTargetAtCycle_,
-                stallTimeFactor_,
-                stallMinTimeoutCycles_);
+        ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Axis[%d]: Stall check scheduled after %" PRIu64 " cycles (factor=%lf, min=%lf).\n",
+                             __FILE__,
+                             __FUNCTION__,
+                             __LINE__,
+                             data_->status_.axisId,
+                             stallCheckAtTargetAtCycle_,
+                             stallTimeFactor_,
+                             stallMinTimeoutCycles_);
       }
     }
   }
@@ -1084,11 +1086,11 @@ int  ecmcMonitor::checkStall() {
     data_->interlocks_.stallInterlock = false;
     if (!statusOldWord.attarget) {
       if (dbgPrint) {
-        ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: Stall check cleared: axis reached target.\n",
-                __FILE__,
-                __FUNCTION__,
-                __LINE__,
-                data_->status_.axisId);
+        ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Axis[%d]: Stall check cleared: axis reached target.\n",
+                             __FILE__,
+                             __FUNCTION__,
+                             __LINE__,
+                             data_->status_.axisId);
       }
     }
     stallLastMotionCmdCycles_ = 0;
@@ -1099,11 +1101,11 @@ int  ecmcMonitor::checkStall() {
   if ((maxStallCounter_ > stallCheckAtTargetAtCycle_) && 
      (stallCheckAtTargetAtCycle_ > 0)) {
     if (dbgPrint) {
-      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Axis[%d]: Stall detected.\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              data_->status_.axisId);
+      ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Axis[%d]: Stall detected.\n",
+                           __FILE__,
+                           __FUNCTION__,
+                           __LINE__,
+                           data_->status_.axisId);
     }
     stallLastMotionCmdCycles_ = 0;  
     stallCheckAtTargetAtCycle_ = 0;

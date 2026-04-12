@@ -12,6 +12,9 @@
 #include "ecmcMasterSlaveStateMachine.h"
 #include "ecmcRtLogger.h"
 
+#define ecmcRtLoggerLogDebug(...) \
+  ECMC_RT_LOG_DEBUG_SOURCE(ECMC_RT_LOG_SOURCE_MASTER_SLAVE, index_, __VA_ARGS__)
+
 ecmcMasterSlaveStateMachine::ecmcMasterSlaveStateMachine(ecmcAsynPortDriver *asynPortDriver,
                                                          int index,
                                                          const char *name,
@@ -148,12 +151,12 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
     masterGrp_->setBlocked(true);
     state_ = ECMC_MST_SLV_STATE_SLAVES;
     if(control_.enableDbgPrintouts) {
-      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Master/slave state machine[%d] %s: state changed IDLE -> SLAVE.\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              index_,
-              name_.c_str());
+      ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Master/slave state machine[%d] %s: state changed IDLE -> SLAVE.\n",
+                           __FILE__,
+                           __FUNCTION__,
+                           __LINE__,
+                           index_,
+                           name_.c_str());
     }
 
   // State transision to MASTER
@@ -169,12 +172,12 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
         masterGrp_->setBlocked(false);
         slaveGrp_->setBlocked(true);
         if(control_.enableDbgPrintouts) {
-          ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Master/slave state machine[%d] %s: state changed IDLE -> MASTER.\n",
-                  __FILE__,
-                  __FUNCTION__,
-                  __LINE__,
-                  index_,
-                  name_.c_str());
+          ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Master/slave state machine[%d] %s: state changed IDLE -> MASTER.\n",
+                               __FILE__,
+                               __FUNCTION__,
+                               __LINE__,
+                               index_,
+                               name_.c_str());
         }
       }
 
@@ -193,18 +196,18 @@ int ecmcMasterSlaveStateMachine::stateIdle(){
           masterGrp_->setSlavedAxisInError();
         }
         if(control_.enableDbgPrintouts) {
-          ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Master/slave state machine[%d] %s: enabling axes failed.\n",
-                  __FILE__,
-                  __FUNCTION__,
-                  __LINE__,
-                  index_,
-                  name_.c_str());
-          ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Master/slave state machine[%d] %s: state changed IDLE -> IDLE.\n",
-                  __FILE__,
-                  __FUNCTION__,
-                  __LINE__,
-                  index_,
-                  name_.c_str());
+          ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Master/slave state machine[%d] %s: enabling axes failed.\n",
+                               __FILE__,
+                               __FUNCTION__,
+                               __LINE__,
+                               index_,
+                               name_.c_str());
+          ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Master/slave state machine[%d] %s: state changed IDLE -> IDLE.\n",
+                               __FILE__,
+                               __FUNCTION__,
+                               __LINE__,
+                               index_,
+                               name_.c_str());
         }
         state_ = ECMC_MST_SLV_STATE_IDLE;
         
@@ -248,12 +251,12 @@ int ecmcMasterSlaveStateMachine::stateSlave(){
 
     state_ = ECMC_MST_SLV_STATE_IDLE;
     if(control_.enableDbgPrintouts) {
-      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Master/slave state machine[%d] %s: state changed SLAVE -> IDLE.\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              index_,
-              name_.c_str());
+      ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Master/slave state machine[%d] %s: state changed SLAVE -> IDLE.\n",
+                           __FILE__,
+                           __FUNCTION__,
+                           __LINE__,
+                           index_,
+                           name_.c_str());
     }
   }
 
@@ -354,18 +357,18 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     masterGrp_->setEnableAutoDisable(1);
     state_ = ECMC_MST_SLV_STATE_SLAVES;
     if(control_.enableDbgPrintouts) {
-      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Master/slave state machine[%d] %s: slaved axis interlock or trajectory source change.\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              index_,
-              name_.c_str());
-      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Master/slave state machine[%d] %s: state changed MASTER -> SLAVE.\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              index_,
-              name_.c_str());
+      ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Master/slave state machine[%d] %s: slaved axis interlock or trajectory source change.\n",
+                           __FILE__,
+                           __FUNCTION__,
+                           __LINE__,
+                           index_,
+                           name_.c_str());
+      ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Master/slave state machine[%d] %s: state changed MASTER -> SLAVE.\n",
+                           __FILE__,
+                           __FUNCTION__,
+                           __LINE__,
+                           index_,
+                           name_.c_str());
     }
   }
   
@@ -378,12 +381,12 @@ int ecmcMasterSlaveStateMachine::stateMaster(){
     masterGrp_->setEnableAutoDisable(1);
     state_ = ECMC_MST_SLV_STATE_IDLE;
     if(control_.enableDbgPrintouts) {
-      ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Master/slave state machine[%d] %s: state changed MASTER -> IDLE.\n",
-              __FILE__,
-              __FUNCTION__,
-              __LINE__,
-              index_,
-              name_.c_str());
+      ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Master/slave state machine[%d] %s: state changed MASTER -> IDLE.\n",
+                           __FILE__,
+                           __FUNCTION__,
+                           __LINE__,
+                           index_,
+                           name_.c_str());
     }
   }
   return 0;
@@ -402,12 +405,12 @@ int ecmcMasterSlaveStateMachine::stateReset() {
   slaveGrp_->setBlocked(false);
   state_ = ECMC_MST_SLV_STATE_IDLE;
   if(control_.enableDbgPrintouts) {
-    ecmcRtLoggerLogInfo("%s/%s:%d: INFO: Master/slave state machine[%d] %s: state changed RESET -> IDLE.\n",
-            __FILE__,
-            __FUNCTION__,
-            __LINE__,
-            index_,
-            name_.c_str());
+    ecmcRtLoggerLogDebug("%s/%s:%d: DEBUG: Master/slave state machine[%d] %s: state changed RESET -> IDLE.\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__,
+                         index_,
+                         name_.c_str());
   }
   return  0;
 }

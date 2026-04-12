@@ -30,7 +30,8 @@ const char      *ECMC_RT_LOGGER_THREAD     = "ecmc_rt_log";
 enum ecmcRtLogLevel {
   ECMC_RT_LOG_LEVEL_INFO    = 0,
   ECMC_RT_LOG_LEVEL_WARNING = 1,
-  ECMC_RT_LOG_LEVEL_ERROR   = 2
+  ECMC_RT_LOG_LEVEL_ERROR   = 2,
+  ECMC_RT_LOG_LEVEL_DEBUG   = 3
 };
 
 struct ecmcRtLogEvent {
@@ -57,8 +58,51 @@ bool levelEnabled(int level) {
   if (level == ECMC_RT_LOG_LEVEL_WARNING) {
     return (controlWord & ECMC_RT_LOGGER_CONTROL_WARNING_ENABLE) != 0;
   }
+  if (level == ECMC_RT_LOG_LEVEL_DEBUG) {
+    return (controlWord & ECMC_RT_LOGGER_CONTROL_DEBUG_ENABLE) != 0;
+  }
 
   return (controlWord & ECMC_RT_LOGGER_CONTROL_INFO_ENABLE) != 0;
+}
+
+void normalizeSeverityText(char *message,
+                           size_t messageSize,
+                           int level) {
+  if (!message || messageSize == 0) {
+    return;
+  }
+
+  const char *targetSeverity =
+    level == ECMC_RT_LOG_LEVEL_ERROR ? "ERROR" :
+    (level == ECMC_RT_LOG_LEVEL_WARNING ? "WARNING" :
+     (level == ECMC_RT_LOG_LEVEL_DEBUG ? "DEBUG" : "INFO"));
+
+  const char *patterns[] = {
+    ": INFO: ",
+    ": WARNING: ",
+    ": ERROR: ",
+    ": DEBUG: "
+  };
+
+  for (size_t i = 0; i < sizeof(patterns) / sizeof(patterns[0]); ++i) {
+    const char *match = strstr(message, patterns[i]);
+    if (!match) {
+      continue;
+    }
+
+    const size_t prefixLength = (size_t)(match - message) + 2;
+    char normalized[ECMC_RT_LOGGER_MSG_SIZE];
+    snprintf(normalized,
+             sizeof(normalized),
+             "%.*s%s: %s",
+             (int)prefixLength,
+             message,
+             targetSeverity,
+             match + strlen(patterns[i]));
+    strncpy(message, normalized, messageSize - 1);
+    message[messageSize - 1] = '\0';
+    return;
+  }
 }
 
 void printMessage(int level, const char *message) {
@@ -66,6 +110,8 @@ void printMessage(int level, const char *message) {
     LOGERR("%s", message);
   } else if (level == ECMC_RT_LOG_LEVEL_WARNING) {
     LOGWARNING("%s", message);
+  } else if (level == ECMC_RT_LOG_LEVEL_DEBUG) {
+    LOGDEBUG("%s", message);
   } else {
     LOGINFO("%s", message);
   }
@@ -133,6 +179,7 @@ void logMessageV(int level,
   va_copy(argsCopy, args);
   vsnprintf(buffer, sizeof(buffer), fmt, argsCopy);
   va_end(argsCopy);
+  normalizeSeverityText(buffer, sizeof(buffer), level);
 
   if (!started_.load(std::memory_order_acquire) ||
       !enabled_.load(std::memory_order_acquire)) {
@@ -226,6 +273,20 @@ void ecmcRtLoggerLogInfoSource(int sourceType,
   va_end(args);
 }
 
+void ecmcRtLoggerLogDebugSource(int sourceType,
+                                int sourceIndex,
+                                const char *fmt,
+                                ...) {
+  va_list args;
+  va_start(args, fmt);
+  logMessageV(ECMC_RT_LOG_LEVEL_DEBUG,
+              sourceType,
+              sourceIndex,
+              fmt,
+              args);
+  va_end(args);
+}
+
 void ecmcRtLoggerLogErrorSource(int sourceType,
                                 int sourceIndex,
                                 const char *fmt,
@@ -258,6 +319,17 @@ void ecmcRtLoggerLogInfo(const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   logMessageV(ECMC_RT_LOG_LEVEL_INFO,
+              ECMC_RT_LOG_SOURCE_UNKNOWN,
+              -1,
+              fmt,
+              args);
+  va_end(args);
+}
+
+void ecmcRtLoggerLogDebug(const char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  logMessageV(ECMC_RT_LOG_LEVEL_DEBUG,
               ECMC_RT_LOG_SOURCE_UNKNOWN,
               -1,
               fmt,

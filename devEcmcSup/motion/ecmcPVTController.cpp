@@ -224,7 +224,10 @@ void ecmcPVTController::execute() {
         // get end time from first axis
         auto * const firstPvt = pvtObjs_[0];
         endTime_ = firstPvt->endTime();
-        //printf("ecmcPVTController: All axes in position, trigger PVT sequence\n");
+        ECMC_RT_LOGDEBUG12("%s/%s:%d: DEBUG: PVT controller: all axes in position, triggering PVT sequence.\n",
+                           __FILE__,
+                           __FUNCTION__,
+                           __LINE__);
       }
       break;
 
@@ -239,7 +242,10 @@ void ecmcPVTController::execute() {
                __LINE__);
         break;
       }
-      //printf("ecmcPVTController: Executing PVT sequence\n");
+      ECMC_RT_LOGDEBUG12("%s/%s:%d: DEBUG: PVT controller: executing PVT sequence.\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__);
       state_ = ECMC_PVT_EXECUTE_PVT;      
       triggerCurrentId_ = 0;
       softTrigger_ = 0;
@@ -391,8 +397,14 @@ int ecmcPVTController::triggMoveAxesToStart() {
     } else {    
       pvt->setPositionOffset(0);
     }
-//    printf("ecmcPVTController::triggMoveAxesToStart(): Execute moveAbsolutePosition\n");
-//    printf("ecmcPVTController::triggMoveAxesToStart(): localBusy %d, global %d\n", axes_[i]->getLocalBusy(),axes_[i]->getGlobalBusy());
+    ECMC_RT_LOGDEBUG12("%s/%s:%d: DEBUG: PVT controller axis[%d]: execute moveAbsolutePosition to start=%lf (localBusy=%d, globalBusy=%d).\n",
+                       __FILE__,
+                       __FUNCTION__,
+                       __LINE__,
+                       axes_[i]->getAxisID(),
+                       startPositions_[i],
+                       axes_[i]->getLocalBusy(),
+                       axes_[i]->getGlobalBusy());
     error = axis->moveAbsolutePosition(startPosition);
     if(error) {
       return error;
@@ -424,7 +436,13 @@ int ecmcPVTController::axesAtStart() {
       }
     }
     //if(axes_[i]->getCurrentPositionSetpoint() != startPositions_[i]) {
-    //  printf("ecmcPVTController:: target set %lf, actual set %lf\n",axes_[i]->getCurrentPositionSetpoint(), startPositions_[i]);
+    ECMC_RT_LOGDEBUG12("%s/%s:%d: DEBUG: PVT controller axis[%d]: target setpoint=%lf, requested start=%lf.\n",
+                       __FILE__,
+                       __FUNCTION__,
+                       __LINE__,
+                       axes_[i]->getAxisID(),
+                       axes_[i]->getCurrentPositionSetpoint(),
+                       startPositions_[i]);
     //  return 0;
     //}
   }
@@ -660,7 +678,13 @@ int ecmcPVTController::checkEnabledState(bool enabled) {
       if(axis->getEnabled() != enabled) {
         return 0;
       }
-      //printf("ecmcPVTController::triggMoveAxesToStart(): localBusy %d, global %d\n", axis->getLocalBusy(),axis->getGlobalBusy());
+      ECMC_RT_LOGDEBUG12("%s/%s:%d: DEBUG: PVT controller axis[%d]: waiting for start position (localBusy=%d, globalBusy=%d).\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__,
+                         axis->getAxisID(),
+                         axis->getLocalBusy(),
+                         axis->getGlobalBusy());
     } else {
       return -1;
     }
