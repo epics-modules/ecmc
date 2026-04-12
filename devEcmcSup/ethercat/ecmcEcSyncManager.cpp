@@ -47,12 +47,13 @@ ecmcEcSyncManager::ecmcEcSyncManager(ecmcAsynPortDriver *asynPortDriver,
   }
 
   ecrt_slave_config_pdo_assign_clear(slaveConfig_, syncMangerIndex_);
-  LOGINFO5("%s/%s:%d: INFO: Sync manager %d configured: direction %d.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           syncMangerIndex,
-           direction);
+  ECMC_RT_LOG_ETHERCAT_DEBUG(slaveId_,
+                             "%s/%s:%d: DEBUG: Sync manager %d configured: direction %d.\n",
+                             __FILE__,
+                             __FUNCTION__,
+                             __LINE__,
+                             syncMangerIndex,
+                             direction);
 }
 
 void ecmcEcSyncManager::initVars() {

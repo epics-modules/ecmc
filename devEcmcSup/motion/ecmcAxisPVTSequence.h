@@ -67,13 +67,14 @@ class ecmcPvtSegment {
       k1_ = startPnt_->velocity_;
       k2_ = 3 * range_ / (timeSpan_ * timeSpan_) - (2 * startPnt_->velocity_ + endPnt_->velocity_) / timeSpan_;
       k3_ = -2 * range_ / (timeSpan_ * timeSpan_ * timeSpan_) + (startPnt_->velocity_ + endPnt_->velocity_) / (timeSpan_ * timeSpan_);
-      ECMC_RT_LOGINFO4("%s/%s:%d: INFO: PVT segment coefficients: k1=%lf, k2=%lf, k3=%lf.\n",
-               __FILE__,
-               __FUNCTION__,
-               __LINE__,
-               k1_,
-               k2_,
-               k3_);
+      ECMC_RT_LOG_AXIS_PVT_DEBUG(-1,
+                                 "%s/%s:%d: DEBUG: PVT segment coefficients: k1=%lf, k2=%lf, k3=%lf.\n",
+                                 __FILE__,
+                                 __FUNCTION__,
+                                 __LINE__,
+                                 k1_,
+                                 k2_,
+                                 k3_);
       return true;
     }
 

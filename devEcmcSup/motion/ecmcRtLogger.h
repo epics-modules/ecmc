@@ -187,6 +187,9 @@ void ecmcRtLoggerLogDebug(const char *fmt, ...);
 #define ECMC_RT_LOG_AXIS_TRAJ_DEBUG(axisIndex, fmt, ...) \
   ECMC_RT_LOG_DEBUG_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_TRAJ, axisIndex, fmt, ## __VA_ARGS__)
 
+#define ECMC_RT_LOG_AXIS_PVT_DEBUG(axisIndex, fmt, ...) \
+  ECMC_RT_LOG_DEBUG_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_PVT, axisIndex, fmt, ## __VA_ARGS__)
+
 #define ECMC_RT_LOG_MOTOR_AXIS_INFO(axisIndex, fmt, ...) \
   ECMC_RT_LOG_INFO_SOURCE(ECMC_RT_LOG_SOURCE_MOTOR_AXIS, axisIndex, fmt, ## __VA_ARGS__)
 
@@ -213,6 +216,9 @@ void ecmcRtLoggerLogDebug(const char *fmt, ...);
 
 #define ECMC_RT_LOG_ETHERCAT_DEBUG(sourceIndex, fmt, ...) \
   ECMC_RT_LOG_DEBUG_SOURCE(ECMC_RT_LOG_SOURCE_ETHERCAT, sourceIndex, fmt, ## __VA_ARGS__)
+
+#define ECMC_RT_LOG_PLC_DEBUG(plcIndex, fmt, ...) \
+  ECMC_RT_LOG_DEBUG_SOURCE(ECMC_RT_LOG_SOURCE_PLC, plcIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOGDEBUG4(fmt, ...) \
   do { \

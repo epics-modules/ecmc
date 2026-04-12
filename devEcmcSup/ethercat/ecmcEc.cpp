@@ -155,7 +155,11 @@ int ecmcEc::init(int nMasterIndex) {
 }
 
 ecmcEc::~ecmcEc() {
-  ECMC_RT_LOGINFO5("%s/%s:%d: INFO: Deleting Ec.\n", __FILE__, __FUNCTION__, __LINE__);
+  ECMC_RT_LOG_ETHERCAT_DEBUG(-1,
+                             "%s/%s:%d: DEBUG: Deleting Ec.\n",
+                             __FILE__,
+                             __FUNCTION__,
+                             __LINE__);
 
   for (int i = 0; i < slaveCounter_; i++) {
     delete slaveArray_[i];
@@ -199,8 +203,9 @@ int ecmcEc::addSlave(
   uint16_t position,  /**< Slave position. */
   uint32_t vendorId,  /**< Expected vendor ID. */
   uint32_t productCode /**< Expected product code. */) {
-  ECMC_RT_LOGINFO5(
-    "%s/%s:%d: INFO: Adding EtherCAT slave (alias=%d, position=%d, vendorId=%x, productCode=%x).\n",
+  ECMC_RT_LOG_ETHERCAT_DEBUG(
+    -1,
+    "%s/%s:%d: DEBUG: Adding EtherCAT slave (alias=%d, position=%d, vendorId=%x, productCode=%x).\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
@@ -286,10 +291,11 @@ ecmcEcSlave * ecmcEc::getSlave(int slaveIndex) {
 }
 
 int ecmcEc::activate() {
-  ECMC_RT_LOGINFO5("%s/%s:%d: INFO: Activating master...\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
+  ECMC_RT_LOG_ETHERCAT_DEBUG(-1,
+                             "%s/%s:%d: DEBUG: Activating master...\n",
+                             __FILE__,
+                             __FUNCTION__,
+                             __LINE__);
 
   if (ecrt_master_activate(master_)) {
     ecmcRtLoggerLogError("%s/%s:%d: ERROR: ecrt_master_activate() failed (0x%x).\n",
@@ -303,10 +309,11 @@ int ecmcEc::activate() {
                       ERROR_EC_MAIN_MASTER_ACTIVATE_FAILED);
   }
 
-  ECMC_RT_LOGINFO5("%s/%s:%d: INFO: Writing process data offsets to entries.\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__);
+  ECMC_RT_LOG_ETHERCAT_DEBUG(-1,
+                             "%s/%s:%d: DEBUG: Writing process data offsets to entries.\n",
+                             __FILE__,
+                             __FUNCTION__,
+                             __LINE__);
 
   for (int slaveIndex = 0; slaveIndex < slaveCounter_; slaveIndex++) {
     ecmcEcSlave * const slave = slaveArray_[slaveIndex];
@@ -486,28 +493,31 @@ bool ecmcEc::checkState(void) {
                       ((uint16_t)(masterState_.slaves_responding) << 16);
 
   if (masterState_.slaves_responding != masterStateOld_.slaves_responding) {
-    ECMC_RT_LOGINFO5("%s/%s:%d: INFO: %u slave(s) responding.\n",
-             __FILE__,
-             __FUNCTION__,
-             __LINE__,
-             masterState_.slaves_responding);
+    ECMC_RT_LOG_ETHERCAT_DEBUG(-1,
+                               "%s/%s:%d: DEBUG: %u slave(s) responding.\n",
+                               __FILE__,
+                               __FUNCTION__,
+                               __LINE__,
+                               masterState_.slaves_responding);
   }
 
   if (masterState_.link_up != masterStateOld_.link_up) {
-    ECMC_RT_LOGINFO5("%s/%s:%d: INFO: Master link is %s.\n",
-             __FILE__,
-             __FUNCTION__,
-             __LINE__,
-             masterState_.link_up ? "up" : "down");
+    ECMC_RT_LOG_ETHERCAT_DEBUG(-1,
+                               "%s/%s:%d: DEBUG: Master link is %s.\n",
+                               __FILE__,
+                               __FUNCTION__,
+                               __LINE__,
+                               masterState_.link_up ? "up" : "down");
   }
   masterLinkUp_ = masterState_.link_up;
 
   if (masterState_.al_states != masterStateOld_.al_states) {
-    ECMC_RT_LOGINFO5("%s/%s:%d: INFO: Application Layer state: 0x%x.\n",
-             __FILE__,
-             __FUNCTION__,
-             __LINE__,
-             masterState_.al_states);
+    ECMC_RT_LOG_ETHERCAT_DEBUG(-1,
+                               "%s/%s:%d: DEBUG: Application Layer state: 0x%x.\n",
+                               __FILE__,
+                               __FUNCTION__,
+                               __LINE__,
+                               masterState_.al_states);
   }
   masterAlStates_ = masterState_.al_states;
 
@@ -1131,8 +1141,9 @@ int ecmcEc::setDomainFailedCyclesLimitInterlock(int cycles) {
 }
 
 void ecmcEc::slowExecute() {
-  ECMC_RT_LOGINFO5(
-    "%s/%s:%d: INFO: MasterOK: %d, SlavesOK: %d, DomainOK: %d, Error Code:0x%x .\n",
+  ECMC_RT_LOG_ETHERCAT_DEBUG(
+    -1,
+    "%s/%s:%d: DEBUG: MasterOK: %d, SlavesOK: %d, DomainOK: %d, Error Code:0x%x .\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
