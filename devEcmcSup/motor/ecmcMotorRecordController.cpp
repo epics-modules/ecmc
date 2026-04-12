@@ -1276,7 +1276,7 @@ asynStatus ecmcMotorRecordController::profileValidateTime() {
   }
 
   if(pulseCount > 0 && pulseEndId > pointsCount) {
-    LOGERR("%s/%s:%d: WARNING: Profile end pulse id %d is higher than point count %d; using last point as pulse end id.\n",
+    LOGWARNING("%s/%s:%d: WARNING: Profile end pulse id %d is higher than point count %d; using last point as pulse end id.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,

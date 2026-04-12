@@ -17,6 +17,9 @@
 #include "ecmcErrorsList.h"
 #include "ecmcRtLogger.h"
 
+#define ecmcRtLoggerLogWarning(...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_ETHERCAT, -1, __VA_ARGS__)
+
 extern app_mode_type appModeStat;
 extern double mcuFrequency;
 
@@ -132,7 +135,7 @@ int ecmcEc::init(int nMasterIndex) {
 
   // If this fucntion is called several times then the domains needs to be readded
   if (initDone_) {
-    ecmcRtLoggerLogError("%s/%s:%d: WARNING: EtherCAT master already initialized once.\n",
+    ecmcRtLoggerLogWarning("%s/%s:%d: WARNING: EtherCAT master already initialized once.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);

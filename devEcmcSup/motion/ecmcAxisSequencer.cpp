@@ -18,6 +18,8 @@
   ECMC_RT_LOG_AXIS_SEQ_INFO((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
 #define ecmcRtLoggerLogError(...) \
   ECMC_RT_LOG_AXIS_SEQ_ERROR((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+#define ecmcRtLoggerLogWarning(...) \
+  ECMC_RT_LOG_AXIS_SEQ_WARNING((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
 
 ecmcAxisSequencer::ecmcAxisSequencer() {
   initVars();
@@ -3356,7 +3358,7 @@ void ecmcAxisSequencer::readHomingParamsFromEnc() {
 
   // Check if encoder has parameters then overwrite existing parameters if any
   if (!primEnc->getHomeParamsValid()) {
-    ecmcRtLoggerLogError(
+    ecmcRtLoggerLogWarning(
       "%s/%s:%d: WARNING: No valid homing info stored for encoder; falling back to axis parameters.\n",
       __FILE__,
       __FUNCTION__,

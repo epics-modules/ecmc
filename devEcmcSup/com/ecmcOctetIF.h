@@ -88,10 +88,22 @@ extern unsigned int die_on_error_flags;
 # define FUNCTION_TIMING_DIAGNOSTICS_BIT 13
 # define FUNCTION_AXES_ON_CHANGE_DATA_BIT 15
 
+#ifndef ASYN_TRACE_WARNING
+# define ASYN_TRACE_WARNING ASYN_TRACE_INFO
+#endif
+
 # define LOGINFO(fmt, ...)\
         {\
           (void)asynPrint(pPrintOutAsynUser,\
                           ASYN_TRACE_INFO,\
+                          fmt,\
+                          ## __VA_ARGS__);\
+        }
+
+# define LOGWARNING(fmt, ...)\
+        {\
+          (void)asynPrint(pPrintOutAsynUser,\
+                          ASYN_TRACE_WARNING,\
                           fmt,\
                           ## __VA_ARGS__);\
         }

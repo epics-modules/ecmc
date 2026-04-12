@@ -28,8 +28,9 @@ constexpr double ECMC_RT_LOGGER_SLEEP_S    = 0.05;
 const char      *ECMC_RT_LOGGER_THREAD     = "ecmc_rt_log";
 
 enum ecmcRtLogLevel {
-  ECMC_RT_LOG_LEVEL_INFO  = 0,
-  ECMC_RT_LOG_LEVEL_ERROR = 1
+  ECMC_RT_LOG_LEVEL_INFO    = 0,
+  ECMC_RT_LOG_LEVEL_WARNING = 1,
+  ECMC_RT_LOG_LEVEL_ERROR   = 2
 };
 
 struct ecmcRtLogEvent {
@@ -53,6 +54,9 @@ bool levelEnabled(int level) {
   if (level == ECMC_RT_LOG_LEVEL_ERROR) {
     return (controlWord & ECMC_RT_LOGGER_CONTROL_ERROR_ENABLE) != 0;
   }
+  if (level == ECMC_RT_LOG_LEVEL_WARNING) {
+    return (controlWord & ECMC_RT_LOGGER_CONTROL_WARNING_ENABLE) != 0;
+  }
 
   return (controlWord & ECMC_RT_LOGGER_CONTROL_INFO_ENABLE) != 0;
 }
@@ -60,6 +64,8 @@ bool levelEnabled(int level) {
 void printMessage(int level, const char *message) {
   if (level == ECMC_RT_LOG_LEVEL_ERROR) {
     LOGERR("%s", message);
+  } else if (level == ECMC_RT_LOG_LEVEL_WARNING) {
+    LOGWARNING("%s", message);
   } else {
     LOGINFO("%s", message);
   }
@@ -159,7 +165,7 @@ int ecmcRtLoggerStart() {
   }
 
   if (ecmcRtLoggerPortDriverStart()) {
-    LOGERR("%s/%s:%d: WARNING: Failed to create RT logger asyn port driver. Continuing with IOC log output only.\n",
+    LOGWARNING("%s/%s:%d: WARNING: Failed to create RT logger asyn port driver. Continuing with IOC log output only.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);
@@ -173,7 +179,7 @@ int ecmcRtLoggerStart() {
     NULL);
 
   if (!threadId) {
-    LOGERR("%s/%s:%d: WARNING: Failed to create low priority RT log thread. Using direct RT logging.\n",
+    LOGWARNING("%s/%s:%d: WARNING: Failed to create low priority RT log thread. Using direct RT logging.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);
@@ -234,6 +240,20 @@ void ecmcRtLoggerLogErrorSource(int sourceType,
   va_end(args);
 }
 
+void ecmcRtLoggerLogWarningSource(int sourceType,
+                                  int sourceIndex,
+                                  const char *fmt,
+                                  ...) {
+  va_list args;
+  va_start(args, fmt);
+  logMessageV(ECMC_RT_LOG_LEVEL_WARNING,
+              sourceType,
+              sourceIndex,
+              fmt,
+              args);
+  va_end(args);
+}
+
 void ecmcRtLoggerLogInfo(const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
@@ -249,6 +269,17 @@ void ecmcRtLoggerLogError(const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   logMessageV(ECMC_RT_LOG_LEVEL_ERROR,
+              ECMC_RT_LOG_SOURCE_UNKNOWN,
+              -1,
+              fmt,
+              args);
+  va_end(args);
+}
+
+void ecmcRtLoggerLogWarning(const char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  logMessageV(ECMC_RT_LOG_LEVEL_WARNING,
               ECMC_RT_LOG_SOURCE_UNKNOWN,
               -1,
               fmt,

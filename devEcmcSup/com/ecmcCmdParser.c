@@ -718,7 +718,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 1) {
     if ((appModeStat == ECMC_MODE_RUNTIME) && (iValue == ECMC_MODE_RUNTIME)) {
-      LOGINFO("%s/%s:%d: WARNING: Cfg.SetAppMode(%d) ignored in runtime; already in requested mode.\n",
+      LOGWARNING("%s/%s:%d: WARNING: Cfg.SetAppMode(%d) ignored in runtime; already in requested mode.\n",
               __FILE__,
               __FUNCTION__,
               __LINE__,
@@ -1689,7 +1689,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 1) {
     if (appModeStat == ECMC_MODE_RUNTIME) {
-      LOGINFO("%s/%s:%d: WARNING: Cfg.EcApplyConfig(%d) ignored in runtime.\n",
+      LOGWARNING("%s/%s:%d: WARNING: Cfg.EcApplyConfig(%d) ignored in runtime.\n",
               __FILE__,
               __FUNCTION__,
               __LINE__,
@@ -1702,7 +1702,7 @@ static int handleCfgCommand(const char *myarg_1) {
   /*Cfg.EcApplyConfig()*/
   if (0 == strcmp(myarg_1, "EcApplyConfig()")) {
     if (appModeStat == ECMC_MODE_RUNTIME) {
-      LOGINFO("%s/%s:%d: WARNING: Cfg.EcApplyConfig() ignored in runtime.\n",
+      LOGWARNING("%s/%s:%d: WARNING: Cfg.EcApplyConfig() ignored in runtime.\n",
               __FILE__,
               __FUNCTION__,
               __LINE__);
@@ -1789,7 +1789,7 @@ static int handleCfgCommand(const char *myarg_1) {
 
   if (nvals == 1) {
     if (appModeStat == ECMC_MODE_RUNTIME) {
-      LOGINFO("%s/%s:%d: WARNING: Cfg.EcSetDelayECOkAtStartup(%d) ignored in runtime.\n",
+      LOGWARNING("%s/%s:%d: WARNING: Cfg.EcSetDelayECOkAtStartup(%d) ignored in runtime.\n",
               __FILE__,
               __FUNCTION__,
               __LINE__,

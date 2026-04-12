@@ -17,6 +17,8 @@
   ECMC_RT_LOG_AXIS_DRV_INFO((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
 #define ecmcRtLoggerLogError(...) \
   ECMC_RT_LOG_AXIS_DRV_ERROR((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+#define ecmcRtLoggerLogWarning(...) \
+  ECMC_RT_LOG_AXIS_DRV_WARNING((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
 
 ecmcDriveDS402::ecmcDriveDS402(ecmcAsynPortDriver *asynPortDriver,
                                ecmcAxisData       &axisData) :
@@ -144,7 +146,7 @@ void ecmcDriveDS402::readEntries(bool masterOK) {
   
   // Printout warning.. Do not stop
   if (ds402Warning && !ds402WarningOld_) {
-    ecmcRtLoggerLogError("%s/%s:%d: WARNING: DS402 warning bit is high.\n",
+    ecmcRtLoggerLogWarning("%s/%s:%d: WARNING: DS402 warning bit is high.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);

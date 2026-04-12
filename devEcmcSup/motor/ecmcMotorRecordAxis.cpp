@@ -1138,7 +1138,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
   }
 
   if(useHVEL && !useHVELOk) {
-    asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
+    LOGWARNING(
             "%s/%s:%d: WARNING: Axis[%d]: HVEL homing requested, but drive scale could not be derived; using ecmcMotorRecordVelToHom_.\n",
             __FILE__, __FUNCTION__, __LINE__,
             axisNo_);

@@ -20,6 +20,8 @@
   ECMC_RT_LOG_AXIS_PID_INFO((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
 #define ecmcRtLoggerLogError(...) \
   ECMC_RT_LOG_AXIS_PID_ERROR((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
+#define ecmcRtLoggerLogWarning(...) \
+  ECMC_RT_LOG_AXIS_PID_WARNING((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
 
 ecmcPIDController::ecmcPIDController(ecmcAsynPortDriver *asynPortDriver,
                                      ecmcAxisData       &axisData,
@@ -239,7 +241,7 @@ int ecmcPIDController::validate() {
 
   // Output warning if CSP and any of the position control parameters have been set.
   if ((data_->control_.drvMode == ECMC_DRV_MODE_CSP) && settingMade_ && data_->control_.cspDrvEncIndex < 0) {
-    ecmcRtLoggerLogError("%s/%s:%d: WARNING: Axis %d: ecmc position control disabled (no dedicated CSP encoder selected). Settings of ecmc position control loop params will be discarded."
+    ecmcRtLoggerLogWarning("%s/%s:%d: WARNING: Axis %d: ecmc position control disabled (no dedicated CSP encoder selected). Settings of ecmc position control loop params will be discarded."
            " Position control loop params needs to be set directly in drive (where the position loop is executed).\n",
            __FILE__,
            __FUNCTION__,

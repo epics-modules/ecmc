@@ -15,9 +15,12 @@
 #include "ecmcOctetIF.h"
 
 #define ECMC_RT_LOGGER_CONTROL_INFO_ENABLE  0x1
-#define ECMC_RT_LOGGER_CONTROL_ERROR_ENABLE 0x2
+#define ECMC_RT_LOGGER_CONTROL_WARNING_ENABLE 0x2
+#define ECMC_RT_LOGGER_CONTROL_ERROR_ENABLE 0x4
 #define ECMC_RT_LOGGER_CONTROL_DEFAULT \
-  (ECMC_RT_LOGGER_CONTROL_INFO_ENABLE | ECMC_RT_LOGGER_CONTROL_ERROR_ENABLE)
+  (ECMC_RT_LOGGER_CONTROL_INFO_ENABLE | \
+   ECMC_RT_LOGGER_CONTROL_WARNING_ENABLE | \
+   ECMC_RT_LOGGER_CONTROL_ERROR_ENABLE)
 
 #define ECMC_RT_LOG_TYPE_BIT(type) (1u << (unsigned int)(type))
 
@@ -61,8 +64,13 @@ void ecmcRtLoggerLogErrorSource(int sourceType,
                                 int sourceIndex,
                                 const char *fmt,
                                 ...);
+void ecmcRtLoggerLogWarningSource(int sourceType,
+                                  int sourceIndex,
+                                  const char *fmt,
+                                  ...);
 void ecmcRtLoggerLogInfo(const char *fmt, ...);
 void ecmcRtLoggerLogError(const char *fmt, ...);
+void ecmcRtLoggerLogWarning(const char *fmt, ...);
 
 #define ECMC_RT_LOG_INFO_SOURCE(sourceType, sourceIndex, fmt, ...) \
   ecmcRtLoggerLogInfoSource(sourceType, sourceIndex, fmt, ## __VA_ARGS__)
@@ -70,11 +78,17 @@ void ecmcRtLoggerLogError(const char *fmt, ...);
 #define ECMC_RT_LOG_ERROR_SOURCE(sourceType, sourceIndex, fmt, ...) \
   ecmcRtLoggerLogErrorSource(sourceType, sourceIndex, fmt, ## __VA_ARGS__)
 
+#define ECMC_RT_LOG_WARNING_SOURCE(sourceType, sourceIndex, fmt, ...) \
+  ecmcRtLoggerLogWarningSource(sourceType, sourceIndex, fmt, ## __VA_ARGS__)
+
 #define ECMC_RT_LOG_AXIS_BASE_INFO(axisIndex, fmt, ...) \
   ECMC_RT_LOG_INFO_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_BASE, axisIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOG_AXIS_BASE_ERROR(axisIndex, fmt, ...) \
   ECMC_RT_LOG_ERROR_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_BASE, axisIndex, fmt, ## __VA_ARGS__)
+
+#define ECMC_RT_LOG_AXIS_BASE_WARNING(axisIndex, fmt, ...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_BASE, axisIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOG_AXIS_SEQ_INFO(axisIndex, fmt, ...) \
   ECMC_RT_LOG_INFO_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_SEQ, axisIndex, fmt, ## __VA_ARGS__)
@@ -82,11 +96,17 @@ void ecmcRtLoggerLogError(const char *fmt, ...);
 #define ECMC_RT_LOG_AXIS_SEQ_ERROR(axisIndex, fmt, ...) \
   ECMC_RT_LOG_ERROR_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_SEQ, axisIndex, fmt, ## __VA_ARGS__)
 
+#define ECMC_RT_LOG_AXIS_SEQ_WARNING(axisIndex, fmt, ...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_SEQ, axisIndex, fmt, ## __VA_ARGS__)
+
 #define ECMC_RT_LOG_AXIS_DATA_INFO(axisIndex, fmt, ...) \
   ECMC_RT_LOG_INFO_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_DATA, axisIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOG_AXIS_DATA_ERROR(axisIndex, fmt, ...) \
   ECMC_RT_LOG_ERROR_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_DATA, axisIndex, fmt, ## __VA_ARGS__)
+
+#define ECMC_RT_LOG_AXIS_DATA_WARNING(axisIndex, fmt, ...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_DATA, axisIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOG_AXIS_MON_INFO(axisIndex, fmt, ...) \
   ECMC_RT_LOG_INFO_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_MON, axisIndex, fmt, ## __VA_ARGS__)
@@ -94,11 +114,17 @@ void ecmcRtLoggerLogError(const char *fmt, ...);
 #define ECMC_RT_LOG_AXIS_MON_ERROR(axisIndex, fmt, ...) \
   ECMC_RT_LOG_ERROR_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_MON, axisIndex, fmt, ## __VA_ARGS__)
 
+#define ECMC_RT_LOG_AXIS_MON_WARNING(axisIndex, fmt, ...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_MON, axisIndex, fmt, ## __VA_ARGS__)
+
 #define ECMC_RT_LOG_AXIS_ENC_INFO(axisIndex, fmt, ...) \
   ECMC_RT_LOG_INFO_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_ENC, axisIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOG_AXIS_ENC_ERROR(axisIndex, fmt, ...) \
   ECMC_RT_LOG_ERROR_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_ENC, axisIndex, fmt, ## __VA_ARGS__)
+
+#define ECMC_RT_LOG_AXIS_ENC_WARNING(axisIndex, fmt, ...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_ENC, axisIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOG_AXIS_DRV_INFO(axisIndex, fmt, ...) \
   ECMC_RT_LOG_INFO_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_DRV, axisIndex, fmt, ## __VA_ARGS__)
@@ -106,11 +132,17 @@ void ecmcRtLoggerLogError(const char *fmt, ...);
 #define ECMC_RT_LOG_AXIS_DRV_ERROR(axisIndex, fmt, ...) \
   ECMC_RT_LOG_ERROR_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_DRV, axisIndex, fmt, ## __VA_ARGS__)
 
+#define ECMC_RT_LOG_AXIS_DRV_WARNING(axisIndex, fmt, ...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_DRV, axisIndex, fmt, ## __VA_ARGS__)
+
 #define ECMC_RT_LOG_AXIS_PID_INFO(axisIndex, fmt, ...) \
   ECMC_RT_LOG_INFO_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_PID, axisIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOG_AXIS_PID_ERROR(axisIndex, fmt, ...) \
   ECMC_RT_LOG_ERROR_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_PID, axisIndex, fmt, ## __VA_ARGS__)
+
+#define ECMC_RT_LOG_AXIS_PID_WARNING(axisIndex, fmt, ...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_PID, axisIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOG_AXIS_TRAJ_INFO(axisIndex, fmt, ...) \
   ECMC_RT_LOG_INFO_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_TRAJ, axisIndex, fmt, ## __VA_ARGS__)
@@ -118,17 +150,26 @@ void ecmcRtLoggerLogError(const char *fmt, ...);
 #define ECMC_RT_LOG_AXIS_TRAJ_ERROR(axisIndex, fmt, ...) \
   ECMC_RT_LOG_ERROR_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_TRAJ, axisIndex, fmt, ## __VA_ARGS__)
 
+#define ECMC_RT_LOG_AXIS_TRAJ_WARNING(axisIndex, fmt, ...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_AXIS_TRAJ, axisIndex, fmt, ## __VA_ARGS__)
+
 #define ECMC_RT_LOG_MOTOR_AXIS_INFO(axisIndex, fmt, ...) \
   ECMC_RT_LOG_INFO_SOURCE(ECMC_RT_LOG_SOURCE_MOTOR_AXIS, axisIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOG_MOTOR_AXIS_ERROR(axisIndex, fmt, ...) \
   ECMC_RT_LOG_ERROR_SOURCE(ECMC_RT_LOG_SOURCE_MOTOR_AXIS, axisIndex, fmt, ## __VA_ARGS__)
 
+#define ECMC_RT_LOG_MOTOR_AXIS_WARNING(axisIndex, fmt, ...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_MOTOR_AXIS, axisIndex, fmt, ## __VA_ARGS__)
+
 #define ECMC_RT_LOG_MOTOR_CTRL_INFO(axisIndex, fmt, ...) \
   ECMC_RT_LOG_INFO_SOURCE(ECMC_RT_LOG_SOURCE_MOTOR_CTRL, axisIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOG_MOTOR_CTRL_ERROR(axisIndex, fmt, ...) \
   ECMC_RT_LOG_ERROR_SOURCE(ECMC_RT_LOG_SOURCE_MOTOR_CTRL, axisIndex, fmt, ## __VA_ARGS__)
+
+#define ECMC_RT_LOG_MOTOR_CTRL_WARNING(axisIndex, fmt, ...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_MOTOR_CTRL, axisIndex, fmt, ## __VA_ARGS__)
 
 #define ECMC_RT_LOGINFO4(fmt, ...) \
   do { \

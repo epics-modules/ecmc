@@ -38,7 +38,8 @@ const char *ECMC_RT_LOGGER_PAR_FILTER_INDEX = "RTLOG_FILTER_INDEX";
 
 enum ecmcRtLoggerPortLevel {
   ECMC_RT_LOGGER_PORT_LEVEL_INFO = 0,
-  ECMC_RT_LOGGER_PORT_LEVEL_ERROR = 1
+  ECMC_RT_LOGGER_PORT_LEVEL_WARNING = 1,
+  ECMC_RT_LOGGER_PORT_LEVEL_ERROR = 2
 };
 
 class ecmcRtLoggerPortDriver : public asynPortDriver {
@@ -161,7 +162,8 @@ public:
     setStringParam(lastMessageParam_, message ? message : "");
     setIntegerParam(lastLevelParam_, level);
     setStringParam(lastLevelTextParam_,
-                   level == ECMC_RT_LOGGER_PORT_LEVEL_ERROR ? "ERROR" : "INFO");
+                   level == ECMC_RT_LOGGER_PORT_LEVEL_ERROR ? "ERROR" :
+                   (level == ECMC_RT_LOGGER_PORT_LEVEL_WARNING ? "WARNING" : "INFO"));
     setIntegerParam(messageCountParam_, saturateCount(messageCount_));
     setIntegerParam(lastSourceTypeParam_, sourceType);
     setIntegerParam(lastSourceIndexParam_, sourceIndex);

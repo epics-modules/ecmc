@@ -558,7 +558,7 @@ int ecmcInitThread(void) {
   shmAccessError = 0;
 
   if (shmInitError) {
-    LOGERR("WARNING: Shared memory unavailable at startup (0x%x).\n",
+    LOGWARNING("WARNING: Shared memory unavailable at startup (0x%x).\n",
            shmInitError);
   }
 
@@ -631,7 +631,7 @@ int lockMem(int size) {
 
   // lock memory
   if (mlockall(MCL_CURRENT | MCL_FUTURE) != 0) {
-    LOGERR("WARNING: mlockall() failed (0x%x).\n", ERROR_MAIN_MLOCKALL_FAIL);
+    LOGWARNING("WARNING: mlockall() failed (0x%x).\n", ERROR_MAIN_MLOCKALL_FAIL);
 
     // return ERROR_MAIN_MLOCKALL_FAIL;
   } else {
@@ -800,7 +800,7 @@ int setAppModeRun(int mode) {
       return ERROR_MAIN_EC_ACTIVATE_FAILED;
     }
   } else {
-    LOGERR(
+    LOGWARNING(
       "WARNING: EtherCAT master not initialized. Starting ECMC without EtherCAT support.\n");
   }
   ecmcRtLoggerStart();
@@ -856,7 +856,7 @@ int setAppMode(int mode) {
     break;
 
   default:
-    LOGERR("WARNING: Mode %d not implemented. (Config=%d, Runtime=%d).\n",
+    LOGWARNING("WARNING: Mode %d not implemented. (Config=%d, Runtime=%d).\n",
            mode,
            ECMC_MODE_CONFIG,
            ECMC_MODE_RUNTIME);

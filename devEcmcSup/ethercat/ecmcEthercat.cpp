@@ -24,6 +24,9 @@
 
 #include "ecmcGlobalsExtern.h"
 
+#define ecmcRtLoggerLogWarning(...) \
+  ECMC_RT_LOG_WARNING_SOURCE(ECMC_RT_LOG_SOURCE_ETHERCAT, -1, __VA_ARGS__)
+
 int ecSetMaster(int masterIndex) {
   LOGINFO4("%s/%s:%d masterIndex=%d \n",
            __FILE__,
@@ -655,7 +658,7 @@ int ecWriteSdo(uint16_t slavePosition,
                            byteSize);
 
   if (allowOffline && errorCode) {
-    ecmcRtLoggerLogError(
+    ecmcRtLoggerLogWarning(
       "%s/%s:%d: WARNING: SDO write failed. Slave allowed to be offline.\n",
       __FILE__,
       __FUNCTION__,
@@ -1176,7 +1179,7 @@ int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
                               revisionNum);
 
   if (allowOffline && errorCode) {
-    ecmcRtLoggerLogError("%s/%s:%d: WARNING: Slave offline. Domain allowed to be offline.\n",
+    ecmcRtLoggerLogWarning("%s/%s:%d: WARNING: Slave offline. Domain allowed to be offline.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__);

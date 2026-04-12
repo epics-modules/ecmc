@@ -1439,7 +1439,7 @@ int ecmcPLCDataIF::parseAndLinkEcDataSource(char *ecDataSource) {
   ecmcEcDataType dt = getEntryDataType(ECMC_PLC_EC_ENTRY_INDEX);
 
   if ((dt == ECMC_EC_NONE) || (dt == ECMC_EC_U64) || (dt == ECMC_EC_S64)) {
-    ecmcRtLoggerLogError(
+    ecmcRtLoggerLogWarning(
       "%s/%s:%d: WARNING: Entry %s is of type S64, U64 or undefined. PLC values are doubles and might not be able to represent the ethercat value correct.\n",
       __FILE__,
       __FUNCTION__,

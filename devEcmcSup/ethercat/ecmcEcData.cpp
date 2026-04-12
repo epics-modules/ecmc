@@ -254,7 +254,7 @@ int ecmcEcData::validate() {
   }
 
   if (startEntry_->getDirection() != direction_) {
-    ecmcRtLoggerLogError(
+    ecmcRtLoggerLogWarning(
       "%s/%s:%d: WARNING: EcDataItem %s: Data item direction is not same as for start ec-entry (0x%x).\n",
       __FILE__,
       __FUNCTION__,
