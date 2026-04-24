@@ -1653,7 +1653,10 @@ void ecmcMotorRecordAxis::callParamCallbacksUpdateError() {
       }
     }
 
-    /* No warning to show yet */
+    /* No warning to show yet.
+     * Keep latest command bookkeeping, but do not map normal motion state
+     * text into the motor-record message/error channel.
+     */
     if (!msgTxtFromDriver) {
       switch (drvlocal.nCommandActive) {
 #ifdef motorLatestCommandString
@@ -1676,9 +1679,6 @@ void ecmcMotorRecordAxis::callParamCallbacksUpdateError() {
 #endif // ifdef motorLatestCommandString
       case 0:
         break;
-
-      default:
-        msgTxtFromDriver = "Moving";
       }
     }
 
