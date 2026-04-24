@@ -99,6 +99,10 @@ public:
                          int enable);
   int          getEnable(int  plcIndex,
                          int *enabled);
+  int          setStartAfterEpics(int plcIndex,
+                                  int enable);
+  int          getStartAfterEpics(int  plcIndex,
+                                  int *enabled);
   int          getCompiled(int  plcIndex,
                            int *compiled);
   int          getCompiled(int plcIndex);
@@ -176,6 +180,7 @@ private:
   ecmcPLCDataIF *plcEnable_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
   ecmcPLCDataIF *plcError_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
   ecmcPLCDataIF *plcFirstScan_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
+  int plcStartAfterEpics_[ECMC_MAX_PLCS + ECMC_MAX_AXES];
   ecmcPLCDataIF *globalDataArray_[ECMC_MAX_PLC_VARIABLES];
   ecmcPLCDataIF *ecStatus_;
   double mcuFreq_;

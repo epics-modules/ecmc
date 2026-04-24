@@ -13,6 +13,8 @@
 #include "ecmcPLCMain.h"
 #include "ecmcRtLogger.h"
 
+extern int allowCallbackEpicsState;
+
 ecmcPLCMain::ecmcPLCMain(ecmcEc             *ec,
                          double              mcuFreq,
                          ecmcAsynPortDriver *asynPortDriver) {
@@ -38,6 +40,7 @@ void ecmcPLCMain::initVars() {
     plcEnable_[i]    = NULL;
     plcError_[i]     = NULL;
     plcFirstScan_[i] = NULL;
+    plcStartAfterEpics_[i] = 0;
   }
 
   for (int i = 0; i < ECMC_MAX_AXES; i++) {
@@ -87,6 +90,7 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
     plcEnable_[plcIndex] = NULL;
     plcError_[plcIndex]  = NULL;
     plcFirstScan_[plcIndex] = NULL;
+    plcStartAfterEpics_[plcIndex] = 0;
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
@@ -103,6 +107,7 @@ int ecmcPLCMain::createPLC(int plcIndex, int skipCycles) {
     plcEnable_[plcIndex]    = NULL;
     plcError_[plcIndex]     = NULL;
     plcFirstScan_[plcIndex] = NULL;
+    plcStartAfterEpics_[plcIndex] = 0;
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
@@ -208,6 +213,10 @@ int ecmcPLCMain::execute(bool ecOK) {
       continue;
     }
 
+    if (plcStartAfterEpics_[plcIndex] && !allowCallbackEpicsState) {
+      continue;
+    }
+
     plc->execute(ecOK);
 
     if (ecOK) {
@@ -239,6 +248,10 @@ int ecmcPLCMain::execute(int plcIndex, bool ecOK) {
 
   ecmcPLCDataIF * const plcEnable = plcEnable_[plcIndex];
   if (!plcEnable || !plcEnable->getData()) {
+    return 0;
+  }
+
+  if (plcStartAfterEpics_[plcIndex] && !allowCallbackEpicsState) {
     return 0;
   }
 
@@ -453,10 +466,23 @@ int ecmcPLCMain::getEnable(int plcIndex, int *enabled) {
   return 0;
 }
 
+int ecmcPLCMain::setStartAfterEpics(int plcIndex, int enable) {
+  CHECK_PLC_RETURN_IF_ERROR(plcIndex);
+  plcStartAfterEpics_[plcIndex] = enable ? 1 : 0;
+  return 0;
+}
+
+int ecmcPLCMain::getStartAfterEpics(int plcIndex, int *enabled) {
+  CHECK_PLC_RETURN_IF_ERROR(plcIndex);
+  *enabled = plcStartAfterEpics_[plcIndex];
+  return 0;
+}
+
 int ecmcPLCMain::deletePLC(int plcIndex) {
   CHECK_PLC_RETURN_IF_ERROR(plcIndex);
   delete plcs_[plcIndex];
   plcs_[plcIndex] = NULL;
+  plcStartAfterEpics_[plcIndex] = 0;
   return 0;
 }
 

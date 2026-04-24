@@ -255,6 +255,18 @@ int setPLCEnable(int index, int enable) {
   return plcs->setEnable(index, enable);
 }
 
+int setPLCStartAfterEpics(int index, int enable) {
+  ecmcRtLoggerLogDebugSourceIndex(index,
+                                  "%s/%s:%d: DEBUG: PLC start-after-EPICS request: index=%d, enable=%d.\n",
+                                  __FILE__,
+                                  __FUNCTION__,
+                                  __LINE__,
+                                  index,
+                                  enable);
+  CHECK_PLCS_RETURN_IF_ERROR();
+  return plcs->setStartAfterEpics(index, enable);
+}
+
 int getPLCEnable(int index, int *enabled) {
   ecmcRtLoggerLogDebugSourceIndex(index,
                                   "%s/%s:%d: DEBUG: PLC get enable request: index=%d.\n",

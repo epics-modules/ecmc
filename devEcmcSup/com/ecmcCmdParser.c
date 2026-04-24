@@ -889,6 +889,13 @@ static int handleCfgCommand(const char *myarg_1) {
     return setPLCEnable(iValue, iValue2);
   }
 
+  /// "Cfg.SetPLCStartAfterEpics(int index,int enable)"
+  nvals = sscanf(myarg_1, "SetPLCStartAfterEpics(%d,%d)", &iValue, &iValue2);
+
+  if (nvals == 2) {
+    return setPLCStartAfterEpics(iValue, iValue2);
+  }
+
   /// "Cfg.LinkEcEntryToObject(ecEntryPathString,objPathString)"
   // ec0.s1.POSITION.-1
   // ax1.enc.actpos

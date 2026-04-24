@@ -518,6 +518,23 @@ int compilePLCExpr(int index);
 int setPLCEnable(int index,
                  int enable);
 
+/** \brief Delay PLC execution until EPICS has reached IocRunning.\n
+ *
+ * Keeps the current default behavior when set to 0. When enabled, the PLC
+ * will not execute in the realtime loop until EPICS startup has reached
+ * `initHookAfterIocRunning`.
+ *
+ * \param[in] index  PLC index.\n
+ * \param[in] enable 0 = execute immediately during startup, 1 = wait for EPICS.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ * \note Example: Delay PLC 5 until EPICS is fully running.\n
+ * "Cfg.SetPLCStartAfterEpics(5,1)" //Command string to ecmcCmdParser.c.\n
+ */
+int setPLCStartAfterEpics(int index,
+                          int enable);
+
 /** \brief Set enable of PLC.\n
  *
  * Enable a PLC.\n
