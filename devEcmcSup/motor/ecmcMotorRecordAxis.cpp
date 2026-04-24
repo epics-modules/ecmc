@@ -1935,7 +1935,7 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 
   // }
   setDoubleParam(pC_->ecmcMotorRecordEncAct_,
-                 (double)drvlocal.statusOld_.currentPositionActualRaw);
+                 (double)drvlocal.status_.currentPositionActualRaw);
   
   if (drvlocal.statusOld_.statusWord_.homed !=
       drvlocal.status_.statusWord_.homed) {
