@@ -12,6 +12,7 @@
 
 #include "ecmcEncoder.h"
 #include "ecmcRtLogger.h"
+#include <algorithm>
 
 #define ecmcRtLoggerLogInfo(...) \
   ECMC_RT_LOG_AXIS_ENC_INFO((data_ ? data_->status_.axisId : -1), __VA_ARGS__)
@@ -85,6 +86,7 @@ void ecmcEncoder::initVars() {
   engOffset_              = 0;
   actPos_                 = 0;
   actPosOld_              = 0;
+  actPosDelayBaseOld_     = 0;
   sampleTimeMs_           = 1;
   invSampleTime_          = 0;
   actVel_                 = 0;
@@ -158,6 +160,7 @@ void ecmcEncoder::initVars() {
   lookupTable_            = NULL;
   lookupTableRange_       = 0;
   enableDelayTime_        = false;
+  delayCompStateValid_    = false;
   lookupTableScale_       = 1;
   encLatchArm_            = 0;
   encLatchControlWordArm_ = 0;
@@ -626,11 +629,6 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
     }
   }
 
-  // Compensate for delay (TODO: the actVelLocal is one cycle old..)
-  if(enableDelayTime_) {
-    actPosLocal_ = actPosLocal_ + delayTimeS_ * actVelLocal_;
-  }
-
   // If first valid value (at first hw ok),
   // then store the same position in last cycle value.
   // This to avoid over/underflow since actPosOld_ is initiated to 0.
@@ -672,7 +670,40 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
     actPosLocal_ = positionFilter_->getFiltPos(actPosLocal_,
                                                moduloRange);
   }
-  double distTraveled = actPosLocal_ - actPosOld_;
+
+  if (!enableDelayTime_) {
+    delayCompStateValid_ = false;
+
+    double distTraveled = actPosLocal_ - actPosOld_;
+
+    if (moduloRange != 0) {
+      double modThreshold = FILTER_POS_MODULO_OVER_UNDER_FLOW_LIMIT *
+                            moduloRange;
+
+      if (distTraveled > modThreshold) {
+        distTraveled -= moduloRange;
+      } else if (distTraveled < -modThreshold) {
+        distTraveled += moduloRange;
+      }
+    }
+    if(enableVelocityFilter_) {
+      actVelLocal_ = velocityFilter_->getFiltVelo(distTraveled);
+    } else {
+      actVelLocal_ = distTraveled * invSampleTime_;
+    }
+    return 0;
+  }
+
+  // Delay compensation path:
+  // - estimate velocity from the measured/filtered position only
+  // - apply delay compensation afterwards
+  // This avoids feeding the compensated position back into the velocity estimate.
+  if (!delayCompStateValid_ || (!masterOKOld_ && masterOK)) {
+    actPosDelayBaseOld_ = actPosLocal_;
+    delayCompStateValid_ = true;
+  }
+
+  double distTraveled = actPosLocal_ - actPosDelayBaseOld_;
 
   if (moduloRange != 0) {
     double modThreshold = FILTER_POS_MODULO_OVER_UNDER_FLOW_LIMIT *
@@ -684,10 +715,46 @@ int ecmcEncoder::readHwActPos(bool masterOK, bool domainOK) {
       distTraveled += moduloRange;
     }
   }
+
   if(enableVelocityFilter_) {
     actVelLocal_ = velocityFilter_->getFiltVelo(distTraveled);
   } else {
     actVelLocal_ = distTraveled * invSampleTime_;
+  }
+
+  double compensation = 0.0;
+  const double absScale = std::abs(scale_);
+  const double delayCycles = getDelayCycles();
+  const double minTrustedVel =
+    (!actPosEntryUsesFloatingPoint() && absScale > 0.0) ?
+      (absScale * invSampleTime_ /
+       static_cast<double>(enableVelocityFilter_ ? velocityFilter_->getFilterSize() : 1U)) :
+      0.0;
+
+  if (std::abs(actVelLocal_) >= minTrustedVel) {
+    compensation = delayTimeS_ * actVelLocal_;
+
+    // Limit compensation for quantized encoders so a transient velocity spike
+    // does not produce a disproportionate position jump.
+    if (!actPosEntryUsesFloatingPoint() && absScale > 0.0) {
+      const double maxCompensation = absScale * std::max(1.0, std::ceil(delayCycles));
+      if (compensation > maxCompensation) {
+        compensation = maxCompensation;
+      } else if (compensation < -maxCompensation) {
+        compensation = -maxCompensation;
+      }
+    }
+  }
+
+  actPosDelayBaseOld_ = actPosLocal_;
+  actPosLocal_ += compensation;
+
+  if (moduloRange != 0) {
+    if (actPosLocal_ >= moduloRange) {
+      actPosLocal_ -= moduloRange;
+    } else if (actPosLocal_ < 0) {
+      actPosLocal_ += moduloRange;
+    }
   }
   return 0;
 }
@@ -1724,6 +1791,7 @@ double ecmcEncoder::getLookupTableRange() {
 int ecmcEncoder::setDelayCyclesAndEnable(double cycles, bool enable) {
   delayTimeS_      = cycles * sampleTimeMs_ / 1000;
   enableDelayTime_ = enable;
+  delayCompStateValid_ = false;
   return 0;
 }
 

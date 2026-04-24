@@ -220,6 +220,7 @@ protected:
   double actPos_;
   double actPosLocal_;
   double actPosOld_;
+  double actPosDelayBaseOld_;
   double sampleTimeMs_;
   double invSampleTime_;
   double actVel_;
@@ -296,6 +297,7 @@ protected:
   
   double delayTimeS_; // Compensate for delay between setpoint and actual value (should default to 2 cycles)
   bool enableDelayTime_;
+  bool delayCompStateValid_;
   bool allowOverUnderFlow_;
 };
 
