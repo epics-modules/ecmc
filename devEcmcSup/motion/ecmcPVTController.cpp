@@ -663,7 +663,7 @@ int ecmcPVTController::setEnable(bool enable) {
       // Always disable
       if(!enable) {
         axis->setEnable(enable);
-        break;
+        continue;
       }
       // do not enable if error
       if(axis->getError()) {
