@@ -21,15 +21,15 @@ LIBRARY_IOC += ecmc
 # Ubuntu needs the following ldflags
 USR_LDFLAGS += -Wl,--no-as-needed
 USR_LDFLAGS += -lstdc++
+USR_CXXFLAGS += -std=c++17
 
-ifeq ($(T_A),linux-x86_64)
-# Assume that the etherlab user library is done via
-# https://github.com/icshwi/etherlabmaster
-USR_INCLUDES += -I/opt/etherlab/include
+ifneq ($(filter linux-%,$(T_A)),)
+ETHERLAB ?= /opt/etherlab
+USR_INCLUDES += -I$(ETHERLAB)/include
 USR_CFLAGS += -fPIC
-USR_LDFLAGS += -L /opt/etherlab/lib
+USR_LDFLAGS += -L$(ETHERLAB)/lib
 USR_LDFLAGS += -lethercat
-USR_LDFLAGS += -Wl,-rpath=/opt/etherlab/lib
+USR_LDFLAGS += -Wl,-rpath=$(ETHERLAB)/lib
 else
 # Assume that the etherlab user library is done via
 # Yocto ESS Linux bb recipe
@@ -40,6 +40,7 @@ USR_LDFLAGS  += -lethercat
 USR_LDFLAGS  += -Wl,-rpath=$(SDKTARGETSYSROOT)/usr/lib/etherlab
 endif
 
+USR_INCLUDES += -I$(RUCKIG)/include/ruckig
 USR_LDFLAGS += -L$(RUCKIG)/build/ -lruckig
 USR_LDFLAGS += -Wl,-rpath,'$(RUCKIG)/build/'
 
@@ -61,6 +62,8 @@ $(info $(ecmc_SRCS))
 $(info =====================)
 
 ecmc_LIBS += exprtkSupport
+ecmc_LIBS += motor
+ecmc_LIBS += asyn
 ecmc_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 include $(TOP)/configure/RULES

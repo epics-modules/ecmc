@@ -22,17 +22,21 @@
 # the CONFIG_SITE file.
 
 # Variables and paths to dependent modules:
-#MODULES = /path/to/modules
-#MYMODULE = $(MODULES)/my-module
+SUPPORT = $(TOP)/..
 
 # If using the sequencer, point SNCSEQ at its top directory:
 #SNCSEQ = $(MODULES)/seq-ver
 
 # EPICS_BASE should appear last so earlier modules can override stuff:
-EPICS_BASE = /home/jhlee/epics_env/epics-base
+EPICS_BASE = $(SUPPORT)/epics-base
 
-ASYN=$(EPICS_BASE)/../epics-modules/asyn
-#MOTOR=$(EPICS_BASE)/../epics-modules/motor
+ASYN = $(SUPPORT)/asyn
+MOTOR = $(SUPPORT)/motor
+EXPRTK = $(TOP)/exprtkSupport
+RUCKIG = $(SUPPORT)/ruckig
+ETHERLAB = $(SUPPORT)/etherlab
+ECMCCFG = $(SUPPORT)/ecmccfg
+ECMCCOMP = $(SUPPORT)/ecmccomp
 
 # Set RULES here if you want to use build rules from somewhere
 # other than EPICS_BASE:
