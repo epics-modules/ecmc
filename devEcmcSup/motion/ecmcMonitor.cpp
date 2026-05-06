@@ -917,19 +917,19 @@ int ecmcMonitor::checkLimits() {
        (status.currentTargetPosition < control.softLimitBwd));
     if (virtSoftlimitBwd) {
       interlocks.bwdSoftLimitInterlock = true;
-      if (warningId != WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
-        setWarningID(WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK);
-        warningId = WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK;
+      if (warningId != WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION) {
+        setWarningID(WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION);
+        warningId = WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION;
       }
     } else {
-      if (warningId == WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
+      if (warningId == WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION) {
         setWarningID(0);
         warningId = 0;
       }
       interlocks.bwdSoftLimitInterlock = false;
     }
   } else {
-    if (warningId == WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
+    if (warningId == WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION) {
       setWarningID(0);
       warningId = 0;
     }
