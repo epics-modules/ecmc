@@ -915,24 +915,20 @@ int ecmcMonitor::checkLimits() {
       !movingAwayFromBwdLimit &&
       ((status.currentPositionSetpoint < control.softLimitBwd) ||
        (status.currentTargetPosition < control.softLimitBwd));
+    const bool setpointSoftlimitBwd =
+      !movingAwayFromBwdLimit &&
+      (status.currentPositionSetpoint < control.softLimitBwd);
     if (virtSoftlimitBwd) {
       interlocks.bwdSoftLimitInterlock = true;
-      if (warningId != WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION) {
+      if (setpointSoftlimitBwd &&
+          (warningId != WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION)) {
         setWarningID(WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION);
         warningId = WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION;
       }
     } else {
-      if (warningId == WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION) {
-        setWarningID(0);
-        warningId = 0;
-      }
       interlocks.bwdSoftLimitInterlock = false;
     }
   } else {
-    if (warningId == WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION) {
-      setWarningID(0);
-      warningId = 0;
-    }
     interlocks.bwdSoftLimitInterlock = false;
   }
 
@@ -941,24 +937,20 @@ int ecmcMonitor::checkLimits() {
       !movingAwayFromFwdLimit &&
       ((status.currentPositionSetpoint > control.softLimitFwd) ||
        (status.currentTargetPosition > control.softLimitFwd));
+    const bool setpointSoftlimitFwd =
+      !movingAwayFromFwdLimit &&
+      (status.currentPositionSetpoint > control.softLimitFwd);
     if (virtSoftlimitFwd) {
       interlocks.fwdSoftLimitInterlock = true;
-      if (warningId != WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION) {
+      if (setpointSoftlimitFwd &&
+          (warningId != WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION)) {
         setWarningID(WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION);
         warningId = WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION;
       }
     } else {
-      if (warningId == WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION) {
-        setWarningID(0);
-        warningId = 0;
-      }
       interlocks.fwdSoftLimitInterlock = false;
     }
   } else {
-    if (warningId == WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION) {
-      setWarningID(0);
-      warningId = 0;
-    }
     interlocks.fwdSoftLimitInterlock = false;
   }
   return 0;

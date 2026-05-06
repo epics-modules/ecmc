@@ -1117,7 +1117,11 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
       }
     }
 
+    const int warningCodeOld = data_.status_.warningCode;
     int error = seq_.setExecute(execute);
+    if (data_.status_.warningCode != warningCodeOld) {
+      data_.axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(1);
+    }
     //printf("ecmcAxisBase::setExecute(): 3 global busy %d, local busy %d\n", data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy);
 
     if (error) {      
@@ -3489,12 +3493,20 @@ int ecmcAxisBase::getAllowSourceChangeWhenEnabled() {
 }
 
 void ecmcAxisBase::setTargetPos(double posTarget) {
+  const int warningCodeOld = data_.status_.warningCode;
   getSeq()->setTargetPos(posTarget);
+  if (data_.status_.warningCode != warningCodeOld) {
+    data_.axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(1);
+  }
   refreshAsynTargetValue();  
 }
 
 void ecmcAxisBase::setTargetPosAndCmd(double posTarget) {
+  const int warningCodeOld = data_.status_.warningCode;
   getSeq()->setTargetPos(posTarget);
+  if (data_.status_.warningCode != warningCodeOld) {
+    data_.axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(1);
+  }
   data_.control_.positionTarget = getSeq()->getTargetPos();
   refreshAsynTargetValue();
 }

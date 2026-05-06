@@ -176,6 +176,8 @@ ecmcAlarmSeverity ecmcError::getSeverity() {
 }
 
 int ecmcError::setWarningID(int warningId) {
+  const int oldWarningId = warningId_;
+
   if (warningId != warningId_) {
     LOGINFO12("%s (0x%x).\n",
               convertWarningIdToString(warningId),
@@ -192,7 +194,9 @@ int ecmcError::setWarningID(int warningId) {
   // Also write to "external" pointer
 
   if (warningPtr_) {
-    *warningPtr_ = warningId;
+    if (warningId || (*warningPtr_ == oldWarningId)) {
+      *warningPtr_ = warningId;
+    }
   }
 
   return warningId_;
