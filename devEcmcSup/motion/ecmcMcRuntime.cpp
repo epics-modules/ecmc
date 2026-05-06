@@ -70,6 +70,20 @@ bool isAxisAtTarget(ecmcAxisBase *axis) {
   return status && status->statusWord_.attarget;
 }
 
+bool axisStillOwnsCommand(ecmcAxisBase *axis, motionCommandTypes command) {
+  return axis->getExecute() && axis->getCommand() == command;
+}
+
+bool axisDiscreteMoveDone(ecmcAxisBase *axis, motionCommandTypes command) {
+  if (!axisStillOwnsCommand(axis, command)) {
+    return false;
+  }
+
+  const bool atTargetMonEnabled =
+    axis->getMon() && axis->getMon()->getEnableAtTargetMon();
+  return !atTargetMonEnabled || isAxisAtTarget(axis);
+}
+
 bool isAxisHomed(ecmcAxisBase *axis) {
   bool homed = false;
   axis->getAxisHomed(&homed);
@@ -270,8 +284,10 @@ int ecmcMcMoveAbsolute::run(ecmcMcAxisRef axisRef,
   Active = false;
 
   if (awaitingStandstill_) {
-    const bool atTargetMonEnabled = axis->getMon() && axis->getMon()->getEnableAtTargetMon();
-    if (!atTargetMonEnabled || isAxisAtTarget(axis)) {
+    if (!axisStillOwnsCommand(axis, ECMC_CMD_MOVEABS)) {
+      CommandAborted = true;
+      awaitingStandstill_ = false;
+    } else if (axisDiscreteMoveDone(axis, ECMC_CMD_MOVEABS)) {
       Done = true;
       awaitingStandstill_ = false;
     }
@@ -361,8 +377,10 @@ int ecmcMcMoveRelative::run(ecmcMcAxisRef axisRef,
   Active = false;
 
   if (awaitingStandstill_) {
-    const bool atTargetMonEnabled = axis->getMon() && axis->getMon()->getEnableAtTargetMon();
-    if (!atTargetMonEnabled || isAxisAtTarget(axis)) {
+    if (!axisStillOwnsCommand(axis, ECMC_CMD_MOVEREL)) {
+      CommandAborted = true;
+      awaitingStandstill_ = false;
+    } else if (axisDiscreteMoveDone(axis, ECMC_CMD_MOVEREL)) {
       Done = true;
       awaitingStandstill_ = false;
     }
