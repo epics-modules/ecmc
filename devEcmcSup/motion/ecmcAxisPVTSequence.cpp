@@ -32,6 +32,8 @@ ecmcAxisPVTSequence::ecmcAxisPVTSequence(double sampleTime,size_t maxPoints) {
   resultPosActArray_.reserve(maxPoints);
   resultPosErrArray_.reserve(maxPoints);
   relativeMode_    = 0;
+  execute_         = false;
+  executeOld_      = false;
   trgMode_         = TRG_INT_ON_SEG_CHANGE;
 }
 
