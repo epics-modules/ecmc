@@ -1117,7 +1117,11 @@ int ecmcAxisBase::setExecute(bool execute, bool ignoreBusy) {
       }
     }
 
+    const int warningCodeOld = data_.status_.warningCode;
     int error = seq_.setExecute(execute);
+    if (data_.status_.warningCode != warningCodeOld) {
+      data_.axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(1);
+    }
     //printf("ecmcAxisBase::setExecute(): 3 global busy %d, local busy %d\n", data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy);
 
     if (error) {      
@@ -2736,6 +2740,7 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
         // allow on the fly updates of target velo and target pos
         setTargetVel(data_.control_.velocityTarget);        
         setTargetPos(data_.control_.positionTarget);
+        clearStaleSoftLimitInterlockForValidTarget();
         setAcc(data_.control_.accelerationTarget);
         setDec(data_.control_.decelerationTarget);
       }
@@ -3489,18 +3494,65 @@ int ecmcAxisBase::getAllowSourceChangeWhenEnabled() {
 }
 
 void ecmcAxisBase::setTargetPos(double posTarget) {
+  const int warningCodeOld = data_.status_.warningCode;
   getSeq()->setTargetPos(posTarget);
+  if (data_.status_.warningCode != warningCodeOld) {
+    data_.axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(1);
+  }
   refreshAsynTargetValue();  
 }
 
 void ecmcAxisBase::setTargetPosAndCmd(double posTarget) {
+  const int warningCodeOld = data_.status_.warningCode;
   getSeq()->setTargetPos(posTarget);
+  if (data_.status_.warningCode != warningCodeOld) {
+    data_.axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(1);
+  }
   data_.control_.positionTarget = getSeq()->getTargetPos();
   refreshAsynTargetValue();
 }
 
 void ecmcAxisBase::setTargetPosToCurrSetPos() {
   setTargetPos(data_.status_.currentPositionSetpoint);
+}
+
+void ecmcAxisBase::clearStaleSoftLimitInterlockForValidTarget() {
+  auto &status = data_.status_;
+  auto &control = data_.control_;
+  auto &interlocks = data_.interlocks_;
+
+  if ((control.command != ECMC_CMD_MOVEABS) &&
+      (control.command != ECMC_CMD_MOVEREL)) {
+    return;
+  }
+
+  if (control.cmdData != 0) {
+    return;
+  }
+
+  const double target = status.currentTargetPosition;
+  const double posSet = status.currentPositionSetpoint;
+  bool refreshInterlocks = false;
+
+  if (interlocks.fwdSoftLimitInterlock &&
+      (posSet <= control.softLimitFwd) &&
+      (target <= control.softLimitFwd) &&
+      (target > posSet)) {
+    interlocks.fwdSoftLimitInterlock = false;
+    refreshInterlocks = true;
+  }
+
+  if (interlocks.bwdSoftLimitInterlock &&
+      (posSet >= control.softLimitBwd) &&
+      (target >= control.softLimitBwd) &&
+      (target < posSet)) {
+    interlocks.bwdSoftLimitInterlock = false;
+    refreshInterlocks = true;
+  }
+
+  if (refreshInterlocks) {
+    data_.refreshInterlocks();
+  }
 }
 
 void ecmcAxisBase::setTargetVel(double velTarget) {

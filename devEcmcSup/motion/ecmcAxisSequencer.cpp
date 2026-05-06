@@ -507,6 +507,7 @@ int ecmcAxisSequencer::setExecute(bool execute) {
         return errorCode;
       }
     }
+    clearSoftLimitWarningForValidTarget();
   }
 
   // default mode motion
@@ -1027,27 +1028,58 @@ double ecmcAxisSequencer::checkSoftLimits(double posSetpoint) {
 
   double dSet = posSetpoint;
   double dAct = data_->status_.currentPositionSetpoint;
-  int warningId = getWarningID();
 
   // soft limit FWD
   if ((posSetpoint > data_->control_.softLimitFwd) &&
       data_->control_.controlWord_.enableSoftLimitFwd && (dSet > dAct)) {
     setWarningID(WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION);
-    warningId = WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION;
-  } else if (warningId == WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION) {
-    setWarningID(0);
-    warningId = 0;
   }
 
   // soft limit BWD
   if ((posSetpoint < data_->control_.softLimitBwd) &&
       data_->control_.controlWord_.enableSoftLimitBwd && (dSet < dAct)) {
     setWarningID(WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION);
-  } else if (warningId == WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION) {
-    setWarningID(0);
   }
 
   return dSet;
+}
+
+void ecmcAxisSequencer::clearSoftLimitWarningForValidTarget() {
+  const auto &status = data_->status_;
+  const auto &control = data_->control_;
+  const auto &interlocks = data_->interlocks_;
+
+  if ((status.command != ECMC_CMD_MOVEABS) &&
+      (status.command != ECMC_CMD_MOVEREL)) {
+    return;
+  }
+
+  if (!enablePos_ || (control.cmdData != 0)) {
+    return;
+  }
+
+  const double target = status.currentTargetPosition;
+  const double posSet = status.currentPositionSetpoint;
+  const bool fwdViolation =
+    control.controlWord_.enableSoftLimitFwd &&
+    (target > control.softLimitFwd) &&
+    (target > posSet);
+  const bool bwdViolation =
+    control.controlWord_.enableSoftLimitBwd &&
+    (target < control.softLimitBwd) &&
+    (target < posSet);
+  const int warningId = getWarningID();
+
+  if ((warningId == WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION) &&
+      !fwdViolation && !interlocks.fwdSoftLimitInterlock) {
+    setWarningID(0);
+    return;
+  }
+
+  if ((warningId == WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION) &&
+      !bwdViolation && !interlocks.bwdSoftLimitInterlock) {
+    setWarningID(0);
+  }
 }
 
 ecmcTrajectoryBase * ecmcAxisSequencer::getTraj() {

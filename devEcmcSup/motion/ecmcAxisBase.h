@@ -308,6 +308,7 @@ protected:
   void refreshAsynTargetValue();
   bool commandValid(motionCommandTypes command);
   bool shouldSyncSetpointToActual();
+  void clearStaleSoftLimitInterlockForValidTarget();
 
   ecmcTrajectoryBase *traj_;
   ecmcMonitor *mon_;

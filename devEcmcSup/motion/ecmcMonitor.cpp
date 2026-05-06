@@ -681,12 +681,13 @@ double ecmcMonitor::getVelDiffMaxDifference() {
 }
 
 int ecmcMonitor::setEnableSoftLimitBwd(bool enable) {  
-  const bool oldEnable = data_->control_.controlWord_.enableSoftLimitBwd;
+  const bool oldEnable = data_->status_.statusWord_.softlimbwdena;
   data_->control_.controlWord_.enableSoftLimitBwd = enable;
   if (enable) {
     const int error = validateSoftLimitConfigForEnabledLimits();
     if (error) {
       data_->control_.controlWord_.enableSoftLimitBwd = oldEnable;
+      data_->status_.statusWord_.softlimbwdena = oldEnable;
       return error;
     }
   }
@@ -696,12 +697,13 @@ int ecmcMonitor::setEnableSoftLimitBwd(bool enable) {
 }
 
 int ecmcMonitor::setEnableSoftLimitFwd(bool enable) {
-  const bool oldEnable = data_->control_.controlWord_.enableSoftLimitFwd;
+  const bool oldEnable = data_->status_.statusWord_.softlimfwdena;
   data_->control_.controlWord_.enableSoftLimitFwd = enable;
   if (enable) {
     const int error = validateSoftLimitConfigForEnabledLimits();
     if (error) {
       data_->control_.controlWord_.enableSoftLimitFwd = oldEnable;
+      data_->status_.statusWord_.softlimfwdena = oldEnable;
       return error;
     }
   }
@@ -783,14 +785,16 @@ int ecmcMonitor::setSoftLimitFwd(double limit) {
 
 int ecmcMonitor::validateSoftLimitConfigForEnabledLimits() {
   if (hasInvalidSoftLimitConfigForEnabledLimits()) {
-    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Invalid soft-limit configuration for axis %d. "
-           "Backward soft limit (%lf) must be below forward soft limit (%lf).\n",
-           __FILE__,
-           __FUNCTION__,
-           __LINE__,
-           data_->status_.axisId,
-           data_->control_.softLimitBwd,
-           data_->control_.softLimitFwd);
+    if (getErrorID() != ERROR_MON_TOL_OUT_OF_RANGE) {
+      ecmcRtLoggerLogError("%s/%s:%d: ERROR: Invalid soft-limit configuration for axis %d. "
+             "Backward soft limit (%lf) must be below forward soft limit (%lf).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             data_->status_.axisId,
+             data_->control_.softLimitBwd,
+             data_->control_.softLimitFwd);
+    }
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -915,24 +919,20 @@ int ecmcMonitor::checkLimits() {
       !movingAwayFromBwdLimit &&
       ((status.currentPositionSetpoint < control.softLimitBwd) ||
        (status.currentTargetPosition < control.softLimitBwd));
+    const bool setpointSoftlimitBwd =
+      !movingAwayFromBwdLimit &&
+      (status.currentPositionSetpoint < control.softLimitBwd);
     if (virtSoftlimitBwd) {
       interlocks.bwdSoftLimitInterlock = true;
-      if (warningId != WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
-        setWarningID(WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK);
-        warningId = WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK;
+      if (setpointSoftlimitBwd &&
+          (warningId != WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION)) {
+        setWarningID(WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION);
+        warningId = WARNING_SEQ_SETPOINT_SOFTLIM_BWD_VILOATION;
       }
     } else {
-      if (warningId == WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
-        setWarningID(0);
-        warningId = 0;
-      }
       interlocks.bwdSoftLimitInterlock = false;
     }
   } else {
-    if (warningId == WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK) {
-      setWarningID(0);
-      warningId = 0;
-    }
     interlocks.bwdSoftLimitInterlock = false;
   }
 
@@ -941,24 +941,20 @@ int ecmcMonitor::checkLimits() {
       !movingAwayFromFwdLimit &&
       ((status.currentPositionSetpoint > control.softLimitFwd) ||
        (status.currentTargetPosition > control.softLimitFwd));
+    const bool setpointSoftlimitFwd =
+      !movingAwayFromFwdLimit &&
+      (status.currentPositionSetpoint > control.softLimitFwd);
     if (virtSoftlimitFwd) {
       interlocks.fwdSoftLimitInterlock = true;
-      if (warningId != WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION) {
+      if (setpointSoftlimitFwd &&
+          (warningId != WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION)) {
         setWarningID(WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION);
         warningId = WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION;
       }
     } else {
-      if (warningId == WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION) {
-        setWarningID(0);
-        warningId = 0;
-      }
       interlocks.fwdSoftLimitInterlock = false;
     }
   } else {
-    if (warningId == WARNING_SEQ_SETPOINT_SOFTLIM_FWD_VILOATION) {
-      setWarningID(0);
-      warningId = 0;
-    }
     interlocks.fwdSoftLimitInterlock = false;
   }
   return 0;

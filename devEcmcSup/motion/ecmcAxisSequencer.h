@@ -122,6 +122,7 @@ private:
 
   void         initVars();
   double       checkSoftLimits(double posSetpoint);
+  void         clearSoftLimitWarningForValidTarget();
   void         readHomingParamsFromEnc();
   bool         autoModeSetHoming();
   bool         autoModeSetMotion();

@@ -176,6 +176,8 @@ ecmcAlarmSeverity ecmcError::getSeverity() {
 }
 
 int ecmcError::setWarningID(int warningId) {
+  const int oldWarningId = warningId_;
+
   if (warningId != warningId_) {
     LOGINFO12("%s (0x%x).\n",
               convertWarningIdToString(warningId),
@@ -192,7 +194,9 @@ int ecmcError::setWarningID(int warningId) {
   // Also write to "external" pointer
 
   if (warningPtr_) {
-    *warningPtr_ = warningId;
+    if (warningId || (*warningPtr_ == oldWarningId)) {
+      *warningPtr_ = warningId;
+    }
   }
 
   return warningId_;
@@ -226,11 +230,6 @@ const char * ecmcError::convertWarningIdToString(int warningId) {
 
   case 0x114417: // Encoder
     return "WARNING_ENC_NOT_READY";
-
-    break;
-
-  case 0x114C01: // Monitor
-    return "WARNING_MON_SOFT_LIMIT_BWD_INTERLOCK";
 
     break;
 
