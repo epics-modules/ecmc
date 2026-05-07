@@ -12,6 +12,7 @@
 
 #include "ecmcPluginClient.h"
 #include "ecmcOctetIF.h"        // Log Macros
+#include "ecmcRtLogger.h"
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
 
@@ -199,6 +200,34 @@ int getEcmcAxisErrorId(int axisIndex) {
   return getAxisErrorID(axisIndex);
 }
 
+double getEcmcLutValue(int lutIndex, double index) {
+  if (lutIndex < 0 || lutIndex >= ECMC_MAX_LUTS) {
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: LUT list index out of range.\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__);
+    return 0.0;
+  }
+
+  if (!luts[lutIndex]) {
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: LUT object is NULL.\n",
+                         __FILE__,
+                         __FUNCTION__,
+                         __LINE__);
+    return 0.0;
+  }
+
+  return luts[lutIndex]->getValue(index);
+}
+
+int getEcmcLutExists(int lutIndex) {
+  if (lutIndex < 0 || lutIndex >= ECMC_MAX_LUTS) {
+    return 0;
+  }
+
+  return luts[lutIndex] ? 1 : 0;
+}
+
 void* getEcmcAsynPortDriver() {
   LOGINFO4("%s/%s:%d:\n",
            __FILE__,
@@ -263,4 +292,6 @@ void getEcmcCppLogicHostServices(struct ecmcCppLogicHostServices* services) {
   services->set_axis_ext_act_pos = &setEcmcAxisExtActPos;
   services->get_ioc_state = &getEcmcEpicsIOCState;
   services->publish_debug_text = &publishEcmcDebugText;
+  services->get_lut_value = &getEcmcLutValue;
+  services->lut_exists = &getEcmcLutExists;
 }

@@ -871,6 +871,18 @@ inline int32_t axisSetExternalEncoderPos(int32_t axis_index, double value) {
            : -1;
 }
 
+inline double lutGetValue(int32_t lut_index, double index) {
+  return (g_hostServices && g_hostServices->get_lut_value)
+           ? g_hostServices->get_lut_value(lut_index, index)
+           : 0.0;
+}
+
+inline bool lutExists(int32_t lut_index) {
+  return (g_hostServices && g_hostServices->lut_exists)
+           ? g_hostServices->lut_exists(lut_index) != 0
+           : false;
+}
+
 inline int32_t setEnableDbg(bool enable) {
   return (g_hostServices && g_hostServices->set_enable_dbg)
            ? g_hostServices->set_enable_dbg(enable ? 1 : 0)

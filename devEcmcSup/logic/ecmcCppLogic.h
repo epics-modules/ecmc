@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-#define ECMC_CPP_LOGIC_ABI_VERSION 6
+#define ECMC_CPP_LOGIC_ABI_VERSION 7
 
 #define ECMC_CPP_BIND_FLAG_NONE 0u
 #define ECMC_CPP_BIND_FLAG_AUTO_SIZE 1u
@@ -85,6 +85,8 @@ struct ecmcCppLogicHostServices {
   int32_t (*get_ioc_state)();
   const char* (*get_macros_text)();
   void (*publish_debug_text)(const char* message);
+  double (*get_lut_value)(int32_t lut_index, double index);
+  int32_t (*lut_exists)(int32_t lut_index);
 };
 
 struct ecmcCppLogicApi {

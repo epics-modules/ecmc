@@ -1,6 +1,7 @@
 Release Notes
 ===
 # 11.0.7
+* Add LUT (lookup table) support for cpp-logic plugins
 * Add the `cpp_logic` C/C++ runtime interface with loader support, dedicated asyn ports, EPICS bindings, string/array/waveform exports, macro parsing, helper headers, examples, and an offline substitutions generator.
 * Add PLCopen-style motion-control runtime support and C/C++ helpers, including `MC_Power`, `MC_Reset`, `MC_MoveAbsolute`, `MC_MoveRelative`, `MC_MoveVelocity`, `MC_Home`, `MC_Halt`, and readback helpers.
 * Add plugin and `cpp_logic` helpers for axis state queries, external axis sources, EtherCAT state access, EtherCAT master indexes, tracing, retained values, timers, triggers, filtering, PID control, and bit handling.
