@@ -15,6 +15,7 @@
 #include "ecmcRtLogger.h"
 #include "ecmcDefinitions.h"
 #include "ecmcErrorsList.h"
+#include "ecmcMainThread.h"
 
 // TODO: REMOVE GLOBALS
 #include "ecmcGlobalsExtern.h"
@@ -228,6 +229,10 @@ int getEcmcLutExists(int lutIndex) {
   return luts[lutIndex] ? 1 : 0;
 }
 
+int requestEcmcIocExit(int exitCode) {
+  return requestIocExitFromRt(exitCode);
+}
+
 void* getEcmcAsynPortDriver() {
   LOGINFO4("%s/%s:%d:\n",
            __FILE__,
@@ -294,4 +299,5 @@ void getEcmcCppLogicHostServices(struct ecmcCppLogicHostServices* services) {
   services->publish_debug_text = &publishEcmcDebugText;
   services->get_lut_value = &getEcmcLutValue;
   services->lut_exists = &getEcmcLutExists;
+  services->request_ioc_exit = &requestEcmcIocExit;
 }

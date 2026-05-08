@@ -883,6 +883,12 @@ inline bool lutExists(int32_t lut_index) {
            : false;
 }
 
+inline int32_t requestIocExit(int32_t exit_code = 0) {
+  return (g_hostServices && g_hostServices->request_ioc_exit)
+           ? g_hostServices->request_ioc_exit(exit_code)
+           : -1;
+}
+
 inline int32_t setEnableDbg(bool enable) {
   return (g_hostServices && g_hostServices->set_enable_dbg)
            ? g_hostServices->set_enable_dbg(enable ? 1 : 0)

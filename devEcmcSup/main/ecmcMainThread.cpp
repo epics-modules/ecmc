@@ -28,6 +28,7 @@
 #include <pthread.h>
 #include <exception>
 #include <algorithm>
+#include <atomic>
 #include <string>
 
 #include "epicsThread.h"
@@ -45,6 +46,7 @@
 #include "ecmcMisc.h"
 #include "ecmcAsynPortDriver.h"
 #include "ecmcMotorRecordController.h"
+#include "ecmcCom.h"
 
 /****************************************************************************/
 extern int allowCallbackEpicsState;
@@ -53,6 +55,8 @@ static unsigned int counter                          = 0;
 static struct timespec masterActivationTimeMonotonic = {};
 static struct timespec masterActivationTimeOffset    = {};
 static struct timespec masterActivationTimeRealtime  = {};
+static std::atomic<int> iocExitRequested {0};
+static std::atomic<int> iocExitCode {0};
 
 /*****************************************************************************/
 
@@ -187,6 +191,12 @@ void updateAsynParams(int force) {
       mainAsynParams[ECMC_ASYN_MAIN_PAR_UPDATE_READY_ID]->refreshParamRT(1);
     }
   }
+}
+
+int requestIocExitFromRt(int exitCode) {
+  iocExitCode.store(exitCode, std::memory_order_relaxed);
+  iocExitRequested.store(1, std::memory_order_release);
+  return 0;
 }
 
 // ****** Threading
@@ -350,6 +360,11 @@ void cyclic_task(void *usr) {
   if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
 
   while (appModeCmd == ECMC_MODE_RUNTIME) {
+    if (iocExitRequested.load(std::memory_order_acquire)) {
+      appModeCmd = ECMC_MODE_CONFIG;
+      break;
+    }
+
     const bool ecInitDone = ec->getInitDone();
     auto * const localAsynPort = asynPort;
 
@@ -463,6 +478,10 @@ void cyclic_task(void *usr) {
       cppLogicError = activeCppLogics[i]->exeRTFunc(controllerError);
     }
 
+    if (iocExitRequested.load(std::memory_order_acquire)) {
+      appModeCmd = ECMC_MODE_CONFIG;
+    }
+
     // PLCs
     if (plcs) {
       plcs->execute(ecStat);
@@ -521,6 +540,13 @@ void cyclic_task(void *usr) {
   // Write to SHM the this ioc closes down
   if (writeToShm) {
     writeMasterStatus(masterId, 0);
+  }
+
+  if (iocExitRequested.load(std::memory_order_acquire)) {
+    if (ecmcRTMutex) {
+      epicsMutexUnlock(ecmcRTMutex);
+    }
+    ecmcCleanup(iocExitCode.load(std::memory_order_relaxed));
   }
 }
 

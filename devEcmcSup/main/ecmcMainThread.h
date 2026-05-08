@@ -108,6 +108,16 @@ int setSamplePeriodMs(double samplePeriodMs);
 
 void updateAsynParams(int force);
 
+/** \brief Request IOC process exit from realtime-safe user code.
+ *
+ * The request is observed by the main realtime loop. The caller only sets a
+ * flag; cleanup and process exit are deferred until the loop exits.
+ *
+ * \param[in] exitCode Process exit code.
+ * \return 0.
+ */
+int requestIocExitFromRt(int exitCode);
+
 #ifdef __cplusplus
 }
 #endif  // ifdef __cplusplus

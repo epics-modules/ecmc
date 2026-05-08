@@ -10,8 +10,8 @@
 *
 \*************************************************************************/
 
-#ifndef ECMC_MISC_H_
-#define ECMC_MISC_H_
+#ifndef ECMC_COM_H_
+#define ECMC_COM_H_
 
 # ifdef __cplusplus
 extern "C" {
@@ -44,4 +44,4 @@ void ecmcCleanup(int signum);
 }
 # endif  // ifdef __cplusplus
 
-#endif  /* ECMC_MISC_H_ */
+#endif  /* ECMC_COM_H_ */

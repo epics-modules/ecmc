@@ -87,6 +87,7 @@ struct ecmcCppLogicHostServices {
   void (*publish_debug_text)(const char* message);
   double (*get_lut_value)(int32_t lut_index, double index);
   int32_t (*lut_exists)(int32_t lut_index);
+  int32_t (*request_ioc_exit)(int32_t exit_code);
 };
 
 struct ecmcCppLogicApi {
