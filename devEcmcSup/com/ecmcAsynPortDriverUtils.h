@@ -78,6 +78,8 @@ int           windowsToEpicsTimeStamp(uint64_t        plcTime,
 /*Available strings:
  *  ec<masterId>.s<slaveId>.<alias>  (defaults complete ecentry)
  *  ec<masterId>.s<slaveId>.<alias>.<bit> (only one bit)
+ *  <alias> (global simulation slave entry)
+ *  <alias>.<bit> (only one bit of global simulation slave entry)
 */
 int parseEcPath(char *ecPath,
                 int  *master,

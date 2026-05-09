@@ -105,9 +105,9 @@ int ecAddPdo(int      slaveIndex,
  * call to "Cfg.EcAddSlave()".\n
  *
  *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
- *    slaveBusPosition = -1: Used to address the simulation slave. Only two
- *                           entries are configured, "ZERO" with default
- *                           value 0 and "ONE" with default value 1.\n
+ *    slaveBusPosition = -1: Used to address the global simulation slave.
+ *                           Entries "ZERO" and "ONE" are configured by
+ *                           default.\n
  *    slaveBusPosition = 0..65535: Addressing of normal EtherCAT slaves.\n
  *  \param[in] vendorId Identification value for slave vendor.\n
  *    vendorId = 0x2: Beckhoff.\n
@@ -876,7 +876,8 @@ int writeEcEntryIDString(int      slaveBusPosition,
 /** \brief Writes a value to an EtherCAT entry addressed by an ethercat path
  * .\n
   *
-  *  \param[in] ecPath Path of the ethercat entry (ec<mid>.s<sid>.<entry name>).\n
+  *  \param[in] ecPath Path of the ethercat entry (ec<mid>.s<sid>.<entry name>)
+  *                    or the name of a global simulation entry.\n
   *  \param[in] value Value to be written.\n
   *
   * Note: This command should not be used when realtime performance is needed
@@ -886,6 +887,9 @@ int writeEcEntryIDString(int      slaveBusPosition,
   *
   * \note Example: Write a 1 to a digital output configured as "OUTPUT_0" on slave 1\n
   *  "Cfg.WriteEcEntryEcPath(ec0.s1.OUTPUT_1,1)" //Command string to ecmcCmdParser.c\n
+  *
+  * \note Example: Write a 1 to a global simulation entry called "SIM_OUT".\n
+  *  "Cfg.WriteEcEntryEcPath(SIM_OUT,1)" //Command string to ecmcCmdParser.c\n
   */
 int writeEcEntryEcPath(char *ecPath,
                        uint64_t value);
@@ -929,6 +933,9 @@ int readEcEntry(int       slaveIndex,
   *
   * \note Example: Read a digital input configured as "INPUT_0" on slave 1\n
   *  "ReadEcEntryIDString(1,INPUT_0)" //Command string to ecmcCmdParser.c\n
+  *
+  * \note Example: Read a global simulation entry called "SIM_IN".\n
+  *  "ReadEcEntryIDString(SIM_IN)" //Command string to ecmcCmdParser.c\n
   */
 int readEcEntryIDString(int       slavePosition,
                         char     *entryIDString,
@@ -1394,9 +1401,15 @@ int ecUseClockRealtime(int useClkRT);
  *
  * \note Example: Add an EtherCAT simulation entry called "TEST" for slave 7.\n
  * "Cfg.EcAddSimEntry(7,TEST,U16,0)"
+ *
+ * \note Example: Add a global simulation entry called "TEST". This entry can
+ * be addressed by name without the ec<master>.s<slave>. prefix.\n
+ * "Cfg.EcAddSimEntry(TEST,U16,0)"
  */
 int ecAddSimEntry(
   int position,  char *entryIDString, char *datatype, uint64_t value);
+
+int ecAddSimEntryGlobal(char *entryIDString, char *datatype, uint64_t value);
 
 # ifdef __cplusplus
 }

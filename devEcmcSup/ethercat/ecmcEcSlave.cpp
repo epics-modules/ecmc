@@ -102,14 +102,8 @@ void ecmcEcSlave::initVars() {
   statusWordOld_     = 0;
   asyncSDOCounter_   = 0;
   enableSDOCheck_    = 0;
-  simEntryCounter_   = 0;
   for (int i = 0; i < EC_MAX_SYNC_MANAGERS; i++) {
     syncManagerArray_[i] = NULL;
-  }
-
-  for (int i = 0; i < SIMULATION_ENTRIES; i++) {
-    simEntries_[i] = NULL;
-    simBuffer_[i] = 0;
   }
 
   for (int i = 0; i < EC_MAX_ENTRIES; i++) {
@@ -136,12 +130,17 @@ ecmcEcSlave::~ecmcEcSlave() {
     syncManagerArray_[i] = NULL;
   }
 
-  for (uint i = 0; i < simEntryCounter_; i++) {
-    if (simEntries_[i] != NULL) {
-      delete simEntries_[i];
-    }
+  for (size_t i = 0; i < simEntries_.size(); i++) {
+    delete simEntries_[i];
     simEntries_[i] = NULL;
   }
+  simEntries_.clear();
+
+  for (size_t i = 0; i < simBuffer_.size(); i++) {
+    delete simBuffer_[i];
+    simBuffer_[i] = NULL;
+  }
+  simBuffer_.clear();
 
   // Clear pointers
   for (int i = 0; i < EC_MAX_ENTRIES; i++) {
@@ -531,7 +530,7 @@ ecmcEcEntry * ecmcEcSlave::getEntry(int entryIndex) {
     }
     return entryList_[entryIndex];
   } else {
-    if (entryIndex >= SIMULATION_ENTRIES) {
+    if ((entryIndex < 0) || (static_cast<size_t>(entryIndex) >= simEntries_.size())) {
       ecmcRtLoggerLogError(
         "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry index out of range (0x%x).\n",
         __FILE__,
@@ -758,7 +757,7 @@ ecmcEcEntry * ecmcEcSlave::findEntry(std::string id) {
   // }
 
   // Simulation entries
-  for (int i = 0; i < SIMULATION_ENTRIES; i++) {
+  for (size_t i = 0; i < simEntries_.size(); i++) {
     if (simEntries_[i] != NULL) {
       if (simEntries_[i]->getIdentificationName().compare(id) == 0) {
         return simEntries_[i];
@@ -780,10 +779,10 @@ int ecmcEcSlave::findEntryIndex(std::string id) {
   }
 
   // Simulation entries
-  for (int i = 0; i < SIMULATION_ENTRIES; i++) {
+  for (size_t i = 0; i < simEntries_.size(); i++) {
     if (simEntries_[i] != NULL) {
       if (simEntries_[i]->getIdentificationName().compare(id) == 0) {
-        return i;
+        return static_cast<int>(i);
       }
     }
   }
@@ -1224,22 +1223,26 @@ int ecmcEcSlave::setEnableSDOCheck(int enable) {
 int ecmcEcSlave::addSimEntry(std::string    id,
                              ecmcEcDataType dt,
                              uint64_t value) {
-  // Buffer full
-  if(simEntryCounter_ >= SIMULATION_ENTRIES) {
-    return ERROR_EC_SLAVE_CONFIG_FAILED;
+  uint64_t *simBuffer = new uint64_t;
+
+  if (!simBuffer) {
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_MAIN_EXCEPTION);
   }
 
-  // Data buffer
-  simBuffer_[simEntryCounter_] = value;
+  *simBuffer = value;
   
   // Entry
   ecmcEcEntry *entry = new ecmcEcEntry(asynPortDriver_,
                                        masterId_,
                                        slavePosition_,
-                                       (uint8_t*)&(simBuffer_[simEntryCounter_]),
+                                       (uint8_t*)simBuffer,
                                        dt,
                                        id);
   if (!entry) {
+    delete simBuffer;
     return setErrorID(__FILE__,
                       __FUNCTION__,
                       __LINE__,
@@ -1249,13 +1252,20 @@ int ecmcEcSlave::addSimEntry(std::string    id,
   int errorCode = entry->getErrorID();
   if (errorCode) {
     delete entry;
+    delete simBuffer;
     return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
   }
 
-  simEntries_[simEntryCounter_] = entry;
-  simEntries_[simEntryCounter_]->writeValue(value);
+  entry->writeValue(value);
 
-  appendEntryToList(simEntries_[simEntryCounter_], 1);
-  simEntryCounter_++;
+  errorCode = appendEntryToList(entry, 1);
+  if (errorCode) {
+    delete entry;
+    delete simBuffer;
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
+
+  simBuffer_.push_back(simBuffer);
+  simEntries_.push_back(entry);
   return 0;
 }

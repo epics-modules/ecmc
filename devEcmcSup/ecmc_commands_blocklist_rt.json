@@ -41,6 +41,7 @@
     "Cfg.EcAddSdoComplete(<slaveBusPosition>,0x<sdoIndex>,<valueBuffer>,<byteSize>)",
     "Cfg.EcAddSdoDT(<slaveBusPosition>,0x<sdoIndex>,0x<sdoSubIndex>,<valueString>,<dataType>)",
     "Cfg.EcAddSimEntry(<slaveBusPosition>,<entryIDString>,<dataType>,%",
+    "Cfg.EcAddSimEntry(<entryIDString>,<dataType>,%",
     "Cfg.EcAddSlave(<alias>,<slaveBusPosition>,0x<vendorId>,0x<productCode>)",
     "Cfg.EcAddSyncManager(<int>,<int>,<int>)",
     "Cfg.EcApplyConfig()",

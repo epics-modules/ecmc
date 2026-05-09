@@ -69,6 +69,7 @@ int         validateConfig();
    *  \param[in] ecPath EtherCAT entry path in the following format:\n
    *                    ec<masterId>.s<slaveId>.<alias>.<bitId>
    *                    ec<masterId>.s<slaveId>.<alias>
+   *                    <alias> for global simulation entries
    *  \param[in] axPath Axis parameter path in the following format:\n
    *                    ax<id>.enc.actpos\n
    *                    ax<id>.drv.enable\n
@@ -88,6 +89,11 @@ int         validateConfig();
    *  \note Example: Link an EtherCAT entry configured as "POSITION_ACT" in slave 1
    *  as actual position for the encoder of axis 5.\n
    *  "Cfg.LinkEcEntryToObject(ec0.s1.POSITION_ACT,ax5.enc.actpos)" //Command string
+   *  to ecmcCmdParser.c\n
+   *
+   *  \note Example: Link a global simulation entry called "SIM_POS" as actual
+   *  position for the encoder of axis 5.\n
+   *  "Cfg.LinkEcEntryToObject(SIM_POS,ax5.enc.actpos)" //Command string
    *  to ecmcCmdParser.c\n
    *     *
    */

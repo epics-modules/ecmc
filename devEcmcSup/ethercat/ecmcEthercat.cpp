@@ -286,6 +286,10 @@ int ecAddSimEntry(
   return ec->addSimEntry(position,id,dt,value);
 }
 
+int ecAddSimEntryGlobal(char *entryIDString, char *datatype, uint64_t value) {
+  return ecAddSimEntry(-1, entryIDString, datatype, value);
+}
+
 int ecSetEntryUpdateInRealtime(
   uint16_t slavePosition,
   char    *entryIDString,
@@ -911,7 +915,9 @@ int writeEcEntryEcPath(char *ecPath,
     return errorCode;
   }
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone() && (slaveIndex != -1)) {
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  }
 
   ecmcEcSlave *slave = NULL;
 
@@ -930,7 +936,7 @@ int writeEcEntryEcPath(char *ecPath,
   if (entry == NULL) return ERROR_MAIN_EC_ENTRY_NULL;
 
   if(bitIndex>=0) {
-    return entry->writeBitForce(value, bitIndex);
+    return entry->writeBitForce(bitIndex, value);
   } 
   
   return entry->writeValueForce(value);  
@@ -946,7 +952,9 @@ int writeEcEntryIDString(int slavePosition, char *entryIDString,
            entryIDString,
            value);
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone() && (slavePosition != -1)) {
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  }
 
   ecmcEcSlave *slave = NULL;
 
@@ -994,7 +1002,9 @@ int readEcEntryIDString(int slavePosition, char *entryIDString,
            slavePosition,
            entryIDString);
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone() && (slavePosition != -1)) {
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  }
 
   ecmcEcSlave *slave = NULL;
 
@@ -1024,7 +1034,9 @@ int readEcEntryIndexIDString(int slavePosition, char *entryIDString,
            slavePosition,
            entryIDString);
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!ec->getInitDone() && (slavePosition != -1)) {
+    return ERROR_MAIN_EC_NOT_INITIALIZED;
+  }
 
   ecmcEcSlave *slave = NULL;
 

@@ -259,6 +259,8 @@ const char* epicsStateToString(int state) {
 /*Available strings:
  *  ec<masterId>.s<slaveId>.<alias>  (defaults complete ecentry)
  *  ec<masterId>.s<slaveId>.<alias>.<bit> (only one bit)
+ *  <alias>  (global simulation slave entry)
+ *  <alias>.<bit>  (single bit of global simulation slave entry)
 */
 int parseEcPath(char *ecPath,
                 int  *master,
@@ -269,6 +271,10 @@ int parseEcPath(char *ecPath,
   int slaveId  = 0;
   int bitId    = 0;
   int nvals    = 0;
+
+  if ((ecPath == NULL) || (strlen(ecPath) == 0)) {
+    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+  }
 
   nvals = sscanf(ecPath,
                  "ec%d.s%d.%[^.].%d",
@@ -291,7 +297,38 @@ int parseEcPath(char *ecPath,
     *bit    = -1;
     return 0;
   }
-  return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+
+  if ((strncmp(ecPath, "ec", 2) == 0) && (strstr(ecPath, ".s") != NULL)) {
+    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+  }
+
+  if (strlen(ecPath) >= EC_MAX_OBJECT_PATH_CHAR_LENGTH) {
+    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+  }
+
+  char *bitSep = strrchr(ecPath, '.');
+  if (bitSep != NULL) {
+    char *endPtr = NULL;
+    long parsedBit = strtol(bitSep + 1, &endPtr, 10);
+    if ((endPtr != bitSep + 1) && (*endPtr == '\0') && (parsedBit >= 0)) {
+      size_t aliasLen = bitSep - ecPath;
+      if ((aliasLen == 0) || (aliasLen >= EC_MAX_OBJECT_PATH_CHAR_LENGTH)) {
+        return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+      }
+      memcpy(alias, ecPath, aliasLen);
+      alias[aliasLen] = '\0';
+      *master = 0;
+      *slave  = -1;
+      *bit    = parsedBit;
+      return 0;
+    }
+  }
+
+  strcpy(alias, ecPath);
+  *master = 0;
+  *slave  = -1;
+  *bit    = -1;
+  return 0;
 }
 
 int getEcMainFuncType(char *objPath,

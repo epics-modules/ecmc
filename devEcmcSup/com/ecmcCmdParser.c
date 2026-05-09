@@ -1357,6 +1357,21 @@ static int handleCfgCommand(const char *myarg_1) {
                          u64Value);
   }
 
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+  nvals         = sscanf(myarg_1,
+                         "EcAddSimEntry(%[^,],%[^,],%" PRIu64 ")",
+                         cIdBuffer,
+                         cIdBuffer2,
+                         &u64Value);
+
+  if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddSimEntry");
+    return ecAddSimEntryGlobal(cIdBuffer,
+                               cIdBuffer2,
+                               u64Value);
+  }
+
   /*Cfg.EcAddSdoAsync(
     uint16_t position,
     uint16_t nIndex,
@@ -3982,6 +3997,15 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
                                                               &i64Value));
   }
 
+  cIdBuffer[0] = '\0';
+  nvals = sscanf(myarg_1, "ReadEcEntryIDString(%[^)])", cIdBuffer);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT64(readEcEntryIDString(-1,
+                                                              cIdBuffer,
+                                                              &i64Value));
+  }
+
   /*ReadEcEntryIndexIDString(int nSlavePosition,char *cEntryID)*/
   nvals = sscanf(myarg_1,
                  "ReadEcEntryIndexIDString(%d,%[^)])",
@@ -3990,6 +4014,15 @@ int motorHandleOneArg(const char *myarg_1, ecmcOutputBufferType *buffer) {
 
   if (nvals == 2) {
     SEND_RESULT_OR_ERROR_AND_RETURN_INT(readEcEntryIndexIDString(iValue2,
+                                                                 cIdBuffer,
+                                                                 &iValue));
+  }
+
+  cIdBuffer[0] = '\0';
+  nvals = sscanf(myarg_1, "ReadEcEntryIndexIDString(%[^)])", cIdBuffer);
+
+  if (nvals == 1) {
+    SEND_RESULT_OR_ERROR_AND_RETURN_INT(readEcEntryIndexIDString(-1,
                                                                  cIdBuffer,
                                                                  &iValue));
   }

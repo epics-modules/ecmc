@@ -31,8 +31,6 @@
 #include "ecmcEcDomain.h"
 #include "ecmcEcData.h"
 
-#define SIMULATION_ENTRIES 32
-
 // ECSLAVE ERRORS
 #define ERROR_EC_SLAVE_CONFIG_FAILED 0x24000
 #define ERROR_EC_SLAVE_CALL_NOT_ALLOWED_IN_SIM_MODE 0x24001
@@ -217,8 +215,8 @@ private:
 
   // used to simulate endswitches
   bool simSlave_;
-  uint64_t simBuffer_[SIMULATION_ENTRIES];
-  ecmcEcEntry*  simEntries_[SIMULATION_ENTRIES];
+  std::vector<uint64_t *>simBuffer_;
+  std::vector<ecmcEcEntry *>simEntries_;
   ecmcEcDomain *domain_;
   ecmcAsynPortDriver *asynPortDriver_;
   ecmcAsynDataItem *slaveAsynParams_[ECMC_ASYN_EC_SLAVE_PAR_COUNT];
@@ -241,6 +239,5 @@ private:
   // Ensure important SDO settings like max current are set.
   std::vector<sdoVerifyChX> sdoChVerify_;
   bool enableSDOCheck_;
-  size_t simEntryCounter_;
 };
 #endif  /* ECMCECSLAVE_H_ */
