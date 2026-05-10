@@ -1752,15 +1752,25 @@ int ecmcConfigOrDie(const char *ecmcCommand) {
   // Check return value
   if (strcmp(ecmcConfigBuffer.buffer, "OK")) {
     int ecmcError = 0;
+    char ecmcErrorDetail[ECMC_CMD_MAX_SINGLE_CMD_LENGTH] = "";
     int nvals     = sscanf(ecmcConfigBuffer.buffer,
-                           ECMC_RETURN_ERROR_STRING "%d",
-                           &ecmcError);
+                           ECMC_RETURN_ERROR_STRING "%d: %4095[^\n]",
+                           &ecmcError,
+                           ecmcErrorDetail);
 
-    if (nvals == 1) {
-      printf("ECMC command \"%s\" returned error: %s (0x%x)\n",
-             ecmcCommand,
-             getErrorString(ecmcError),
-             ecmcError);
+    if (nvals >= 1) {
+      if (nvals == 2) {
+        printf("ECMC command \"%s\" returned error: %s (0x%x): %s\n",
+               ecmcCommand,
+               getErrorString(ecmcError),
+               ecmcError,
+               ecmcErrorDetail);
+      } else {
+        printf("ECMC command \"%s\" returned error: %s (0x%x)\n",
+               ecmcCommand,
+               getErrorString(ecmcError),
+               ecmcError);
+      }
     } else {
       printf("ECMC did not return \"OK\": %s\n", ecmcConfigBuffer.buffer);
     }

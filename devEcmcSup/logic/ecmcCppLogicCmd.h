@@ -17,6 +17,7 @@ extern "C" {
 int loadCppLogic(int logicId, const char* filenameWP, const char* configStr);
 int appendCppLogicMacros(int logicId, const char* macrosText);
 int reportCppLogic(int logicId);
+const char* getLastCppLogicErrorMessage(void);
 
 #ifdef __cplusplus
 }

@@ -17,9 +17,11 @@
 #include <cstddef>
 #include <cstdlib>
 #include <deque>
+#include <exception>
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace ecmcCpp {
@@ -46,6 +48,15 @@ struct HasContiguousDataAndSize<
   std::void_t<
     decltype(std::declval<T&>().data()),
     decltype(std::declval<T&>().size())>> : std::true_type {};
+
+template <typename T, typename = void>
+struct HasValidateCreation : std::false_type {};
+
+template <typename T>
+struct HasValidateCreation<
+  T,
+  std::void_t<decltype(std::declval<T&>().validateCreation(std::declval<std::string*>()))>>
+  : std::true_type {};
 
 template <typename T>
 inline int prepareAutoVectorBinding(ecmcCppLogicItemBinding* binding, uint32_t sourceBytes) {
@@ -889,6 +900,16 @@ inline int32_t requestIocExit(int32_t exit_code = 0) {
            : -1;
 }
 
+inline int32_t setCreateErrorMessage(const char* message) {
+  return (g_hostServices && g_hostServices->set_create_error_message)
+           ? g_hostServices->set_create_error_message(message)
+           : -1;
+}
+
+inline int32_t setCreateErrorMessage(const std::string& message) {
+  return setCreateErrorMessage(message.c_str());
+}
+
 inline int32_t setEnableDbg(bool enable) {
   return (g_hostServices && g_hostServices->set_enable_dbg)
            ? g_hostServices->set_enable_dbg(enable ? 1 : 0)
@@ -1078,10 +1099,39 @@ inline void setHostServicesAdapter(const ecmcCppLogicHostServices* services) {
 }
 
 template <typename LogicT>
-inline void* createInstanceAdapter() {
+inline int32_t createInstanceAdapter(void** instance) {
   static_assert(std::is_base_of_v<LogicBase, LogicT>,
                 "LogicT must derive from ecmcCpp::LogicBase");
-  return new LogicT();
+  if (!instance) {
+    return ECMC_CPP_LOGIC_CREATE_INSTANCE_FAIL;
+  }
+  *instance = nullptr;
+  try {
+    *instance = new LogicT();
+    if constexpr (HasValidateCreation<LogicT>::value) {
+      std::string errorMessage;
+      const int32_t error = static_cast<LogicT*>(*instance)->validateCreation(&errorMessage);
+      if (error != 0) {
+        if (!errorMessage.empty()) {
+          setCreateErrorMessage(errorMessage);
+        }
+        delete static_cast<LogicT*>(*instance);
+        *instance = nullptr;
+        return error;
+      }
+    }
+  } catch (const std::exception& e) {
+    setCreateErrorMessage(e.what());
+    delete static_cast<LogicT*>(*instance);
+    *instance = nullptr;
+    return ECMC_CPP_LOGIC_CREATE_INSTANCE_FAIL;
+  } catch (...) {
+    setCreateErrorMessage("unknown exception during C++ logic construction");
+    delete static_cast<LogicT*>(*instance);
+    *instance = nullptr;
+    return ECMC_CPP_LOGIC_CREATE_INSTANCE_FAIL;
+  }
+  return *instance ? 0 : ECMC_CPP_LOGIC_CREATE_INSTANCE_FAIL;
 }
 
 template <typename LogicT>

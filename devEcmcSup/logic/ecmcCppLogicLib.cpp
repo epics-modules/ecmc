@@ -27,6 +27,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <dlfcn.h>
+#include <exception>
 #include <limits>
 #include <mutex>
 #include <sstream>
@@ -431,6 +432,8 @@ struct ecmcCppLogicLib::Impl {
   std::vector<ExportedParamBinding> builtinParams;
   std::vector<ExportedParamBinding> exportedParams;
   ecmcCppLogicHostServices hostServices {};
+  std::string createErrorMessage;
+  std::string lastErrorMessage;
   bool loaded {false};
   bool enteredRt {false};
   uint32_t controlWord {1u};
@@ -538,6 +541,15 @@ const char* getCurrentMacrosText() {
     return "";
   }
   return impl->config.macrosText.c_str();
+}
+
+int32_t setCurrentCreateErrorMessage(const char* message) {
+  ecmcCppLogicLib::Impl* impl = g_hostServiceCppLogic ? g_hostServiceCppLogic : g_activeCppLogic;
+  if (!impl) {
+    return -1;
+  }
+  impl->createErrorMessage = message ? message : "";
+  return 0;
 }
 
 double currentCycleTimeS() {
@@ -1401,6 +1413,10 @@ const char* ecmcCppLogicLib::getPortName() const {
   return impl_ ? impl_->config.asynPortName.c_str() : "";
 }
 
+const char* ecmcCppLogicLib::getLastErrorMessage() const {
+  return (impl_ && !impl_->lastErrorMessage.empty()) ? impl_->lastErrorMessage.c_str() : "";
+}
+
 int ecmcCppLogicLib::load(const char* libFilenameWP, const char* configStr) {
   if (!impl_ || !libFilenameWP || !libFilenameWP[0]) {
     return setErrorID(ERROR_MAIN_CPP_LOGIC_FILENAME_EMPTY);
@@ -1411,6 +1427,8 @@ int ecmcCppLogicLib::load(const char* libFilenameWP, const char* configStr) {
 
   impl_->libFilename = libFilenameWP;
   impl_->configString = configStr ? configStr : "";
+  impl_->createErrorMessage.clear();
+  impl_->lastErrorMessage.clear();
 
   std::string error;
   if (!parseConfigString(configStr, &impl_->config, &error)) {
@@ -1463,6 +1481,7 @@ int ecmcCppLogicLib::load(const char* libFilenameWP, const char* configStr) {
   impl_->hostServices.publish_debug_text = &publishCurrentDebugText;
   impl_->hostServices.set_enable_dbg = &setCurrentDebugEnable;
   impl_->hostServices.get_macros_text = &getCurrentMacrosText;
+  impl_->hostServices.set_create_error_message = &setCurrentCreateErrorMessage;
   if (impl_->api->setHostServices) {
     impl_->api->setHostServices(&impl_->hostServices);
   }
@@ -1473,11 +1492,36 @@ int ecmcCppLogicLib::load(const char* libFilenameWP, const char* configStr) {
   }
 
   g_hostServiceCppLogic = impl_;
-  impl_->instance = impl_->api->createInstance();
+  impl_->createErrorMessage.clear();
+  int createError = 0;
+  try {
+    createError = impl_->api->createInstance(&impl_->instance);
+  } catch (const std::exception& e) {
+    if (impl_->createErrorMessage.empty()) {
+      impl_->createErrorMessage = e.what();
+    }
+    createError = ERROR_MAIN_CPP_LOGIC_CREATE_INSTANCE_FAIL;
+    impl_->instance = nullptr;
+  } catch (...) {
+    if (impl_->createErrorMessage.empty()) {
+      impl_->createErrorMessage = "unknown exception during C++ logic creation";
+    }
+    createError = ERROR_MAIN_CPP_LOGIC_CREATE_INSTANCE_FAIL;
+    impl_->instance = nullptr;
+  }
   g_hostServiceCppLogic = nullptr;
-  if (!impl_->instance) {
+  if (createError || !impl_->instance) {
+    impl_->lastErrorMessage = impl_->createErrorMessage;
+    if (!impl_->lastErrorMessage.empty()) {
+      LOGERR("%s/%s:%d: C++ logic %s createInstance failed: %s\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             impl_->libFilename.c_str(),
+             impl_->lastErrorMessage.c_str());
+    }
     unload();
-    return setErrorID(ERROR_MAIN_CPP_LOGIC_CREATE_INSTANCE_FAIL);
+    return setErrorID(createError ? createError : ERROR_MAIN_CPP_LOGIC_CREATE_INSTANCE_FAIL);
   }
 
   const ecmcCppLogicItemBinding* itemBindings =

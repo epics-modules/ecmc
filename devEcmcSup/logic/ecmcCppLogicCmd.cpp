@@ -16,6 +16,16 @@
 #include "ecmcGlobalsExtern.h"
 #include "ecmcOctetIF.h"
 
+#include <string>
+
+namespace {
+std::string g_lastCppLogicErrorMessage;
+}
+
+const char* getLastCppLogicErrorMessage(void) {
+  return g_lastCppLogicErrorMessage.empty() ? "" : g_lastCppLogicErrorMessage.c_str();
+}
+
 int loadCppLogic(int logicId, const char* filenameWP, const char* configStr) {
   LOGINFO4("%s/%s:%d logicId=%d filenameWP=%s configStr=%s\n",
            __FILE__,
@@ -24,6 +34,8 @@ int loadCppLogic(int logicId, const char* filenameWP, const char* configStr) {
            logicId,
            filenameWP ? filenameWP : "(null)",
            configStr ? configStr : "(null)");
+
+  g_lastCppLogicErrorMessage.clear();
 
   if ((logicId < 0) || (logicId >= ECMC_MAX_PLUGINS)) {
     return ERROR_MAIN_CPP_LOGIC_INDEX_OUT_OF_RANGE;
@@ -42,6 +54,7 @@ int loadCppLogic(int logicId, const char* filenameWP, const char* configStr) {
 
   int errorCode = cppLogics[logicId]->load(filenameWP, configStr ? configStr : "");
   if (errorCode) {
+    g_lastCppLogicErrorMessage = cppLogics[logicId]->getLastErrorMessage();
     LOGERR("%s/%s:%d: LoadCppLogic(%d, %s) failed: %s (0x%x).\n",
            __FILE__,
            __FUNCTION__,

@@ -19,7 +19,9 @@
 extern "C" {
 #endif
 
-#define ECMC_CPP_LOGIC_ABI_VERSION 7
+#define ECMC_CPP_LOGIC_ABI_VERSION 8
+
+#define ECMC_CPP_LOGIC_CREATE_INSTANCE_FAIL 0x2006D
 
 #define ECMC_CPP_BIND_FLAG_NONE 0u
 #define ECMC_CPP_BIND_FLAG_AUTO_SIZE 1u
@@ -88,13 +90,14 @@ struct ecmcCppLogicHostServices {
   double (*get_lut_value)(int32_t lut_index, double index);
   int32_t (*lut_exists)(int32_t lut_index);
   int32_t (*request_ioc_exit)(int32_t exit_code);
+  int32_t (*set_create_error_message)(const char* message);
 };
 
 struct ecmcCppLogicApi {
   uint32_t abiVersion;
   const char* name;
   void (*setHostServices)(const struct ecmcCppLogicHostServices* services);
-  void* (*createInstance)();
+  int32_t (*createInstance)(void** instance);
   void (*enterRealtime)(void* instance);
   void (*exitRealtime)(void* instance);
   void (*destroyInstance)(void* instance);

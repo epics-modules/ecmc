@@ -62,6 +62,7 @@ Configuration text helper:
 - `ecmcCpp::getMacroValueString(...)`
 - `ecmcCpp::getMacroValueInt(...)`
 - `ecmcCpp::getMacroValueDouble(...)`
+- `ecmcCpp::setCreateErrorMessage(...)`
 
 This returns the optional `MACROS` string passed from the IOC startup path.
 Typical use is to read it once in the constructor and interpret it as a small
@@ -69,6 +70,30 @@ configuration string for the logic module. `getMacroValue(...)` and
 `getMacroValueString(...)` return one macro value as a string. The typed helpers
 return a caller-provided default value when the key is missing or the text
 cannot be parsed.
+
+Use `setCreateErrorMessage(...)` during construction when the logic cannot be
+created. The C++ logic ABI returns an error code from `createInstance()` and
+passes the created object through an out pointer. If creation fails,
+`Cfg.LoadCppLogic` returns the message in its command error text.
+
+With the default registration macro, user logic can reject creation after the
+object has been constructed by adding a validation hook:
+
+```cpp
+int32_t validateCreation(std::string* errorMessage) {
+  if (bad_config) {
+    if (errorMessage) {
+      *errorMessage = "bad config: missing AXIS_ID";
+    }
+    return ECMC_CPP_LOGIC_CREATE_INSTANCE_FAIL;
+  }
+  return 0;
+}
+```
+
+If `validateCreation()` returns an error, the default adapter deletes the
+object, returns the error code over the ABI, and passes the message to
+`Cfg.LoadCppLogic`.
 
 Array/buffer helpers:
 

@@ -29,6 +29,7 @@ class ecmcCppLogicLib : public ecmcError {
   int exeExitRTFunc();
 
   const char* getPortName() const;
+  const char* getLastErrorMessage() const;
 
  private:
   Impl* impl_;

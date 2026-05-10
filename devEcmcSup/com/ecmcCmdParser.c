@@ -3323,7 +3323,18 @@ parse_cfg_setaxisdrv:
 
   if (nvals == 3) {
     RETURN_ERROR_IF_RUNTIME_CFG_CMD("LoadCppLogic");
-    return loadCppLogic(iValue, cIdBuffer, cIdBuffer2);
+    int iRet = loadCppLogic(iValue, cIdBuffer, cIdBuffer2);
+    if (iRet) {
+      const char* detail = getLastCppLogicErrorMessage();
+      if (detail && detail[0]) {
+        cmd_buf_printf(buffer, "Error: %d: %s", iRet, detail);
+      } else {
+        cmd_buf_printf(buffer, "Error: %d", iRet);
+      }
+      return 0;
+    }
+    cmd_buf_printf(buffer, "OK");
+    return 0;
   }
 
   /*int Cfg.LoadSafetyPlugin(char *cFilename, char *configString); */
@@ -3352,7 +3363,18 @@ parse_cfg_setaxisdrv:
 
   if (nvals == 2) {
     RETURN_ERROR_IF_RUNTIME_CFG_CMD("LoadCppLogic");
-    return loadCppLogic(iValue, cIdBuffer, "");
+    int iRet = loadCppLogic(iValue, cIdBuffer, "");
+    if (iRet) {
+      const char* detail = getLastCppLogicErrorMessage();
+      if (detail && detail[0]) {
+        cmd_buf_printf(buffer, "Error: %d: %s", iRet, detail);
+      } else {
+        cmd_buf_printf(buffer, "Error: %d", iRet);
+      }
+      return 0;
+    }
+    cmd_buf_printf(buffer, "OK");
+    return 0;
   }
 
   /*int Cfg.ReportPlugin(int pluginId); */
