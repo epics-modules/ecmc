@@ -3327,13 +3327,15 @@ parse_cfg_setaxisdrv:
     if (iRet) {
       const char* detail = getLastCppLogicErrorMessage();
       if (detail && detail[0]) {
-        cmd_buf_printf(buffer, "Error: %d: %s", iRet, detail);
-      } else {
-        cmd_buf_printf(buffer, "Error: %d", iRet);
+        LOGERR("%s/%s:%d: ERROR: Cfg.LoadCppLogic failed: %s (0x%x).\n",
+               __FILE__,
+               __FUNCTION__,
+               __LINE__,
+               detail,
+               iRet);
       }
-      return 0;
+      return iRet;
     }
-    cmd_buf_printf(buffer, "OK");
     return 0;
   }
 
@@ -3367,13 +3369,15 @@ parse_cfg_setaxisdrv:
     if (iRet) {
       const char* detail = getLastCppLogicErrorMessage();
       if (detail && detail[0]) {
-        cmd_buf_printf(buffer, "Error: %d: %s", iRet, detail);
-      } else {
-        cmd_buf_printf(buffer, "Error: %d", iRet);
+        LOGERR("%s/%s:%d: ERROR: Cfg.LoadCppLogic failed: %s (0x%x).\n",
+               __FILE__,
+               __FUNCTION__,
+               __LINE__,
+               detail,
+               iRet);
       }
-      return 0;
+      return iRet;
     }
-    cmd_buf_printf(buffer, "OK");
     return 0;
   }
 
