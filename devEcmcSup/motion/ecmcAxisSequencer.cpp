@@ -3018,17 +3018,13 @@ int ecmcAxisSequencer::postHomeMove() {
     }
     break;
 
-  // wait for stop and stop sequence
+  // wait for stop and controller settle before stopping sequence
   case 1003:
 
     if (!traj_->getBusy()) {
-      if (traj_->getCurrentPosSet() != homePostMoveTargetPos_) {
-        setErrorID(__FILE__,
-                   __FUNCTION__,
-                   __LINE__,
-                   ERROR_SEQ_HOME_POST_MOVE_FAILED);
+      if (isAtTargetOrAtTargetMonDisabled()) {
+        stopSeq();
       }
-      stopSeq();
     }
 
     break;
