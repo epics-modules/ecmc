@@ -645,9 +645,13 @@ int waitForThreadToStart(int timeoutSeconds) {
 
   for (int i = 0; i < timeoutSeconds; i++) {
     if (ec->getInitDone()) {
-      LOGINFO(".\n");
+      LOGINFO("Waiting for EtherCAT bus startup (%d/%d s).\n",
+              i + 1,
+              timeoutSeconds);
     } else {
-      LOGINFO(".\n");
+      LOGINFO("Waiting for realtime thread startup (%d/%d s).\n",
+              i + 1,
+              timeoutSeconds);
     }
     clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToPause, NULL);
 
