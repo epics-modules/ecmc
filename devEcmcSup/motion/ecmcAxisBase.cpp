@@ -576,6 +576,10 @@ void ecmcAxisBase::postExecute(bool masterOK) {
   data_.axAsynParams_[ECMC_ASYN_AX_ERROR_ID]->refreshParamRT(0);
   data_.axAsynParams_[ECMC_ASYN_AX_WARNING_ID]->refreshParamRT(0);
 
+  if (positionTargetAsyn_ != data_.control_.positionTarget) {
+    refreshAsynTargetValue();
+  }
+
   if(memcmp(&mrCmdsOld_,&mrCmds_, sizeof(mrCmdsOld_)) !=0) {
     data_.axAsynParams_[ECMC_ASYN_AX_MR_CMD_ID]->refreshParamRT(1);
   }

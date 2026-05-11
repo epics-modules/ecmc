@@ -1099,6 +1099,8 @@ int ecmcAxisSequencer::seqHoming15() {  // nCmdData==15
     getPrimEnc()->setHomed(true);
     data_->status_.currentPositionActual   = homePosition_;
     data_->status_.currentPositionSetpoint = homePosition_;
+    data_->status_.currentTargetPosition   = homePosition_;
+    data_->control_.positionTarget         = homePosition_;
 
     if (cntrl_) {
       cntrl_->reset();
@@ -2999,6 +3001,8 @@ int ecmcAxisSequencer::postHomeMove() {
     // If already there then do not move
     if ((data_->status_.currentPositionSetpoint == homePostMoveTargetPos_) &&
         seqState_) {
+      data_->status_.currentTargetPosition = homePostMoveTargetPos_;
+      data_->control_.positionTarget       = homePostMoveTargetPos_;
       stopSeq();
       return 0;
     }
@@ -3013,6 +3017,8 @@ int ecmcAxisSequencer::postHomeMove() {
       traj_->setMotionMode(ECMC_MOVE_MODE_POS);
       traj_->setTargetVel(homeVelTowardsCam_);
       traj_->setTargetPos(homePostMoveTargetPos_);
+      data_->status_.currentTargetPosition = homePostMoveTargetPos_;
+      data_->control_.positionTarget       = homePostMoveTargetPos_;
       traj_->setExecute(1);
       seqState_ = 1003;
     }
@@ -3023,6 +3029,8 @@ int ecmcAxisSequencer::postHomeMove() {
 
     if (!traj_->getBusy()) {
       if (isAtTargetOrAtTargetMonDisabled()) {
+        data_->status_.currentTargetPosition = homePostMoveTargetPos_;
+        data_->control_.positionTarget       = homePostMoveTargetPos_;
         stopSeq();
       }
     }
@@ -3232,6 +3240,8 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
   if (homeEnablePostMove_) {
     seqState_ = 1000;
   } else {
+    data_->status_.currentTargetPosition = newPosition;
+    data_->control_.positionTarget = newPosition;
     stopSeq();
   }
 }
@@ -3276,6 +3286,8 @@ void ecmcAxisSequencer::setNewPositionCtrlDrvTrajBumpless(double newPosition) {
   // Not nice but otherwise one cycle will have wrong values du to exe order.
   data_->status_.currentPositionActual   = newPosition;
   data_->status_.currentPositionSetpoint = newPosition;
+  data_->status_.currentTargetPosition   = newPosition;
+  data_->control_.positionTarget         = newPosition;
 
   if (drv_) {
     drv_->setCspRef(
