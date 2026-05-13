@@ -1196,15 +1196,17 @@ static int handleCfgCommand(const char *myarg_1) {
 
   /// "Cfg.EcSlaveVerify(alias,slaveBusPosition,vendorId,product1|product2,revisionNum)"
   /// Product-specific revision can be set with product:revision.
+  iValue6 = 0;
   nvals = sscanf(myarg_1,
-                 "EcSlaveVerify(%d,%d,0x%x,%[^,],0x%x)",
+                 "EcSlaveVerify(%d,%d,0x%x,%[^,],0x%x)%n",
                  &iValue,
                  &iValue2,
                  &iValue3,
                  cIdBuffer,
-                 &iValue5);
+                 &iValue5,
+                 &iValue6);
 
-  if (nvals == 5) {
+  if ((nvals == 5) && (myarg_1[iValue6] == '\0')) {
     ecmcEcSlaveVerifyProduct products[ECMC_EC_MAX_VERIFY_PRODUCTS];
     int productCount = 0;
     int errorCode = 0;
@@ -1229,14 +1231,16 @@ static int handleCfgCommand(const char *myarg_1) {
 
   /// "Cfg.EcSlaveVerify(alias,slaveBusPosition,vendorId,product1|product2)"
   /// Product-specific revision can be set with product:revision.
+  iValue6 = 0;
   nvals = sscanf(myarg_1,
-                 "EcSlaveVerify(%d,%d,0x%x,%[^)])",
+                 "EcSlaveVerify(%d,%d,0x%x,%[^)])%n",
                  &iValue,
                  &iValue2,
                  &iValue3,
-                 cIdBuffer);
+                 cIdBuffer,
+                 &iValue6);
 
-  if (nvals == 4) {
+  if ((nvals == 4) && (myarg_1[iValue6] == '\0')) {
     ecmcEcSlaveVerifyProduct products[ECMC_EC_MAX_VERIFY_PRODUCTS];
     int productCount = 0;
     int errorCode = 0;
