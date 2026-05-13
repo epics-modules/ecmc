@@ -1953,9 +1953,33 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
                         uint32_t vendorId,   /**< Expected vendor ID. */
                         uint32_t productCode,  /**< Expected product code. */
                         uint32_t revisionNum /**< Revision number*/) {
+  ecmcEcSlaveVerifyProduct product;
+  product.productCode          = productCode;
+  product.revisionNum          = revisionNum;
+  product.revisionCheckEnabled = revisionNum > 0;
+
+  return verifySlave(alias, slavePos, vendorId, &product, 1);
+}
+
+int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
+                        uint16_t slavePos,   /**< Slave position. */
+                        uint32_t vendorId,   /**< Expected vendor ID. */
+                        const ecmcEcSlaveVerifyProduct *products,
+                        int productCount) {
   ec_master_info_t masterInfo;
   ec_slave_info_t  slaveInfo;
   int slaveCount = 0;
+
+  if (!products || (productCount <= 0)) {
+    ecmcRtLoggerLogError(
+      "%s/%s:%d: ERROR: Slave verification for busposition %d failed. No valid product codes configured (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePos,
+      ERROR_EC_SLAVE_VERIFICATION_FAIL);
+    return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
+  }
 
   if (!master_) {
     ecmcRtLoggerLogError("%s/%s:%d: ERROR: No EtherCAT master selected (0x%x).\n",
@@ -2043,21 +2067,51 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
   }
 
 
-  if (slaveInfo.product_code != productCode) {
+  bool productMatch        = false;
+  bool revisionFail        = false;
+  uint32_t failedRevision  = 0;
+
+  for (int i = 0; i < productCount; i++) {
+    if (slaveInfo.product_code != products[i].productCode) {
+      continue;
+    }
+
+    productMatch = true;
+
+    if (products[i].revisionCheckEnabled &&
+        (slaveInfo.revision_number < products[i].revisionNum)) {
+      revisionFail   = true;
+      failedRevision = products[i].revisionNum;
+      continue;
+    }
+
+    return 0;
+  }
+
+  if (!productMatch) {
     ecmcRtLoggerLogError(
-      "%s/%s:%d: ERROR: Slave verification for busposition %d failed. Product Code 0x%x != 0x%x (0x%x).\n",
+      "%s/%s:%d: ERROR: Slave verification for busposition %d failed. Product Code 0x%x not allowed, actual 0x%x (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
       slavePos,
-      productCode,
+      products[0].productCode,
       slaveInfo.product_code,
       ERROR_EC_SLAVE_VERIFICATION_FAIL);
+
+    for (int i = 1; i < productCount; i++) {
+      ecmcRtLoggerLogError(
+        "%s/%s:%d: ERROR: Additional allowed Product Code 0x%x.\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        products[i].productCode);
+    }
+
     return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
   }
 
-  // Only check revision if revisionNum is set (> 0)
-  if ((revisionNum > 0) && (slaveInfo.revision_number < revisionNum)) {
+  if (revisionFail) {
     ecmcRtLoggerLogError(
       "%s/%s:%d: ERROR: Slave verification for busposition %d failed. Revision of actual slave (0x%x) must be >= revision of config (0x%x) (0x%x).\n",
       __FILE__,
@@ -2065,12 +2119,12 @@ int ecmcEc::verifySlave(uint16_t alias,  /**< Slave alias. */
       __LINE__,
       slavePos,
       slaveInfo.revision_number,
-      revisionNum,
+      failedRevision,
       ERROR_EC_SLAVE_VERIFICATION_FAIL);
     return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
   }
 
-  return 0;
+  return setErrorID(ERROR_EC_SLAVE_VERIFICATION_FAIL);
 }
 
 int ecmcEc::checkReadyForRuntime() {

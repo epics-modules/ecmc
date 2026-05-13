@@ -1163,16 +1163,28 @@ int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
                   uint32_t vendorId,   /**< Expected vendor ID. */
                   uint32_t productCode,  /**< Expected product code. */
                   uint32_t revisionNum /**< Revision number*/) {
+  ecmcEcSlaveVerifyProduct product;
+  product.productCode          = productCode;
+  product.revisionNum          = revisionNum;
+  product.revisionCheckEnabled = revisionNum > 0;
+
+  return ecVerifySlaveProducts(alias, slavePos, vendorId, &product, 1);
+}
+
+int ecVerifySlaveProducts(uint16_t alias,  /**< Slave alias. */
+                          uint16_t slavePos,   /**< Slave position. */
+                          uint32_t vendorId,   /**< Expected vendor ID. */
+                          const ecmcEcSlaveVerifyProduct *products,
+                          int productCount) {
   LOGINFO4(
-    "%s/%s:%d alias=%d slavePos=%d, vendorId=0x%x, productCode=0x%x, revisionNum=0x%x\n",
+    "%s/%s:%d alias=%d slavePos=%d, vendorId=0x%x, productCount=%d\n",
     __FILE__,
     __FUNCTION__,
     __LINE__,
     alias,
     slavePos,
     vendorId,
-    productCode,
-    revisionNum);
+    productCount);
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
@@ -1187,8 +1199,8 @@ int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
   errorCode = ec->verifySlave(alias,
                               slavePos,
                               vendorId,
-                              productCode,
-                              revisionNum);
+                              products,
+                              productCount);
 
   if (allowOffline && errorCode) {
     ecmcRtLoggerLogWarning("%s/%s:%d: WARNING: Slave offline. Domain allowed to be offline.\n",

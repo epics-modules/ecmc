@@ -68,6 +68,13 @@
 #define EC_MAX_MEM_MAPS 64
 #define EC_MAX_SLAVES 512
 #define EC_START_TIMEOUT_S 30
+#define ECMC_EC_MAX_VERIFY_PRODUCTS 32
+
+typedef struct {
+  uint32_t productCode;
+  uint32_t revisionNum;
+  int      revisionCheckEnabled;
+} ecmcEcSlaveVerifyProduct;
 
 #define ECMC_OVER_UNDER_FLOW_FACTOR (0.7)
 

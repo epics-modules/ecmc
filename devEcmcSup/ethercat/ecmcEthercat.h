@@ -18,6 +18,8 @@
 #ifndef ECMC_ETHERCAT_H_
 #define ECMC_ETHERCAT_H_
 
+#include "ecmcDefinitions.h"
+
 # ifdef __cplusplus
 extern "C" {
 # endif  // ifdef __cplusplus
@@ -71,7 +73,9 @@ int ecResetMaster(int masterIndex);
  *  \param vendorId Identification value for slave vendor.\n
  *    vendorId = 0x2: Beckhoff.\n
  *    vendorId = 0x48554B: Kendrion Kuhnke Automation GmbH.\n
- *  \param productCode Product identification code.\n
+ *  \param productCode Product identification code. One or more allowed
+ *    product codes can be supplied, separated by '|'. Product-specific
+ *    minimum revisions can be supplied with productCode:revisionNum.\n
  *    productCode=0x13ed3052: EL5101 incremental encoder input.\n
  *
  * \note All configuration data can be found in the documentaion of
@@ -1206,12 +1210,22 @@ int linkEcEntryToEcStatusOutput(int   slaveIndex,
  *
  * \note Example: Verify that slave 3 is an EL5101 with a revision >= 0x04000000\n
  *   "Cfg.EcSlaveVerify(0,3,0x2,0x13ed3052,0x04000000)" //Command string to ecmcCmdParser.c\n
+ * \note Example: Verify that slave 3 matches one of two product codes with a common revision\n
+ *   "Cfg.EcSlaveVerify(0,3,0x2,0x13ed3052|0x13ee3052,0x04000000)" //Command string to ecmcCmdParser.c\n
+ * \note Example: Verify that slave 3 matches one of two product/revision rules\n
+ *   "Cfg.EcSlaveVerify(0,3,0x2,0x13ed3052:0x04000000|0x13ee3052:0x05000000)" //Command string to ecmcCmdParser.c\n
  */
 int ecVerifySlave(uint16_t alias,  /**< Slave alias. */
                   uint16_t slavePos,   /**< Slave position. */
                   uint32_t vendorId,   /**< Expected vendor ID. */
                   uint32_t productCode,  /**< Expected product code. */
                   uint32_t revisionNum /**< Revision number*/);
+
+int ecVerifySlaveProducts(uint16_t alias,  /**< Slave alias. */
+                          uint16_t slavePos,   /**< Slave position. */
+                          uint32_t vendorId,   /**< Expected vendor ID. */
+                          const ecmcEcSlaveVerifyProduct *products,
+                          int productCount);
 
 /** \brief Read vendor id of selected ethercat slave
  *
