@@ -99,8 +99,9 @@ void normalizeSeverityText(char *message,
              message,
              targetSeverity,
              match + strlen(patterns[i]));
-    strncpy(message, normalized, messageSize - 1);
-    message[messageSize - 1] = '\0';
+    const size_t copyLength = strnlen(normalized, messageSize - 1);
+    memcpy(message, normalized, copyLength);
+    message[copyLength] = '\0';
     return;
   }
 }
@@ -199,8 +200,9 @@ void logMessageV(int level,
   queue_[writeIndex].level = level;
   queue_[writeIndex].sourceType = sourceType;
   queue_[writeIndex].sourceIndex = sourceIndex;
-  strncpy(queue_[writeIndex].message, buffer, ECMC_RT_LOGGER_MSG_SIZE - 1);
-  queue_[writeIndex].message[ECMC_RT_LOGGER_MSG_SIZE - 1] = '\0';
+  const size_t copyLength = strnlen(buffer, ECMC_RT_LOGGER_MSG_SIZE - 1);
+  memcpy(queue_[writeIndex].message, buffer, copyLength);
+  queue_[writeIndex].message[copyLength] = '\0';
   writeIndex_.store(nextWriteIndex, std::memory_order_release);
 }
 

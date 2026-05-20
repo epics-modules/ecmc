@@ -69,6 +69,13 @@ constexpr const char* kBuiltinTotalMsName = "logic.stat.total_ms";
 constexpr const char* kBuiltinDividerName = "logic.stat.div";
 constexpr const char* kBuiltinExecuteCountName = "logic.stat.count";
 constexpr const char* kBuiltinDebugTextName = "logic.stat.dbg_txt";
+constexpr const char* kAsynOptionType = "TYPE";
+constexpr const char* kAsynOptionCmd = "CMD";
+constexpr const char* kAsynTypeFloat64Name = "asynFloat64";
+constexpr const char* kAsynCmdInt32ToFloat64 = "INT32TOFLOAT64";
+constexpr const char* kAsynCmdUint32ToFloat64 = "UINT32TOFLOAT64";
+constexpr const char* kAsynCmdInt64ToFloat64 = "INT64TOFLOAT64";
+constexpr const char* kAsynCmdUint64ToFloat64 = "UINT64TOFLOAT64";
 
 constexpr uint32_t kControlWordEnableExecutionBit = 0u;
 constexpr uint32_t kControlWordEnableTimingBit = 1u;
@@ -103,6 +110,8 @@ struct ExportedParamBinding {
   size_t bytes {0u};
   bool isArray {false};
   asynParamType asynType {asynParamNotDefined};
+  int float64AliasParamId {-1};
+  std::string float64AliasName;
   std::vector<uint8_t> lastValue;
   bool initialized {false};
 };
@@ -182,6 +191,13 @@ asynParamType exportParamType(uint32_t type, size_t bytes) {
     case ECMC_CPP_TYPE_S32:
     case ECMC_CPP_TYPE_U32:
       return asynParamInt32;
+    case ECMC_CPP_TYPE_S64:
+    case ECMC_CPP_TYPE_U64:
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+      return asynParamInt64;
+#else
+      return asynParamFloat64;
+#endif
     default:
       return asynParamFloat64;
     }
@@ -198,6 +214,13 @@ asynParamType exportParamType(uint32_t type, size_t bytes) {
   case ECMC_CPP_TYPE_S32:
   case ECMC_CPP_TYPE_U32:
     return asynParamInt32Array;
+  case ECMC_CPP_TYPE_S64:
+  case ECMC_CPP_TYPE_U64:
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+    return asynParamInt64Array;
+#else
+    return asynParamFloat64Array;
+#endif
   case ECMC_CPP_TYPE_F32:
     return asynParamFloat32Array;
   default:
@@ -248,6 +271,51 @@ std::string stripOptionalQuotes(const std::string& value) {
     return value.substr(1u, value.size() - 2u);
   }
   return value;
+}
+
+bool parseDrvInfoOption(const char* drvInfo, const char* option, std::string* valueOut) {
+  if (!drvInfo || !option || !valueOut) {
+    return false;
+  }
+
+  const char* found = std::strstr(drvInfo, option);
+  if (!found || found[std::strlen(option)] != '=') {
+    return false;
+  }
+
+  const char* begin = found + std::strlen(option) + 1u;
+  const char* end = std::strchr(begin, '/');
+  valueOut->assign(begin, end ? static_cast<size_t>(end - begin) : std::strlen(begin));
+  return !valueOut->empty();
+}
+
+std::string drvInfoParamName(const char* drvInfo) {
+  if (!drvInfo) {
+    return {};
+  }
+
+  const char* begin = std::strrchr(drvInfo, '/');
+  begin = begin ? begin + 1 : drvInfo;
+  std::string name(begin);
+  if (!name.empty() && (name.back() == '?' || name.back() == '=')) {
+    name.pop_back();
+  }
+  return name;
+}
+
+bool isIntegerToFloat64CmdForType(const std::string& cmd, uint32_t type) {
+  switch (type) {
+  case ECMC_CPP_TYPE_S32:
+    return cmd == kAsynCmdInt32ToFloat64;
+  case ECMC_CPP_TYPE_U32:
+    return cmd == kAsynCmdUint32ToFloat64;
+  case ECMC_CPP_TYPE_S64:
+    return cmd == kAsynCmdInt64ToFloat64;
+  case ECMC_CPP_TYPE_U64:
+    return cmd == kAsynCmdUint64ToFloat64;
+  default:
+    return false;
+  }
 }
 
 std::vector<std::string> splitConfigTokens(const std::string& configText) {
@@ -367,22 +435,40 @@ class CppLogicAsynPort : public asynPortDriver {
 
   asynStatus writeInt32(asynUser* pasynUser, epicsInt32 value) override;
   asynStatus writeFloat64(asynUser* pasynUser, epicsFloat64 value) override;
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+  asynStatus writeInt64(asynUser* pasynUser, epicsInt64 value) override;
+#endif
   asynStatus writeInt8Array(asynUser* pasynUser, epicsInt8* value, size_t nElements) override;
   asynStatus readInt8Array(asynUser* pasynUser, epicsInt8* value, size_t nElements, size_t* nIn) override;
   asynStatus writeInt16Array(asynUser* pasynUser, epicsInt16* value, size_t nElements) override;
   asynStatus readInt16Array(asynUser* pasynUser, epicsInt16* value, size_t nElements, size_t* nIn) override;
   asynStatus writeInt32Array(asynUser* pasynUser, epicsInt32* value, size_t nElements) override;
   asynStatus readInt32Array(asynUser* pasynUser, epicsInt32* value, size_t nElements, size_t* nIn) override;
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+  asynStatus writeInt64Array(asynUser* pasynUser, epicsInt64* value, size_t nElements) override;
+  asynStatus readInt64Array(asynUser* pasynUser,
+                            epicsInt64* value,
+                            size_t nElements,
+                            size_t* nIn) override;
+#endif
   asynStatus writeFloat32Array(asynUser* pasynUser, epicsFloat32* value, size_t nElements) override;
   asynStatus readFloat32Array(asynUser* pasynUser, epicsFloat32* value, size_t nElements, size_t* nIn) override;
   asynStatus writeFloat64Array(asynUser* pasynUser, epicsFloat64* value, size_t nElements) override;
   asynStatus readFloat64Array(asynUser* pasynUser, epicsFloat64* value, size_t nElements, size_t* nIn) override;
+  asynStatus drvUserCreate(asynUser* pasynUser,
+                           const char* drvInfo,
+                           const char** pptypeName,
+                           size_t* psize) override;
 
  private:
   ExportedParamBinding* paramBindingForReason(int reason);
+  bool syncFloat64AliasParam(ExportedParamBinding* binding, const uint8_t* current);
   bool syncOneParam(ExportedParamBinding* binding, bool force);
   bool pushArrayCallback(const ExportedParamBinding* binding);
   bool writeScalarFromInt32(ExportedParamBinding* binding, epicsInt32 value);
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+  bool writeScalarFromInt64(ExportedParamBinding* binding, epicsInt64 value);
+#endif
   bool writeScalarFromFloat64(ExportedParamBinding* binding, epicsFloat64 value);
   void scheduleCallbacks(bool withScalarCallbacks);
   void callbackWorker();
@@ -723,10 +809,18 @@ CppLogicAsynPort::CppLogicAsynPort(ecmcCppLogicLib::Impl* impl)
                    1,
                    asynInt32Mask | asynFloat64Mask | asynOctetMask | asynDrvUserMask |
                      asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask |
-                     asynFloat32ArrayMask | asynFloat64ArrayMask,
+                     asynFloat32ArrayMask | asynFloat64ArrayMask
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+                     | asynInt64Mask | asynInt64ArrayMask
+#endif
+                   ,
                    asynInt32Mask | asynFloat64Mask | asynOctetMask | asynDrvUserMask |
                      asynInt8ArrayMask | asynInt16ArrayMask | asynInt32ArrayMask |
-                     asynFloat32ArrayMask | asynFloat64ArrayMask,
+                     asynFloat32ArrayMask | asynFloat64ArrayMask
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+                     | asynInt64Mask | asynInt64ArrayMask
+#endif
+                   ,
                    0,
                    1,
                    0,
@@ -763,16 +857,52 @@ ExportedParamBinding* CppLogicAsynPort::paramBindingForReason(int reason) {
   }
 
   for (auto& binding : impl_->builtinParams) {
-    if (binding.paramId == reason) {
+    if (binding.paramId == reason || binding.float64AliasParamId == reason) {
       return &binding;
     }
   }
   for (auto& binding : impl_->exportedParams) {
-    if (binding.paramId == reason) {
+    if (binding.paramId == reason || binding.float64AliasParamId == reason) {
       return &binding;
     }
   }
   return nullptr;
+}
+
+bool CppLogicAsynPort::syncFloat64AliasParam(ExportedParamBinding* binding,
+                                             const uint8_t* current) {
+  if (!binding || !current || binding->float64AliasParamId < 0) {
+    return true;
+  }
+
+  switch (binding->type) {
+  case ECMC_CPP_TYPE_S32: {
+    int32_t value = 0;
+    std::memcpy(&value, current, sizeof(value));
+    setDoubleParam(binding->float64AliasParamId, static_cast<epicsFloat64>(value));
+    return true;
+  }
+  case ECMC_CPP_TYPE_U32: {
+    uint32_t value = 0;
+    std::memcpy(&value, current, sizeof(value));
+    setDoubleParam(binding->float64AliasParamId, static_cast<epicsFloat64>(value));
+    return true;
+  }
+  case ECMC_CPP_TYPE_S64: {
+    int64_t value = 0;
+    std::memcpy(&value, current, sizeof(value));
+    setDoubleParam(binding->float64AliasParamId, static_cast<epicsFloat64>(value));
+    return true;
+  }
+  case ECMC_CPP_TYPE_U64: {
+    uint64_t value = 0u;
+    std::memcpy(&value, current, sizeof(value));
+    setDoubleParam(binding->float64AliasParamId, static_cast<epicsFloat64>(value));
+    return true;
+  }
+  default:
+    return false;
+  }
 }
 
 bool CppLogicAsynPort::syncOctetParam(int paramId,
@@ -862,21 +992,39 @@ void CppLogicAsynPort::fireArrayCallbacks(const std::vector<int>& paramIds) {
       doCallbacksFloat64Array(static_cast<epicsFloat64*>(binding->data), elementCount, binding->paramId, 0);
       break;
     case ECMC_CPP_TYPE_S64: {
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+      std::vector<epicsInt64> values(elementCount);
+      const auto* source = static_cast<const int64_t*>(binding->data);
+      for (size_t i = 0; i < elementCount; ++i) {
+        values[i] = static_cast<epicsInt64>(source[i]);
+      }
+      doCallbacksInt64Array(values.data(), elementCount, binding->paramId, 0);
+#else
       std::vector<epicsFloat64> values(elementCount);
       const auto* source = static_cast<const int64_t*>(binding->data);
       for (size_t i = 0; i < elementCount; ++i) {
         values[i] = static_cast<epicsFloat64>(source[i]);
       }
       doCallbacksFloat64Array(values.data(), elementCount, binding->paramId, 0);
+#endif
       break;
     }
     case ECMC_CPP_TYPE_U64: {
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+      std::vector<epicsInt64> values(elementCount);
+      const auto* source = static_cast<const uint64_t*>(binding->data);
+      for (size_t i = 0; i < elementCount; ++i) {
+        values[i] = static_cast<epicsInt64>(source[i]);
+      }
+      doCallbacksInt64Array(values.data(), elementCount, binding->paramId, 0);
+#else
       std::vector<epicsFloat64> values(elementCount);
       const auto* source = static_cast<const uint64_t*>(binding->data);
       for (size_t i = 0; i < elementCount; ++i) {
         values[i] = static_cast<epicsFloat64>(source[i]);
       }
       doCallbacksFloat64Array(values.data(), elementCount, binding->paramId, 0);
+#endif
       break;
     }
     default:
@@ -966,12 +1114,14 @@ bool CppLogicAsynPort::syncOneParam(ExportedParamBinding* binding, bool force) {
     int32_t value = 0;
     std::memcpy(&value, current, sizeof(value));
     setIntegerParam(binding->paramId, static_cast<epicsInt32>(value));
+    syncFloat64AliasParam(binding, current);
     return true;
   }
   case ECMC_CPP_TYPE_U32: {
     uint32_t value = 0;
     std::memcpy(&value, current, sizeof(value));
     setIntegerParam(binding->paramId, static_cast<epicsInt32>(value));
+    syncFloat64AliasParam(binding, current);
     return true;
   }
   case ECMC_CPP_TYPE_F32: {
@@ -989,13 +1139,23 @@ bool CppLogicAsynPort::syncOneParam(ExportedParamBinding* binding, bool force) {
   case ECMC_CPP_TYPE_S64: {
     int64_t value = 0;
     std::memcpy(&value, current, sizeof(value));
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+    setInteger64Param(binding->paramId, static_cast<epicsInt64>(value));
+#else
     setDoubleParam(binding->paramId, static_cast<epicsFloat64>(value));
+#endif
+    syncFloat64AliasParam(binding, current);
     return true;
   }
   case ECMC_CPP_TYPE_U64: {
     uint64_t value = 0u;
     std::memcpy(&value, current, sizeof(value));
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+    setInteger64Param(binding->paramId, static_cast<epicsInt64>(value));
+#else
     setDoubleParam(binding->paramId, static_cast<epicsFloat64>(value));
+#endif
+    syncFloat64AliasParam(binding, current);
     return true;
   }
   default:
@@ -1090,6 +1250,32 @@ bool CppLogicAsynPort::writeScalarFromInt32(ExportedParamBinding* binding, epics
   return true;
 }
 
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+bool CppLogicAsynPort::writeScalarFromInt64(ExportedParamBinding* binding, epicsInt64 value) {
+  if (!binding || !binding->data || binding->bytes == 0u) {
+    return false;
+  }
+
+  switch (binding->type) {
+  case ECMC_CPP_TYPE_S64: {
+    const int64_t typed = static_cast<int64_t>(value);
+    std::memcpy(binding->data, &typed, sizeof(typed));
+    break;
+  }
+  case ECMC_CPP_TYPE_U64: {
+    const uint64_t typed = static_cast<uint64_t>(value);
+    std::memcpy(binding->data, &typed, sizeof(typed));
+    break;
+  }
+  default:
+    return false;
+  }
+
+  binding->initialized = false;
+  return true;
+}
+#endif
+
 bool CppLogicAsynPort::writeScalarFromFloat64(ExportedParamBinding* binding, epicsFloat64 value) {
   if (!binding || !binding->data || binding->bytes == 0u) {
     return false;
@@ -1103,6 +1289,16 @@ bool CppLogicAsynPort::writeScalarFromFloat64(ExportedParamBinding* binding, epi
   }
   case ECMC_CPP_TYPE_F64: {
     const double typed = static_cast<double>(value);
+    std::memcpy(binding->data, &typed, sizeof(typed));
+    break;
+  }
+  case ECMC_CPP_TYPE_S32: {
+    const int32_t typed = static_cast<int32_t>(value);
+    std::memcpy(binding->data, &typed, sizeof(typed));
+    break;
+  }
+  case ECMC_CPP_TYPE_U32: {
+    const uint32_t typed = static_cast<uint32_t>(value);
     std::memcpy(binding->data, &typed, sizeof(typed));
     break;
   }
@@ -1202,6 +1398,21 @@ asynStatus CppLogicAsynPort::writeFloat64(asynUser* pasynUser, epicsFloat64 valu
   syncExportedParams(&impl_->exportedParams, false, false);
   return asynSuccess;
 }
+
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+asynStatus CppLogicAsynPort::writeInt64(asynUser* pasynUser, epicsInt64 value) {
+  ExportedParamBinding* binding = paramBindingForReason(pasynUser ? pasynUser->reason : -1);
+  if (!binding || binding->writable == 0u) {
+    return asynError;
+  }
+
+  if (!writeScalarFromInt64(binding, value)) {
+    return asynError;
+  }
+  syncExportedParams(&impl_->exportedParams, false, false);
+  return asynSuccess;
+}
+#endif
 
 template <typename SrcT, typename DstT>
 asynStatus CppLogicAsynPort::writeTypedArray(asynUser* pasynUser, SrcT* value, size_t nElements) {
@@ -1342,6 +1553,45 @@ asynStatus CppLogicAsynPort::readInt32Array(asynUser* pasynUser,
   return readTypedArray<epicsInt32, epicsInt32>(pasynUser, value, nElements, nIn);
 }
 
+#ifdef ECMC_NATIVE_ASYN_PARAM_INT64
+asynStatus CppLogicAsynPort::writeInt64Array(asynUser* pasynUser,
+                                             epicsInt64* value,
+                                             size_t nElements) {
+  ExportedParamBinding* binding = paramBindingForReason(pasynUser ? pasynUser->reason : -1);
+  if (!binding) {
+    return asynError;
+  }
+
+  switch (binding->type) {
+  case ECMC_CPP_TYPE_S64:
+    return writeTypedArray<epicsInt64, int64_t>(pasynUser, value, nElements);
+  case ECMC_CPP_TYPE_U64:
+    return writeTypedArray<epicsInt64, uint64_t>(pasynUser, value, nElements);
+  default:
+    return asynError;
+  }
+}
+
+asynStatus CppLogicAsynPort::readInt64Array(asynUser* pasynUser,
+                                            epicsInt64* value,
+                                            size_t nElements,
+                                            size_t* nIn) {
+  ExportedParamBinding* binding = paramBindingForReason(pasynUser ? pasynUser->reason : -1);
+  if (!binding) {
+    return asynError;
+  }
+
+  switch (binding->type) {
+  case ECMC_CPP_TYPE_S64:
+    return readTypedArray<epicsInt64, int64_t>(pasynUser, value, nElements, nIn);
+  case ECMC_CPP_TYPE_U64:
+    return readTypedArray<epicsInt64, uint64_t>(pasynUser, value, nElements, nIn);
+  default:
+    return asynError;
+  }
+}
+#endif
+
 asynStatus CppLogicAsynPort::writeFloat32Array(asynUser* pasynUser,
                                                   epicsFloat32* value,
                                                   size_t nElements) {
@@ -1398,6 +1648,74 @@ asynStatus CppLogicAsynPort::readFloat64Array(asynUser* pasynUser,
   default:
     return asynError;
   }
+}
+
+asynStatus CppLogicAsynPort::drvUserCreate(asynUser* pasynUser,
+                                           const char* drvInfo,
+                                           const char** pptypeName,
+                                           size_t* psize) {
+  std::string requestedType;
+  std::string requestedCmd;
+  const bool hasType = parseDrvInfoOption(drvInfo, kAsynOptionType, &requestedType);
+  const bool hasCmd = parseDrvInfoOption(drvInfo, kAsynOptionCmd, &requestedCmd);
+
+  if (!hasType && !hasCmd) {
+    return asynPortDriver::drvUserCreate(pasynUser, drvInfo, pptypeName, psize);
+  }
+
+  if (!hasType || !hasCmd || requestedType != kAsynTypeFloat64Name) {
+    asynPrint(pasynUser,
+              ASYN_TRACE_ERROR,
+              "%s:%s: Unsupported C++ logic drvInfo option string: %s\n",
+              kDriverName,
+              "drvUserCreate",
+              drvInfo ? drvInfo : "");
+    return asynError;
+  }
+
+  const std::string paramName = drvInfoParamName(drvInfo);
+  ExportedParamBinding* binding = nullptr;
+  if (impl_) {
+    for (auto& exported : impl_->exportedParams) {
+      if (exported.name == paramName) {
+        binding = &exported;
+        break;
+      }
+    }
+  }
+
+  if (!binding || binding->isArray || !isIntegerToFloat64CmdForType(requestedCmd, binding->type)) {
+    asynPrint(pasynUser,
+              ASYN_TRACE_ERROR,
+              "%s:%s: Command %s is not valid for C++ logic parameter %s (drvInfo=%s).\n",
+              kDriverName,
+              "drvUserCreate",
+              requestedCmd.c_str(),
+              paramName.c_str(),
+              drvInfo ? drvInfo : "");
+    return asynError;
+  }
+
+  if (binding->float64AliasParamId < 0) {
+    binding->float64AliasName = binding->name + ".asynFloat64";
+    if (createParam(binding->float64AliasName.c_str(),
+                    asynParamFloat64,
+                    &binding->float64AliasParamId) != asynSuccess) {
+      asynPrint(pasynUser,
+                ASYN_TRACE_ERROR,
+                "%s:%s: Failed to create Float64 alias for C++ logic parameter %s.\n",
+                kDriverName,
+                "drvUserCreate",
+                binding->name.c_str());
+      return asynError;
+    }
+    syncOneParam(binding, true);
+  }
+
+  return asynPortDriver::drvUserCreate(pasynUser,
+                                       binding->float64AliasName.c_str(),
+                                       pptypeName,
+                                       psize);
 }
 
 ecmcCppLogicLib::ecmcCppLogicLib(int index)
