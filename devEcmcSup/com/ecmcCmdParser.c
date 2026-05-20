@@ -20,7 +20,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <errno.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <string.h>
 #include <math.h>
 #include "ecmcCmdParser.h"
@@ -66,6 +68,117 @@ static char cIdBuffer2[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 static char cIdBuffer3[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 static char cPlcExprBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
 static char cOneCommand[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+
+static char *trimWhitespace(char *text) {
+  char *end = NULL;
+
+  while (*text && isspace((unsigned char)*text)) {
+    text++;
+  }
+
+  end = text + strlen(text);
+  while ((end > text) && isspace((unsigned char)*(end - 1))) {
+    end--;
+  }
+  *end = '\0';
+
+  return text;
+}
+
+static int parseUint32Value(char *text, uint32_t *value) {
+  char          *end = NULL;
+  unsigned long parsedValue;
+
+  text = trimWhitespace(text);
+
+  if (!text[0] || (text[0] == '-')) {
+    return ERROR_MAIN_PARSER_INVALID_FORMAT;
+  }
+
+  errno       = 0;
+  parsedValue = strtoul(text, &end, 0);
+  end         = trimWhitespace(end);
+
+  if ((errno != 0) || (end == text) || (*end != '\0') ||
+      (parsedValue > UINT32_MAX)) {
+    return ERROR_MAIN_PARSER_INVALID_FORMAT;
+  }
+
+  *value = (uint32_t)parsedValue;
+  return 0;
+}
+
+static int parseEcVerifyProductList(
+  const char *productList,
+  uint32_t fallbackRevision,
+  int fallbackRevisionEnabled,
+  ecmcEcSlaveVerifyProduct *products,
+  int *productCount) {
+  char productBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  char *token = NULL;
+  int count = 0;
+
+  if (!productList || !products || !productCount) {
+    return ERROR_MAIN_PARSER_INVALID_FORMAT;
+  }
+
+  if (!productList[0] || (productList[0] == '|') ||
+      (productList[strlen(productList) - 1] == '|') ||
+      strstr(productList, "||")) {
+    return ERROR_MAIN_PARSER_INVALID_FORMAT;
+  }
+
+  strncpy(productBuffer, productList, sizeof(productBuffer) - 1);
+  productBuffer[sizeof(productBuffer) - 1] = '\0';
+
+  token = strtok(productBuffer, "|");
+  while (token) {
+    char *revisionSep = strchr(token, ':');
+    char *productText = token;
+    char *revisionText = NULL;
+    int errorCode = 0;
+
+    if (count >= ECMC_EC_MAX_VERIFY_PRODUCTS) {
+      return ERROR_MAIN_PARSER_INVALID_FORMAT;
+    }
+
+    if (revisionSep) {
+      *revisionSep = '\0';
+      revisionText = revisionSep + 1;
+
+      if (strchr(revisionText, ':')) {
+        return ERROR_MAIN_PARSER_INVALID_FORMAT;
+      }
+    }
+
+    errorCode = parseUint32Value(productText, &products[count].productCode);
+    if (errorCode) {
+      return errorCode;
+    }
+
+    if (revisionText) {
+      errorCode = parseUint32Value(revisionText, &products[count].revisionNum);
+      if (errorCode) {
+        return errorCode;
+      }
+      products[count].revisionCheckEnabled = products[count].revisionNum > 0;
+    } else {
+      products[count].revisionNum = fallbackRevision;
+      products[count].revisionCheckEnabled =
+        fallbackRevisionEnabled && (fallbackRevision > 0);
+    }
+
+    count++;
+    token = strtok(NULL, "|");
+  }
+
+  if (count <= 0) {
+    return ERROR_MAIN_PARSER_INVALID_FORMAT;
+  }
+
+  *productCount = count;
+  return 0;
+}
 
 // TODO: Cleanup macros.. should not need different for different types
 #define SEND_OK_OR_ERROR_AND_RETURN(function)\
@@ -1081,33 +1194,73 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecSlaveConfigWatchDog(iValue, iValue2, iValue3);
   }
 
-  /// "Cfg.EcSlaveVerify(alias,slaveBusPosition,vendorId,productCode,revisionNum)"
+  /// "Cfg.EcSlaveVerify(alias,slaveBusPosition,vendorId,product1|product2,revisionNum)"
+  /// Product-specific revision can be set with product:revision.
+  iValue6 = 0;
   nvals = sscanf(myarg_1,
-                 "EcSlaveVerify(%d,%d,0x%x,0x%x,0x%x)",
+                 "EcSlaveVerify(%d,%d,0x%x,%[^,],0x%x)%n",
                  &iValue,
                  &iValue2,
                  &iValue3,
-                 &iValue4,
-                 &iValue5);
+                 cIdBuffer,
+                 &iValue5,
+                 &iValue6);
 
-  if (nvals == 5) {
+  if ((nvals == 5) && (myarg_1[iValue6] == '\0')) {
+    ecmcEcSlaveVerifyProduct products[ECMC_EC_MAX_VERIFY_PRODUCTS];
+    int productCount = 0;
+    int errorCode = 0;
+
     RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSlaveVerify");
-    // Also check revisionNum
-    return ecVerifySlave(iValue, iValue2, iValue3, iValue4, iValue5);
+    errorCode = parseEcVerifyProductList(cIdBuffer,
+                                         iValue5,
+                                         1,
+                                         products,
+                                         &productCount);
+    if (errorCode) {
+      LOGERR("%s/%s:%d: ERROR: Failed to parse Cfg.EcSlaveVerify product list \"%s\" (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             cIdBuffer,
+             errorCode);
+      return errorCode;
+    }
+    return ecVerifySlaveProducts(iValue, iValue2, iValue3, products, productCount);
   }
 
-  /// "Cfg.EcSlaveVerify(alias,slaveBusPosition,vendorId,productCode)"
+  /// "Cfg.EcSlaveVerify(alias,slaveBusPosition,vendorId,product1|product2)"
+  /// Product-specific revision can be set with product:revision.
+  iValue6 = 0;
   nvals = sscanf(myarg_1,
-                 "EcSlaveVerify(%d,%d,0x%x,0x%x)",
+                 "EcSlaveVerify(%d,%d,0x%x,%[^)])%n",
                  &iValue,
                  &iValue2,
                  &iValue3,
-                 &iValue4);
+                 cIdBuffer,
+                 &iValue6);
 
-  if (nvals == 4) {
+  if ((nvals == 4) && (myarg_1[iValue6] == '\0')) {
+    ecmcEcSlaveVerifyProduct products[ECMC_EC_MAX_VERIFY_PRODUCTS];
+    int productCount = 0;
+    int errorCode = 0;
+
     RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSlaveVerify");
-    // Do not check revision number (use revisionNum=0)
-    return ecVerifySlave(iValue, iValue2, iValue3, iValue4, 0);
+    errorCode = parseEcVerifyProductList(cIdBuffer,
+                                         0,
+                                         0,
+                                         products,
+                                         &productCount);
+    if (errorCode) {
+      LOGERR("%s/%s:%d: ERROR: Failed to parse Cfg.EcSlaveVerify product list \"%s\" (0x%x).\n",
+             __FILE__,
+             __FUNCTION__,
+             __LINE__,
+             cIdBuffer,
+             errorCode);
+      return errorCode;
+    }
+    return ecVerifySlaveProducts(iValue, iValue2, iValue3, products, productCount);
   }
 
   /*Cfg.EcAddPdo(int nSlave,int nSyncManager,uint16_t nPdoIndex) wrong*/

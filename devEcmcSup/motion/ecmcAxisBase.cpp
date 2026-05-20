@@ -3397,6 +3397,7 @@ int ecmcAxisBase::selectPrimaryEncoder(int index, int overrideError) {
   // Make sure the switch is bumpless
   if (localIndex != data_.control_.primaryEncIndex) {
     seq_.setNewPositionCtrlDrvTrajBumpless(encArray_[localIndex]->getActPos());
+    refreshAsynTargetValue();
   }
 
   // This index is starting from 0

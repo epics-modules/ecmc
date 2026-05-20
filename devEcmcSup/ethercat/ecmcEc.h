@@ -192,6 +192,11 @@ public:
                             uint32_t vendorId,   /**< Expected vendor ID. */
                             uint32_t productCode,  /**< Expected product code. */
                             uint32_t revisionNum /**< Revision number*/);
+  int           verifySlave(uint16_t alias,  /**< Slave alias. */
+                            uint16_t slavePos,   /**< Slave position. */
+                            uint32_t vendorId,   /**< Expected vendor ID. */
+                            const ecmcEcSlaveVerifyProduct *products,
+                            int productCount);
 
   int      checkReadyForRuntime();
   uint64_t getTimeNs();
