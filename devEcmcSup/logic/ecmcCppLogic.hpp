@@ -786,6 +786,30 @@ inline double getCycleTimeS() {
            : 0.0;
 }
 
+inline uint64_t getEcTimeNs() {
+  return (g_hostServices && g_hostServices->get_ec_time_ns)
+           ? g_hostServices->get_ec_time_ns()
+           : 0u;
+}
+
+inline uint64_t getEcTimeOffsetNs() {
+  return (g_hostServices && g_hostServices->get_ec_time_offset_ns)
+           ? g_hostServices->get_ec_time_offset_ns()
+           : 0u;
+}
+
+inline int32_t getEcDomainState(int32_t domain_index) {
+  return (g_hostServices && g_hostServices->get_ec_domain_state)
+           ? g_hostServices->get_ec_domain_state(domain_index)
+           : -1;
+}
+
+inline int32_t getEcStatusOK() {
+  return (g_hostServices && g_hostServices->get_ec_status_ok)
+           ? g_hostServices->get_ec_status_ok()
+           : 0;
+}
+
 inline uint32_t getEcMasterStateWord(int32_t master_index = -1) {
   return (g_hostServices && g_hostServices->get_ec_master_state_word)
            ? g_hostServices->get_ec_master_state_word(master_index)

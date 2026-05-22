@@ -113,6 +113,22 @@ uint32_t getEcmcMasterStateWord(int masterIndex) {
   return word;
 }
 
+uint64_t getEcmcEcTimeNs() {
+  return ec ? ec->getTimeNs() : 0u;
+}
+
+uint64_t getEcmcEcTimeOffsetNs() {
+  return ec ? ec->getTimeOffsetNs() : 0u;
+}
+
+int getEcmcEcDomainState(int domainIndex) {
+  return (ec && domainIndex >= 0) ? ec->getDomState(domainIndex) : -1;
+}
+
+int getEcmcEcStatusOK() {
+  return ec ? ec->statusOK() : 0;
+}
+
 int setEcmcAxisTrajSource(int axisIndex, int source) {
   return setAxisTrajSource(axisIndex, source);
 }
@@ -279,6 +295,10 @@ void getEcmcCppLogicHostServices(struct ecmcCppLogicHostServices* services) {
   *services = {};
   services->version = ECMC_CPP_LOGIC_ABI_VERSION;
   services->get_cycle_time_s = []() -> double { return getEcmcSampleTimeMS() * 1e-3; };
+  services->get_ec_time_ns = &getEcmcEcTimeNs;
+  services->get_ec_time_offset_ns = &getEcmcEcTimeOffsetNs;
+  services->get_ec_domain_state = &getEcmcEcDomainState;
+  services->get_ec_status_ok = &getEcmcEcStatusOK;
   services->get_ec_master_state_word = &getEcmcMasterStateWord;
   services->get_ec_slave_state_word = &getEcmcSlaveStateWord;
   services->get_axis_traj_source = &getEcmcAxisTrajSource;

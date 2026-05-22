@@ -108,6 +108,35 @@ uint32_t getEcmcSlaveStateWord(int masterIndex, int slaveIndex);
  */
 uint32_t getEcmcMasterStateWord(int masterIndex);
 
+/** \brief Get current EtherCAT application time in nanoseconds
+ *
+ * \return Current EtherCAT time in ns, or 0 if no EtherCAT master exists.
+ *
+ * \note Uses the same time source as the ecmc EtherCAT object.
+ */
+uint64_t getEcmcEcTimeNs();
+
+/** \brief Get EtherCAT monotonic time offset in nanoseconds
+ *
+ * \return Current monotonic offset in ns, or 0 if no EtherCAT master exists
+ *         or CLOCK_REALTIME is used.
+ */
+uint64_t getEcmcEcTimeOffsetNs();
+
+/** \brief Get cached EtherCAT domain state
+ *
+ * \param[in] domainIndex Domain index.
+ *
+ * \return Domain state, or a negative error code.
+ */
+int getEcmcEcDomainState(int domainIndex);
+
+/** \brief Get consolidated EtherCAT status
+ *
+ * \return 1 if EtherCAT status is OK, 0 if not OK or no EtherCAT master exists.
+ */
+int getEcmcEcStatusOK();
+
 /** \brief Set axis trajectory data source
  *
  * \param[in] axisIndex Axis index.

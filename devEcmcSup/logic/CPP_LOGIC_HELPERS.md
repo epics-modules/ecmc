@@ -171,6 +171,10 @@ unchanged input value.
 
 ### EtherCAT status wrappers
 
+- `ecmcCpp::getEcTimeNs()`
+- `ecmcCpp::getEcTimeOffsetNs()`
+- `ecmcCpp::getEcDomainState(...)`
+- `ecmcCpp::getEcStatusOK()`
 - `ecmcCpp::EcMasterStatus`
 - `ecmcCpp::EcSlaveStatus`
 
