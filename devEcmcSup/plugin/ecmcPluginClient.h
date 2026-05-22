@@ -123,6 +123,18 @@ uint64_t getEcmcEcTimeNs();
  */
 uint64_t getEcmcEcTimeOffsetNs();
 
+/** \brief Get timestamp from the last ecmc EtherCAT receive call
+ *
+ * \return Last receive timestamp in ns, or 0 if no receive has run.
+ */
+uint64_t getEcmcEcLastReceiveTimeNs();
+
+/** \brief Get timestamp from the last ecmc EtherCAT send call
+ *
+ * \return Last send timestamp in ns, or 0 if no send has run.
+ */
+uint64_t getEcmcEcLastSendTimeNs();
+
 /** \brief Get cached EtherCAT domain state
  *
  * \param[in] domainIndex Domain index.

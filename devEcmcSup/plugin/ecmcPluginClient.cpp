@@ -121,6 +121,14 @@ uint64_t getEcmcEcTimeOffsetNs() {
   return ec ? ec->getTimeOffsetNs() : 0u;
 }
 
+uint64_t getEcmcEcLastReceiveTimeNs() {
+  return ec ? ec->getLastReceiveTimeNs() : 0u;
+}
+
+uint64_t getEcmcEcLastSendTimeNs() {
+  return ec ? ec->getLastSendTimeNs() : 0u;
+}
+
 int getEcmcEcDomainState(int domainIndex) {
   return (ec && domainIndex >= 0) ? ec->getDomState(domainIndex) : -1;
 }
@@ -297,6 +305,8 @@ void getEcmcCppLogicHostServices(struct ecmcCppLogicHostServices* services) {
   services->get_cycle_time_s = []() -> double { return getEcmcSampleTimeMS() * 1e-3; };
   services->get_ec_time_ns = &getEcmcEcTimeNs;
   services->get_ec_time_offset_ns = &getEcmcEcTimeOffsetNs;
+  services->get_ec_last_receive_time_ns = &getEcmcEcLastReceiveTimeNs;
+  services->get_ec_last_send_time_ns = &getEcmcEcLastSendTimeNs;
   services->get_ec_domain_state = &getEcmcEcDomainState;
   services->get_ec_status_ok = &getEcmcEcStatusOK;
   services->get_ec_master_state_word = &getEcmcMasterStateWord;

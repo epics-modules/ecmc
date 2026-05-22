@@ -84,7 +84,8 @@ public:
   ec_master_t* getMaster();
   int          getMasterIndex();
   bool         getInitDone();
-  void         receive();
+  void         receive(timespec receiveTime,
+                       timespec timeOffset);
   void         send(timespec timeOffset);
   void         setTimeOffest(timespec timeOffset);  // only valid if clock monotonic
   int          compileRegInfo();
@@ -202,6 +203,8 @@ public:
   uint64_t getTimeNs();
   uint64_t getTimeNs(int clock);  // Get time from a sepcific clock (CLOCK_REALTIME, CLOCK_MONOMTONIC)
   uint64_t getTimeOffsetNs(); // Get time offset if monotonic
+  uint64_t getLastReceiveTimeNs();
+  uint64_t getLastSendTimeNs();
 
   uint32_t getSlaveVendorId(uint16_t alias,       /**< Slave alias. */
                             uint16_t slavePos /**< Slave position. */);
@@ -271,6 +274,8 @@ private:
   epicsTimeStamp epicsTime_;
   struct timespec timeRel_;
   struct timespec timeAbs_;
+  uint64_t lastReceiveTimeNs_;
+  uint64_t lastSendTimeNs_;
   int delayEcOKCycles_;
   int startupCounter_;
   ecmcEcDomain *currentDomain_;

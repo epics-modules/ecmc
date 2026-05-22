@@ -69,6 +69,8 @@ void ecmcEc::initVars() {
   epicsTimeGetCurrent(&epicsTime_);
   clock_gettime(CLOCK_REALTIME, &timeRel_);
   clock_gettime(CLOCK_REALTIME, &timeAbs_);
+  lastReceiveTimeNs_ = 0;
+  lastSendTimeNs_    = 0;
 
   for (int i = 0; i < EC_MAX_SLAVES; i++) {
     slaveArray_[i] = NULL;
@@ -585,7 +587,9 @@ bool ecmcEc::checkState(void) {
   return masterOK_;
 }
 
-void ecmcEc::receive() {
+void ecmcEc::receive(timespec receiveTime, timespec timeOffset) {
+  lastReceiveTimeNs_ = TIMESPEC2NS(timespecAdd(receiveTime, timeOffset));
+
   ecrt_master_receive(master_);
 
   const int domainCount = domainCounter_;
@@ -618,6 +622,7 @@ void ecmcEc::send(timespec timeOffset) {
     timeAbs_ = timespecAdd(timeRel_, timeOffset_);
   }
 
+  lastSendTimeNs_ = TIMESPEC2NS(timeAbs_);
   ecrt_master_application_time(master_, TIMESPEC2NS(timeAbs_));
   ecrt_master_sync_reference_clock(master_);
   ecrt_master_sync_slave_clocks(master_);
@@ -2172,6 +2177,14 @@ uint64_t ecmcEc::getTimeOffsetNs() {
    return 0;
   }
   return TIMESPEC2NS(timeOffset_);
+}
+
+uint64_t ecmcEc::getLastReceiveTimeNs() {
+  return lastReceiveTimeNs_;
+}
+
+uint64_t ecmcEc::getLastSendTimeNs() {
+  return lastSendTimeNs_;
 }
 
 uint32_t ecmcEc::getSlaveVendorId(uint16_t alias,  /**< Slave alias. */

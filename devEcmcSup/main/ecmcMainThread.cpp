@@ -436,7 +436,7 @@ void cyclic_task(void *usr) {
     }
 
     if (ecInitDone) {
-      ec->receive();
+      ec->receive(startTime, masterActivationTimeOffset);
       ec->checkDomainsState();
       ecStat = ec->statusOK();
     } else {

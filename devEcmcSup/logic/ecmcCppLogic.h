@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-#define ECMC_CPP_LOGIC_ABI_VERSION 10
+#define ECMC_CPP_LOGIC_ABI_VERSION 11
 
 #define ECMC_CPP_LOGIC_CREATE_INSTANCE_FAIL 0x2006D
 
@@ -69,6 +69,8 @@ struct ecmcCppLogicHostServices {
   double (*get_cycle_time_s)();
   uint64_t (*get_ec_time_ns)();
   uint64_t (*get_ec_time_offset_ns)();
+  uint64_t (*get_ec_last_receive_time_ns)();
+  uint64_t (*get_ec_last_send_time_ns)();
   int32_t (*get_ec_domain_state)(int32_t domain_index);
   int32_t (*get_ec_status_ok)();
   uint32_t (*get_ec_master_state_word)(int32_t master_index);

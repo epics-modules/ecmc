@@ -173,6 +173,8 @@ unchanged input value.
 
 - `ecmcCpp::getEcTimeNs()`
 - `ecmcCpp::getEcTimeOffsetNs()`
+- `ecmcCpp::getEcLastReceiveTimeNs()`
+- `ecmcCpp::getEcLastSendTimeNs()`
 - `ecmcCpp::getEcDomainState(...)`
 - `ecmcCpp::getEcStatusOK()`
 - `ecmcCpp::EcMasterStatus`

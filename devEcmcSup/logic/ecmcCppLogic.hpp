@@ -798,6 +798,18 @@ inline uint64_t getEcTimeOffsetNs() {
            : 0u;
 }
 
+inline uint64_t getEcLastReceiveTimeNs() {
+  return (g_hostServices && g_hostServices->get_ec_last_receive_time_ns)
+           ? g_hostServices->get_ec_last_receive_time_ns()
+           : 0u;
+}
+
+inline uint64_t getEcLastSendTimeNs() {
+  return (g_hostServices && g_hostServices->get_ec_last_send_time_ns)
+           ? g_hostServices->get_ec_last_send_time_ns()
+           : 0u;
+}
+
 inline int32_t getEcDomainState(int32_t domain_index) {
   return (g_hostServices && g_hostServices->get_ec_domain_state)
            ? g_hostServices->get_ec_domain_state(domain_index)

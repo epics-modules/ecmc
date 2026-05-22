@@ -4,7 +4,7 @@ Release Notes
 * Add LUT (lookup table) support for cpp-logic plugins
 * Add the `cpp_logic` C/C++ runtime interface with loader support, dedicated asyn ports, EPICS bindings, string/array/waveform exports, macro parsing, helper headers, examples, and an offline substitutions generator.
 * Add PLCopen-style motion-control runtime support and C/C++ helpers, including `MC_Power`, `MC_Reset`, `MC_MoveAbsolute`, `MC_MoveRelative`, `MC_MoveVelocity`, `MC_Home`, `MC_Halt`, and readback helpers.
-* Add plugin and `cpp_logic` helpers for axis state queries, external axis sources, EtherCAT state/time/domain/status access, EtherCAT master indexes, tracing, retained values, timers, triggers, filtering, PID control, and bit handling.
+* Add plugin and `cpp_logic` helpers for axis state queries, external axis sources, EtherCAT state/time/domain/status/frame-timing access, EtherCAT master indexes, tracing, retained values, timers, triggers, filtering, PID control, and bit handling.
 * Add a realtime logger with a low-priority queue, asyn port access, source filtering, and debug/warning/error severity handling.
 * Standardize and reduce runtime, startup, EtherCAT, motor-record, and motion log output.
 * Improve motor-record and ecmc soft-limit synchronization, seed motor soft limits from ecmc at startup, reduce redundant soft-limit updates, and avoid soft-limit sync feedback.
