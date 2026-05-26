@@ -222,6 +222,95 @@ Current motion wrappers include:
 - `ecmcCpp::McReadActualPosition`
 - `ecmcCpp::McReadActualVelocity`
 
+Selected encoder helpers are also available through `ecmcCppLogic.hpp`:
+
+- `ecmcCpp::axisGetEncoderActualPos(axis, encoder)`
+- `ecmcCpp::axisSetEncoderActualPos(axis, encoder, position)`
+- `ecmcCpp::axisGetEncoderHomed(axis, encoder)`
+- `ecmcCpp::axisSetEncoderHomed(axis, encoder, homed)`
+- `ecmcCpp::axisGetEncoderReady(axis, encoder)`
+- `ecmcCpp::axisGetPrimaryEncoder(axis)`
+- `ecmcCpp::axisSelectPrimaryEncoder(axis, encoder)`
+- `ecmcCpp::axisGetStatus(axis, status)`
+- `ecmcCpp::axisGetStatus(axis)`
+
+The encoder index follows the ECMC motion API convention: the first encoder is
+`1`.
+
+`axisGetStatus(...)` fills or returns an `ecmcCpp::AxisStatus` snapshot with the
+axis motion status fields. The native motion bitfield is exposed as the stable
+`status_word` mask, using flags such as `ECMC_CPP_AXIS_STATUS_ENABLED`,
+`ECMC_CPP_AXIS_STATUS_BUSY`, `ECMC_CPP_AXIS_STATUS_HOMED`, and
+`ECMC_CPP_AXIS_STATUS_LIMIT_FWD`.
+
+Motion group helpers are available through `ecmcCppLogic.hpp`:
+
+- `ecmcCpp::axisGroupGetEnable(group)`
+- `ecmcCpp::axisGroupGetAnyEnable(group)`
+- `ecmcCpp::axisGroupGetEnabled(group)`
+- `ecmcCpp::axisGroupGetAnyEnabled(group)`
+- `ecmcCpp::axisGroupGetBusy(group)`
+- `ecmcCpp::axisGroupGetAnyBusy(group)`
+- `ecmcCpp::axisGroupGetAnyErrorId(group)`
+- `ecmcCpp::axisGroupSetEnable(group, enable)`
+- `ecmcCpp::axisGroupSetTrajSource(group, source)`
+- `ecmcCpp::axisGroupSetEncSource(group, source)`
+- `ecmcCpp::axisGroupResetError(group)`
+- `ecmcCpp::axisGroupSetError(group, error_id)`
+- `ecmcCpp::axisGroupSetSlavedAxisInError(group)`
+- `ecmcCpp::axisGroupHalt(group)`
+- `ecmcCpp::axisGroupAxisInGroup(group, axis)`
+- `ecmcCpp::axisGroupSize(group)`
+- `ecmcCpp::axisGroupGetTrajSourceExt(group)`
+- `ecmcCpp::axisGroupGetAnyTrajSourceExt(group)`
+- `ecmcCpp::axisGroupSetAllowSourceChangeWhenEnabled(group, allow)`
+- `ecmcCpp::axisGroupSetMrSync(group, sync)`
+- `ecmcCpp::axisGroupSetMrStop(group, stop)`
+- `ecmcCpp::axisGroupSetMrCnen(group, enable)`
+- `ecmcCpp::axisGroupSetAutoEnable(group, enable)`
+- `ecmcCpp::axisGroupSetAutoDisable(group, enable)`
+- `ecmcCpp::axisGroupSetCtrlWithinDeadband(group, within)`
+- `ecmcCpp::axisGroupSetIgnoreMrStatusCheckAtDisable(group, ignore)`
+- `ecmcCpp::axisGroupGetAnyAtForwardLimit(group)`
+- `ecmcCpp::axisGroupGetAnyAtBackwardLimit(group)`
+- `ecmcCpp::axisGroupGetAnyAtLimit(group)`
+- `ecmcCpp::axisGroupGetAnyInterlocked(group)`
+- `ecmcCpp::axisGroupSetSlavedAxisInterlocked(group)`
+- `ecmcCpp::axisGroupGetCtrlWithinDeadband(group)`
+
+Master-to-master shared-memory helpers are available through `ecmcCppLogic.hpp`:
+
+- `ecmcCpp::m2mWrite(index, value)`
+- `ecmcCpp::m2mRead(index)`
+- `ecmcCpp::m2mStatus()`
+- `ecmcCpp::m2mResetError()`
+- `ecmcCpp::m2mGetError()`
+- `ecmcCpp::m2mIocRun(master_index)`
+- `ecmcCpp::m2mIocEcOk(master_index)`
+
+Data storage helpers are available through `ecmcCppLogic.hpp`. In addition to
+single-value access, the C++ helpers support `std::vector<double>` for bulk
+read/write/append:
+
+- `ecmcCpp::dataStorageClear(storage)`
+- `ecmcCpp::dataStorageAppend(storage, value)`
+- `ecmcCpp::dataStorageGet(storage, index)`
+- `ecmcCpp::dataStorageSet(storage, index, value)`
+- `ecmcCpp::dataStorageGetIndex(storage)`
+- `ecmcCpp::dataStorageSetIndex(storage, index)`
+- `ecmcCpp::dataStorageRead(storage, values)`
+- `ecmcCpp::dataStorageWrite(storage, values)`
+- `ecmcCpp::dataStorageAppend(storage, values)`
+- `ecmcCpp::dataStorageAppendFromStorage(from_storage, from_index, elements, to_storage)`
+- `ecmcCpp::dataStorageIsFull(storage)`
+- `ecmcCpp::dataStorageGetSize(storage)`
+- `ecmcCpp::dataStoragePushAsyn(storage)`
+- `ecmcCpp::dataStorageGetAvg(storage)`
+- `ecmcCpp::dataStorageGetMin(storage)`
+- `ecmcCpp::dataStorageGetMax(storage)`
+- `ecmcCpp::dataStorageGetError()`
+- `ecmcCpp::dataStorageResetError()`
+
 ## Examples
 
 See:

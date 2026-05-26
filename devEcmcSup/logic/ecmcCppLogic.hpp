@@ -918,6 +918,68 @@ inline int32_t axisSetExternalEncoderPos(int32_t axis_index, double value) {
            : -1;
 }
 
+inline double axisGetEncoderActualPos(int32_t axis_index, int32_t encoder_index) {
+  return (g_hostServices && g_hostServices->get_axis_encoder_actual_pos)
+           ? g_hostServices->get_axis_encoder_actual_pos(axis_index, encoder_index)
+           : 0.0;
+}
+
+inline int32_t axisSetEncoderActualPos(int32_t axis_index,
+                                       int32_t encoder_index,
+                                       double value) {
+  return (g_hostServices && g_hostServices->set_axis_encoder_actual_pos)
+           ? g_hostServices->set_axis_encoder_actual_pos(axis_index, encoder_index, value)
+           : -1;
+}
+
+inline int32_t axisGetEncoderHomed(int32_t axis_index, int32_t encoder_index) {
+  return (g_hostServices && g_hostServices->get_axis_encoder_homed)
+           ? g_hostServices->get_axis_encoder_homed(axis_index, encoder_index)
+           : -1;
+}
+
+inline int32_t axisSetEncoderHomed(int32_t axis_index,
+                                   int32_t encoder_index,
+                                   bool homed) {
+  return (g_hostServices && g_hostServices->set_axis_encoder_homed)
+           ? g_hostServices->set_axis_encoder_homed(axis_index,
+                                                    encoder_index,
+                                                    homed ? 1 : 0)
+           : -1;
+}
+
+inline int32_t axisGetEncoderReady(int32_t axis_index, int32_t encoder_index) {
+  return (g_hostServices && g_hostServices->get_axis_encoder_ready)
+           ? g_hostServices->get_axis_encoder_ready(axis_index, encoder_index)
+           : -1;
+}
+
+inline int32_t axisGetPrimaryEncoder(int32_t axis_index) {
+  return (g_hostServices && g_hostServices->get_axis_primary_encoder)
+           ? g_hostServices->get_axis_primary_encoder(axis_index)
+           : -1;
+}
+
+inline int32_t axisSelectPrimaryEncoder(int32_t axis_index, int32_t encoder_index) {
+  return (g_hostServices && g_hostServices->select_axis_primary_encoder)
+           ? g_hostServices->select_axis_primary_encoder(axis_index, encoder_index)
+           : -1;
+}
+
+using AxisStatus = ecmcCppAxisStatus;
+
+inline int32_t axisGetStatus(int32_t axis_index, AxisStatus& status) {
+  return (g_hostServices && g_hostServices->get_axis_status)
+           ? g_hostServices->get_axis_status(axis_index, &status)
+           : -1;
+}
+
+inline AxisStatus axisGetStatus(int32_t axis_index) {
+  AxisStatus status {};
+  axisGetStatus(axis_index, status);
+  return status;
+}
+
 inline double lutGetValue(int32_t lut_index, double index) {
   return (g_hostServices && g_hostServices->get_lut_value)
            ? g_hostServices->get_lut_value(lut_index, index)
@@ -928,6 +990,388 @@ inline bool lutExists(int32_t lut_index) {
   return (g_hostServices && g_hostServices->lut_exists)
            ? g_hostServices->lut_exists(lut_index) != 0
            : false;
+}
+
+inline int32_t m2mWrite(int32_t shm_index, double value) {
+  return (g_hostServices && g_hostServices->m2m_write)
+           ? g_hostServices->m2m_write(shm_index, value)
+           : -1;
+}
+
+inline double m2mRead(int32_t shm_index) {
+  return (g_hostServices && g_hostServices->m2m_read)
+           ? g_hostServices->m2m_read(shm_index)
+           : 0.0;
+}
+
+inline int32_t m2mStatus() {
+  return (g_hostServices && g_hostServices->m2m_status)
+           ? g_hostServices->m2m_status()
+           : -1;
+}
+
+inline int32_t m2mResetError() {
+  return (g_hostServices && g_hostServices->m2m_reset_error)
+           ? g_hostServices->m2m_reset_error()
+           : -1;
+}
+
+inline int32_t m2mGetError() {
+  return (g_hostServices && g_hostServices->m2m_get_error)
+           ? g_hostServices->m2m_get_error()
+           : -1;
+}
+
+inline int32_t m2mIocRun(int32_t master_index) {
+  return (g_hostServices && g_hostServices->m2m_ioc_run)
+           ? g_hostServices->m2m_ioc_run(master_index)
+           : -1;
+}
+
+inline int32_t m2mIocEcOk(int32_t master_index) {
+  return (g_hostServices && g_hostServices->m2m_ioc_ec_ok)
+           ? g_hostServices->m2m_ioc_ec_ok(master_index)
+           : -1;
+}
+
+inline int32_t dataStorageClear(int32_t storage_index) {
+  return (g_hostServices && g_hostServices->ds_clear)
+           ? g_hostServices->ds_clear(storage_index)
+           : -1;
+}
+
+inline int32_t dataStorageAppend(int32_t storage_index, double value) {
+  return (g_hostServices && g_hostServices->ds_append)
+           ? g_hostServices->ds_append(storage_index, value)
+           : -1;
+}
+
+inline double dataStorageGet(int32_t storage_index, int32_t data_index) {
+  return (g_hostServices && g_hostServices->ds_get)
+           ? g_hostServices->ds_get(storage_index, data_index)
+           : 0.0;
+}
+
+inline int32_t dataStorageSet(int32_t storage_index, int32_t data_index, double value) {
+  return (g_hostServices && g_hostServices->ds_set)
+           ? g_hostServices->ds_set(storage_index, data_index, value)
+           : -1;
+}
+
+inline int32_t dataStorageGetIndex(int32_t storage_index) {
+  return (g_hostServices && g_hostServices->ds_get_index)
+           ? g_hostServices->ds_get_index(storage_index)
+           : -1;
+}
+
+inline int32_t dataStorageSetIndex(int32_t storage_index, int32_t data_index) {
+  return (g_hostServices && g_hostServices->ds_set_index)
+           ? g_hostServices->ds_set_index(storage_index, data_index)
+           : -1;
+}
+
+inline int32_t dataStorageGetError() {
+  return (g_hostServices && g_hostServices->ds_get_error)
+           ? g_hostServices->ds_get_error()
+           : -1;
+}
+
+inline int32_t dataStorageResetError() {
+  return (g_hostServices && g_hostServices->ds_reset_error)
+           ? g_hostServices->ds_reset_error()
+           : -1;
+}
+
+inline int32_t dataStorageIsFull(int32_t storage_index) {
+  return (g_hostServices && g_hostServices->ds_is_full)
+           ? g_hostServices->ds_is_full(storage_index)
+           : -1;
+}
+
+inline int32_t dataStorageGetSize(int32_t storage_index) {
+  return (g_hostServices && g_hostServices->ds_get_size)
+           ? g_hostServices->ds_get_size(storage_index)
+           : -1;
+}
+
+inline int32_t dataStoragePushAsyn(int32_t storage_index) {
+  return (g_hostServices && g_hostServices->ds_push_asyn)
+           ? g_hostServices->ds_push_asyn(storage_index)
+           : -1;
+}
+
+inline double dataStorageGetAvg(int32_t storage_index) {
+  return (g_hostServices && g_hostServices->ds_get_avg)
+           ? g_hostServices->ds_get_avg(storage_index)
+           : 0.0;
+}
+
+inline double dataStorageGetMin(int32_t storage_index) {
+  return (g_hostServices && g_hostServices->ds_get_min)
+           ? g_hostServices->ds_get_min(storage_index)
+           : 0.0;
+}
+
+inline double dataStorageGetMax(int32_t storage_index) {
+  return (g_hostServices && g_hostServices->ds_get_max)
+           ? g_hostServices->ds_get_max(storage_index)
+           : 0.0;
+}
+
+inline int32_t dataStorageRead(int32_t storage_index, std::vector<double>& values) {
+  if (!g_hostServices || !g_hostServices->ds_read) {
+    return -1;
+  }
+
+  uint32_t size = 0;
+  int32_t error = g_hostServices->ds_read(storage_index, nullptr, 0u, &size);
+  if (error) {
+    return error;
+  }
+
+  values.resize(size);
+  if (size == 0u) {
+    return 0;
+  }
+
+  return g_hostServices->ds_read(storage_index, values.data(), size, &size);
+}
+
+inline int32_t dataStorageWrite(int32_t storage_index, const double* data, uint32_t size) {
+  return (g_hostServices && g_hostServices->ds_write)
+           ? g_hostServices->ds_write(storage_index, data, size)
+           : -1;
+}
+
+inline int32_t dataStorageWrite(int32_t storage_index, const std::vector<double>& values) {
+  return dataStorageWrite(storage_index,
+                          values.empty() ? nullptr : values.data(),
+                          static_cast<uint32_t>(values.size()));
+}
+
+inline int32_t dataStorageAppend(int32_t storage_index, const double* data, uint32_t size) {
+  return (g_hostServices && g_hostServices->ds_append_array)
+           ? g_hostServices->ds_append_array(storage_index, data, size)
+           : -1;
+}
+
+inline int32_t dataStorageAppend(int32_t storage_index, const std::vector<double>& values) {
+  return dataStorageAppend(storage_index,
+                           values.empty() ? nullptr : values.data(),
+                           static_cast<uint32_t>(values.size()));
+}
+
+inline int32_t dataStorageAppendFromStorage(int32_t from_storage_index,
+                                            int32_t from_data_index,
+                                            uint32_t elements,
+                                            int32_t to_storage_index) {
+  return (g_hostServices && g_hostServices->ds_append_from_storage)
+           ? g_hostServices->ds_append_from_storage(from_storage_index,
+                                                    from_data_index,
+                                                    elements,
+                                                    to_storage_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetEnable(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_enable)
+           ? g_hostServices->axis_group_get_enable(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetAnyEnable(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_any_enable)
+           ? g_hostServices->axis_group_get_any_enable(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetEnabled(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_enabled)
+           ? g_hostServices->axis_group_get_enabled(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetAnyEnabled(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_any_enabled)
+           ? g_hostServices->axis_group_get_any_enabled(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetBusy(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_busy)
+           ? g_hostServices->axis_group_get_busy(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetAnyBusy(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_any_busy)
+           ? g_hostServices->axis_group_get_any_busy(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetAnyErrorId(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_any_error_id)
+           ? g_hostServices->axis_group_get_any_error_id(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupSetEnable(int32_t group_index, bool enable) {
+  return (g_hostServices && g_hostServices->axis_group_set_enable)
+           ? g_hostServices->axis_group_set_enable(group_index, enable ? 1 : 0)
+           : -1;
+}
+
+inline int32_t axisGroupSetTrajSource(int32_t group_index, int32_t source) {
+  return (g_hostServices && g_hostServices->axis_group_set_traj_source)
+           ? g_hostServices->axis_group_set_traj_source(group_index, source)
+           : -1;
+}
+
+inline int32_t axisGroupSetEncSource(int32_t group_index, int32_t source) {
+  return (g_hostServices && g_hostServices->axis_group_set_enc_source)
+           ? g_hostServices->axis_group_set_enc_source(group_index, source)
+           : -1;
+}
+
+inline int32_t axisGroupResetError(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_reset_error)
+           ? g_hostServices->axis_group_reset_error(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupSetError(int32_t group_index, int32_t error_id) {
+  return (g_hostServices && g_hostServices->axis_group_set_error)
+           ? g_hostServices->axis_group_set_error(group_index, error_id)
+           : -1;
+}
+
+inline int32_t axisGroupSetSlavedAxisInError(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_set_slaved_axis_in_error)
+           ? g_hostServices->axis_group_set_slaved_axis_in_error(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupHalt(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_halt)
+           ? g_hostServices->axis_group_halt(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupAxisInGroup(int32_t group_index, int32_t axis_index) {
+  return (g_hostServices && g_hostServices->axis_group_axis_in_group)
+           ? g_hostServices->axis_group_axis_in_group(group_index, axis_index)
+           : -1;
+}
+
+inline int32_t axisGroupSize(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_size)
+           ? g_hostServices->axis_group_size(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetTrajSourceExt(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_traj_source_ext)
+           ? g_hostServices->axis_group_get_traj_source_ext(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetAnyTrajSourceExt(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_any_traj_source_ext)
+           ? g_hostServices->axis_group_get_any_traj_source_ext(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupSetAllowSourceChangeWhenEnabled(int32_t group_index,
+                                                        bool allow) {
+  return (g_hostServices &&
+          g_hostServices->axis_group_set_allow_source_change_when_enabled)
+           ? g_hostServices->axis_group_set_allow_source_change_when_enabled(
+               group_index,
+               allow ? 1 : 0)
+           : -1;
+}
+
+inline int32_t axisGroupSetMrSync(int32_t group_index, bool sync) {
+  return (g_hostServices && g_hostServices->axis_group_set_mr_sync)
+           ? g_hostServices->axis_group_set_mr_sync(group_index, sync ? 1 : 0)
+           : -1;
+}
+
+inline int32_t axisGroupSetMrStop(int32_t group_index, bool stop) {
+  return (g_hostServices && g_hostServices->axis_group_set_mr_stop)
+           ? g_hostServices->axis_group_set_mr_stop(group_index, stop ? 1 : 0)
+           : -1;
+}
+
+inline int32_t axisGroupSetMrCnen(int32_t group_index, bool enable) {
+  return (g_hostServices && g_hostServices->axis_group_set_mr_cnen)
+           ? g_hostServices->axis_group_set_mr_cnen(group_index, enable ? 1 : 0)
+           : -1;
+}
+
+inline int32_t axisGroupSetAutoEnable(int32_t group_index, bool enable) {
+  return (g_hostServices && g_hostServices->axis_group_set_auto_enable)
+           ? g_hostServices->axis_group_set_auto_enable(group_index, enable ? 1 : 0)
+           : -1;
+}
+
+inline int32_t axisGroupSetAutoDisable(int32_t group_index, bool enable) {
+  return (g_hostServices && g_hostServices->axis_group_set_auto_disable)
+           ? g_hostServices->axis_group_set_auto_disable(group_index, enable ? 1 : 0)
+           : -1;
+}
+
+inline int32_t axisGroupSetCtrlWithinDeadband(int32_t group_index, bool within) {
+  return (g_hostServices && g_hostServices->axis_group_set_ctrl_within_deadband)
+           ? g_hostServices->axis_group_set_ctrl_within_deadband(group_index,
+                                                                 within ? 1 : 0)
+           : -1;
+}
+
+inline int32_t axisGroupSetIgnoreMrStatusCheckAtDisable(int32_t group_index,
+                                                        bool ignore) {
+  return (g_hostServices &&
+          g_hostServices->axis_group_set_ignore_mr_status_check_at_disable)
+           ? g_hostServices->axis_group_set_ignore_mr_status_check_at_disable(
+               group_index,
+               ignore ? 1 : 0)
+           : -1;
+}
+
+inline int32_t axisGroupGetAnyAtForwardLimit(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_any_at_forward_limit)
+           ? g_hostServices->axis_group_get_any_at_forward_limit(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetAnyAtBackwardLimit(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_any_at_backward_limit)
+           ? g_hostServices->axis_group_get_any_at_backward_limit(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetAnyAtLimit(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_any_at_limit)
+           ? g_hostServices->axis_group_get_any_at_limit(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetAnyInterlocked(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_any_interlocked)
+           ? g_hostServices->axis_group_get_any_interlocked(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupSetSlavedAxisInterlocked(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_set_slaved_axis_interlocked)
+           ? g_hostServices->axis_group_set_slaved_axis_interlocked(group_index)
+           : -1;
+}
+
+inline int32_t axisGroupGetCtrlWithinDeadband(int32_t group_index) {
+  return (g_hostServices && g_hostServices->axis_group_get_ctrl_within_deadband)
+           ? g_hostServices->axis_group_get_ctrl_within_deadband(group_index)
+           : -1;
 }
 
 inline int32_t requestIocExit(int32_t exit_code = 0) {

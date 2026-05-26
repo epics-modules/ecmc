@@ -1152,6 +1152,48 @@ int setAxisExtActPos(int    axisIndex,
   return 0;
 }
 
+int setAxisEncPosActByIndex(int axisIndex, int encIndex, double value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d encIndex=%d value=%f\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           encIndex,
+           value);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+
+  int error = 0;
+  ecmcEncoder *enc = axes[axisIndex]->getEnc(encIndex - 1, &error);
+  if (error || !enc) {
+    return error ? error : ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
+  }
+
+  enc->setActPos(value);
+  return 0;
+}
+
+int setAxisEncHomedByIndex(int axisIndex, int encIndex, int homed) {
+  LOGINFO4("%s/%s:%d axisIndex=%d encIndex=%d homed=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           encIndex,
+           homed);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+
+  int error = 0;
+  ecmcEncoder *enc = axes[axisIndex]->getEnc(encIndex - 1, &error);
+  if (error || !enc) {
+    return error ? error : ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
+  }
+
+  enc->setHomed(homed != 0);
+  return 0;
+}
+
 int setAxisHomeVelTowardsCam(int axisIndex, double dVel) {
   LOGINFO4("%s/%s:%d axisIndex=%d value=%f\n",
            __FILE__,
@@ -1922,6 +1964,31 @@ int getAxisEncHomed(int axisIndex, int *value) {
   return 0;
 }
 
+int getAxisEncHomedByIndex(int axisIndex, int encIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d encIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           encIndex);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+
+  if (!value) {
+    return ERROR_AXIS_DATA_POINTER_NULL;
+  }
+
+  int error = 0;
+  ecmcEncoder *enc = axes[axisIndex]->getEnc(encIndex - 1, &error);
+  if (error || !enc) {
+    *value = 0;
+    return error ? error : ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
+  }
+
+  *value = enc->getHomed() ? 1 : 0;
+  return 0;
+}
+
 int getAxisEncPosAct(int axisIndex, double *value) {
   LOGINFO4("%s/%s:%d axisIndex=%d\n",
            __FILE__,
@@ -1935,6 +2002,56 @@ int getAxisEncPosAct(int axisIndex, double *value) {
     *value = 0;
     return iRet;
   }
+  return 0;
+}
+
+int getAxisEncPosActByIndex(int axisIndex, int encIndex, double *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d encIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           encIndex);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+
+  if (!value) {
+    return ERROR_AXIS_DATA_POINTER_NULL;
+  }
+
+  int error = 0;
+  ecmcEncoder *enc = axes[axisIndex]->getEnc(encIndex - 1, &error);
+  if (error || !enc) {
+    *value = 0;
+    return error ? error : ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
+  }
+
+  *value = enc->getActPos();
+  return 0;
+}
+
+int getAxisEncReadyByIndex(int axisIndex, int encIndex, int *value) {
+  LOGINFO4("%s/%s:%d axisIndex=%d encIndex=%d\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           axisIndex,
+           encIndex);
+
+  CHECK_AXIS_RETURN_IF_ERROR(axisIndex)
+
+  if (!value) {
+    return ERROR_AXIS_DATA_POINTER_NULL;
+  }
+
+  int error = 0;
+  ecmcEncoder *enc = axes[axisIndex]->getEnc(encIndex - 1, &error);
+  if (error || !enc) {
+    *value = 0;
+    return error ? error : ERROR_AXIS_ENC_COUNT_OUT_OF_RANGE;
+  }
+
+  *value = enc->hwReady() ? 1 : 0;
   return 0;
 }
 

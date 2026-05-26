@@ -746,6 +746,19 @@ int getAxisLimitSwitchBwd(int  axisIndex,
 int getAxisEncHomed(int  axisIndex,
                     int *value);
 
+/** \brief Get encoder homed bit for a selected encoder.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encIndex   Encoder index (first index is 1).\n
+ * \param[out] value     State of encoder homed bit.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int getAxisEncHomedByIndex(int  axisIndex,
+                           int  encIndex,
+                           int *value);
+
 /** \brief Get actual encoder position.\n
  *
  * \param[in] axisIndex  Axis index.\n
@@ -760,6 +773,32 @@ int getAxisEncHomed(int  axisIndex,
  */
 int getAxisEncPosAct(int     axisIndex,
                      double *value);
+
+/** \brief Get actual encoder position for a selected encoder.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encIndex   Encoder index (first index is 1).\n
+ * \param[out] value     Encoder actual position.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int getAxisEncPosActByIndex(int     axisIndex,
+                            int     encIndex,
+                            double *value);
+
+/** \brief Get encoder ready state for a selected encoder.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encIndex   Encoder index (first index is 1).\n
+ * \param[out] value     Encoder ready state.
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int getAxisEncReadyByIndex(int  axisIndex,
+                           int  encIndex,
+                           int *value);
 
 /** \brief Get actual encoder velocity.\n
  *
@@ -1650,6 +1689,32 @@ int setAxisExtSetPos(int    axisIndex,
  */
 int setAxisExtActPos(int    axisIndex,
                      double value);
+
+/** \brief Set actual encoder position for a selected encoder.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encIndex   Encoder index (first index is 1).\n
+ * \param[in] value      Actual position to set.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int setAxisEncPosActByIndex(int    axisIndex,
+                            int    encIndex,
+                            double value);
+
+/** \brief Set encoder homed bit for a selected encoder.\n
+ *
+ * \param[in] axisIndex  Axis index.\n
+ * \param[in] encIndex   Encoder index (first index is 1).\n
+ * \param[in] homed      Homed state, zero false and non-zero true.\n
+ *
+ * \return 0 if success or otherwise an error code.\n
+ *
+ */
+int setAxisEncHomedByIndex(int axisIndex,
+                           int encIndex,
+                           int homed);
 
 /** \brief Set the denominator part of the encoder scale.\n
  *

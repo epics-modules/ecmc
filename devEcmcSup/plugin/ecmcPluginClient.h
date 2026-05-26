@@ -185,6 +185,15 @@ int setEcmcAxisExtSetPos(int axisIndex, double value);
  */
 int setEcmcAxisExtActPos(int axisIndex, double value);
 
+double getEcmcAxisEncoderActualPos(int axisIndex, int encoderIndex);
+int setEcmcAxisEncoderActualPos(int axisIndex, int encoderIndex, double value);
+int getEcmcAxisEncoderHomed(int axisIndex, int encoderIndex);
+int setEcmcAxisEncoderHomed(int axisIndex, int encoderIndex, int homed);
+int getEcmcAxisEncoderReady(int axisIndex, int encoderIndex);
+int getEcmcAxisPrimaryEncoder(int axisIndex);
+int selectEcmcAxisPrimaryEncoder(int axisIndex, int encoderIndex);
+int getEcmcAxisStatus(int axisIndex, struct ecmcCppAxisStatus* status);
+
 int getEcmcAxisTrajSource(int axisIndex);
 int getEcmcAxisEncSource(int axisIndex);
 double getEcmcAxisActualPos(int axisIndex);
@@ -195,6 +204,69 @@ int getEcmcAxisEnabled(int axisIndex);
 int getEcmcAxisBusy(int axisIndex);
 int getEcmcAxisError(int axisIndex);
 int getEcmcAxisErrorId(int axisIndex);
+
+int ecmcM2mWrite(int shmIndex, double value);
+double ecmcM2mRead(int shmIndex);
+int ecmcM2mStatus();
+int ecmcM2mResetError();
+int ecmcM2mGetError();
+int ecmcM2mIocRun(int masterIndex);
+int ecmcM2mIocEcOk(int masterIndex);
+
+int ecmcDataStorageClear(int storageIndex);
+int ecmcDataStorageAppend(int storageIndex, double value);
+double ecmcDataStorageGet(int storageIndex, int dataIndex);
+int ecmcDataStorageSet(int storageIndex, int dataIndex, double value);
+int ecmcDataStorageGetIndex(int storageIndex);
+int ecmcDataStorageSetIndex(int storageIndex, int dataIndex);
+int ecmcDataStorageGetError();
+int ecmcDataStorageResetError();
+int ecmcDataStorageIsFull(int storageIndex);
+int ecmcDataStorageGetSize(int storageIndex);
+int ecmcDataStoragePushAsyn(int storageIndex);
+double ecmcDataStorageGetAvg(int storageIndex);
+double ecmcDataStorageGetMin(int storageIndex);
+double ecmcDataStorageGetMax(int storageIndex);
+int ecmcDataStorageRead(int storageIndex, double* data, uint32_t capacity, uint32_t* sizeOut);
+int ecmcDataStorageWrite(int storageIndex, const double* data, uint32_t size);
+int ecmcDataStorageAppendArray(int storageIndex, const double* data, uint32_t size);
+int ecmcDataStorageAppendFromStorage(int fromStorageIndex,
+                                     int fromDataIndex,
+                                     uint32_t elements,
+                                     int toStorageIndex);
+
+int ecmcAxisGroupGetEnable(int groupIndex);
+int ecmcAxisGroupGetAnyEnable(int groupIndex);
+int ecmcAxisGroupGetEnabled(int groupIndex);
+int ecmcAxisGroupGetAnyEnabled(int groupIndex);
+int ecmcAxisGroupGetBusy(int groupIndex);
+int ecmcAxisGroupGetAnyBusy(int groupIndex);
+int ecmcAxisGroupGetAnyErrorId(int groupIndex);
+int ecmcAxisGroupSetEnable(int groupIndex, int enable);
+int ecmcAxisGroupSetTrajSource(int groupIndex, int source);
+int ecmcAxisGroupSetEncSource(int groupIndex, int source);
+int ecmcAxisGroupResetError(int groupIndex);
+int ecmcAxisGroupSetError(int groupIndex, int errorId);
+int ecmcAxisGroupSetSlavedAxisInError(int groupIndex);
+int ecmcAxisGroupHalt(int groupIndex);
+int ecmcAxisGroupAxisInGroup(int groupIndex, int axisIndex);
+int ecmcAxisGroupSize(int groupIndex);
+int ecmcAxisGroupGetTrajSourceExt(int groupIndex);
+int ecmcAxisGroupGetAnyTrajSourceExt(int groupIndex);
+int ecmcAxisGroupSetAllowSourceChangeWhenEnabled(int groupIndex, int allow);
+int ecmcAxisGroupSetMrSync(int groupIndex, int sync);
+int ecmcAxisGroupSetMrStop(int groupIndex, int stop);
+int ecmcAxisGroupSetMrCnen(int groupIndex, int enable);
+int ecmcAxisGroupSetAutoEnable(int groupIndex, int enable);
+int ecmcAxisGroupSetAutoDisable(int groupIndex, int enable);
+int ecmcAxisGroupSetCtrlWithinDeadband(int groupIndex, int within);
+int ecmcAxisGroupSetIgnoreMrStatusCheckAtDisable(int groupIndex, int ignore);
+int ecmcAxisGroupGetAnyAtForwardLimit(int groupIndex);
+int ecmcAxisGroupGetAnyAtBackwardLimit(int groupIndex);
+int ecmcAxisGroupGetAnyAtLimit(int groupIndex);
+int ecmcAxisGroupGetAnyInterlocked(int groupIndex);
+int ecmcAxisGroupSetSlavedAxisInterlocked(int groupIndex);
+int ecmcAxisGroupGetCtrlWithinDeadband(int groupIndex);
 
 /** \brief Get ecmcAsynPortObject (as void*)
  *
