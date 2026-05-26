@@ -986,6 +986,25 @@ asynStatus ecmcAsynDataItem::writeFloat64(epicsFloat64 value) {
     }
   }
 
+  // Check if cmd. ECMC uint32, epics record double
+  if (paramInfo_.cmdUint32ToFloat64) {
+    if ((paramInfo_.asynType == asynParamFloat64) &&
+        (dataItem_.dataSize == sizeof(uint32_t))) {
+      uint32_t temp = static_cast<uint32_t>(value);
+      memcpy(dataItem_.data, &temp, sizeof(uint32_t));
+      return asynSuccess;
+    } else {
+      LOGERR(
+        "%s/%s:%d: ERROR: %s write error. cmdUint32ToFloat64 fail. Size or type error (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        getName(),
+        ERROR_ASYN_CMD_FAIL);
+      return asynError;
+    }
+  }
+
   // Special case F32
   if (dataItem_.dataType == ECMC_EC_F32) {
     if ((paramInfo_.asynType == asynParamFloat64) &&
