@@ -14,6 +14,7 @@
 #define ECMCECENTRY_H_
 
 #include <string>
+#include <vector>
 #include <cmath>
 #include "stdio.h"
 #include "limits.h"
@@ -115,6 +116,8 @@ public:
   int                   setUpdateInRealtime(int update);
   int                   getUpdateInRealtime();
   std::string           getIdentificationName();
+  bool                  matchesIdentificationName(const std::string& id);
+  int                   addAlias(const std::string& alias);
   int                   compileRegInfo();
   int                   updateAsyn(bool force);
   bool                  getSimEntry();
@@ -194,6 +197,7 @@ protected:
   uint bitOffset_;
   bool sim_;
   std::string idString_;
+  std::vector<std::string> aliasStrings_;
   char *idStringChar_;
   int updateInRealTime_;
   int masterId_;

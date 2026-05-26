@@ -742,7 +742,7 @@ int ecmcEcSlave::configDC(
 ecmcEcEntry * ecmcEcSlave::findEntry(std::string id) {
   for (uint i = 0; i < entryCounter_; i++) {
     if (entryList_[i]) {
-      if (entryList_[i]->getIdentificationName().compare(id) == 0) {
+      if (entryList_[i]->matchesIdentificationName(id)) {
         return entryList_[i];
       }
     }
@@ -759,7 +759,7 @@ ecmcEcEntry * ecmcEcSlave::findEntry(std::string id) {
   // Simulation entries
   for (size_t i = 0; i < simEntries_.size(); i++) {
     if (simEntries_[i] != NULL) {
-      if (simEntries_[i]->getIdentificationName().compare(id) == 0) {
+      if (simEntries_[i]->matchesIdentificationName(id)) {
         return simEntries_[i];
       }
     }
@@ -772,7 +772,7 @@ int ecmcEcSlave::findEntryIndex(std::string id) {
   const int realEntryCount = entryCounter_;
   for (int i = 0; i < realEntryCount; i++) {
     if (entryList_[i] != NULL) {
-      if (entryList_[i]->getIdentificationName().compare(id) == 0) {
+      if (entryList_[i]->matchesIdentificationName(id)) {
         return i;
       }
     }
@@ -781,7 +781,7 @@ int ecmcEcSlave::findEntryIndex(std::string id) {
   // Simulation entries
   for (size_t i = 0; i < simEntries_.size(); i++) {
     if (simEntries_[i] != NULL) {
-      if (simEntries_[i]->getIdentificationName().compare(id) == 0) {
+      if (simEntries_[i]->matchesIdentificationName(id)) {
         return static_cast<int>(i);
       }
     }
@@ -795,6 +795,45 @@ int ecmcEcSlave::findEntryIndex(std::string id) {
          productCode_,
          ERROR_EC_SLAVE_ENTRY_NULL);
   return -ERROR_EC_SLAVE_ENTRY_NULL;
+}
+
+int ecmcEcSlave::addEntryAlias(std::string entryId,
+                               std::string alias) {
+  ecmcEcEntry *entry = findEntry(entryId);
+
+  if (!entry) {
+    ecmcRtLoggerLogError(
+      "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry %s not found (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePosition_,
+      vendorId_,
+      productCode_,
+      entryId.c_str(),
+      ERROR_EC_SLAVE_ENTRY_NULL);
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, ERROR_EC_SLAVE_ENTRY_NULL);
+  }
+
+  ecmcEcEntry *aliasEntry = findEntry(alias);
+  if (aliasEntry && (aliasEntry != entry)) {
+    ecmcRtLoggerLogError(
+      "%s/%s:%d: ERROR: Slave %d (0x%x,0x%x): Entry alias %s already maps to another entry (0x%x).\n",
+      __FILE__,
+      __FUNCTION__,
+      __LINE__,
+      slavePosition_,
+      vendorId_,
+      productCode_,
+      alias.c_str(),
+      ERROR_EC_SLAVE_ENTRY_ALIAS_EXISTS);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_SLAVE_ENTRY_ALIAS_EXISTS);
+  }
+
+  return entry->addAlias(alias);
 }
 
 int ecmcEcSlave::selectAsReferenceDC() {

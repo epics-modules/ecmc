@@ -265,6 +265,71 @@ int ecAddEntry(
                       updateInRealtime);
 }
 
+int ecAddEntryAlias(
+  uint16_t slaveBusPosition,
+  char    *entryIDString,
+  char    *aliasIDString
+  ) {
+  std::string id = entryIDString;
+  std::string alias = aliasIDString;
+
+  LOGINFO4(
+    "%s/%s:%d slave=%d id=%s alias=%s\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    slaveBusPosition,
+    entryIDString,
+    aliasIDString);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  return ec->addEntryAlias(slaveBusPosition, id, alias);
+}
+
+int ecAddEntryAliasByPath(
+  char *entryPath,
+  char *aliasIDString
+  ) {
+  LOGINFO4(
+    "%s/%s:%d entryPath=%s alias=%s\n",
+    __FILE__,
+    __FUNCTION__,
+    __LINE__,
+    entryPath,
+    aliasIDString);
+
+  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+
+  int  masterId   = -1;
+  int  slaveIndex = -1;
+  char entryId[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+  int  bitIndex = -1;
+
+  int errorCode =
+    parseEcPath(entryPath, &masterId, &slaveIndex, entryId, &bitIndex);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  if (slaveIndex < 0) {
+    return ERROR_MAIN_EC_SLAVE_NULL;
+  }
+
+  if (bitIndex >= 0) {
+    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+  }
+
+  if (masterId != ec->getMasterIndex()) {
+    return ERROR_MAIN_EC_INDEX_OUT_OF_RANGE;
+  }
+
+  std::string id = entryId;
+  std::string alias = aliasIDString;
+  return ec->addEntryAlias(slaveIndex, id, alias);
+}
+
 int ecAddSimEntry(
   int position,  char *entryIDString, char *datatype, uint64_t value) {
   std::string id = entryIDString;

@@ -1488,6 +1488,38 @@ static int handleCfgCommand(const char *myarg_1) {
                       1);
   }
 
+  /*Cfg.EcAddEntryAlias(
+    uint16_t position,
+    char    *entryIDString,
+    char    *aliasIDString)*/
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+  nvals         = sscanf(myarg_1,
+                         "EcAddEntryAlias(%d,%[^,],%[^)])",
+                         &iValue,
+                         cIdBuffer,
+                         cIdBuffer2);
+
+  if (nvals == 3) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddEntryAlias");
+    return ecAddEntryAlias(iValue, cIdBuffer, cIdBuffer2);
+  }
+
+  /*Cfg.EcAddEntryAlias(
+    char    *entryPath,
+    char    *aliasIDString)*/
+  cIdBuffer[0]  = '\0';
+  cIdBuffer2[0] = '\0';
+  nvals         = sscanf(myarg_1,
+                         "EcAddEntryAlias(%[^,],%[^)])",
+                         cIdBuffer,
+                         cIdBuffer2);
+
+  if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcAddEntryAlias");
+    return ecAddEntryAliasByPath(cIdBuffer, cIdBuffer2);
+  }
+
 /*Cfg.EcAddSimEntry(
     int position,
     char    *name)

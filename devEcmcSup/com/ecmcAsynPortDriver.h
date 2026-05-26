@@ -16,6 +16,8 @@
 
 #include <epicsEvent.h>
 #include <epicsTime.h>
+#include <map>
+#include <string>
 
 #include "asynPortDriver.h"
 #ifndef VERSION_INT
@@ -156,9 +158,11 @@ public:
   ecmcDataItem*     findAvailDataItem(const char *name);
   ecmcAsynDataItem* findAvailParam(const char *name);
   bool              checkParamExist(const char *name);
+  int               addParamAlias(const char *name, const char *alias);
 
 private:
   void              initVars();
+  const char*       resolveParamAlias(const char *name) const;
   asynStatus        checkParamNameAndId(int         paramIndex,
                                         const char *functionName);
   ecmcAsynDataItem* createNewParam(const char   *name,
@@ -187,6 +191,7 @@ private:
   int32_t fastestParamUpdateCycles_;
   friend class paramList;
   int epicsState_;
+  std::map<std::string, std::string> paramAliases_;
 };
 
 #endif  /* ECMC_ASYN_PORT_DRIVER_H_ */

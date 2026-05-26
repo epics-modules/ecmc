@@ -26,6 +26,8 @@
     "Cfg.DeletePLC(<index>)",
     "Cfg.EcAddDataDT(<ecPath>,<entryByteOffset>,<entryBitOffset>,<direction>,<dataType>,<idString>)",
     "Cfg.EcAddDomain(<rate>,<offset>)",
+    "Cfg.EcAddEntryAlias(<entryPath>,<aliasIDString>)",
+    "Cfg.EcAddEntryAlias(<slaveBusPosition>,<entryIDString>,<aliasIDString>)",
     "Cfg.EcAddEntryComplete(<slaveBusPosition>,0x<entryIdString>,0x<value>,<int>,<int>,0x<hex>,0x<hex>,0x<hex>,<int>,<int>,<str>)",
     "Cfg.EcAddEntryComplete(<slaveBusPosition>,0x<entryIdString>,0x<value>,<int>,<int>,0x<hex>,0x<hex>,0x<hex>,<int>,<str>)",
     "Cfg.EcAddEntryComplete(<slaveBusPosition>,0x<entryIdString>,0x<value>,<int>,<int>,0x<hex>,0x<hex>,0x<hex>,<int>,<str>,<int>)",

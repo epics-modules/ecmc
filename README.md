@@ -140,6 +140,8 @@ Examples:
 ```iocsh
 ecmcConfigOrDie "Cfg.CreateAxis(<axisid>,1,<type>)"
 ecmcConfigOrDie "Cfg.EcAddEntryComplete(<slaveid>,<vendorid>,<productid>,<dir>,<smid>,<pdoid>,<entryid>,<entrysubid>,<bits>,<name>)"
+ecmcConfigOrDie "Cfg.EcAddEntryAlias(<slaveid>,<name>,<alias>)"
+ecmcConfigOrDie "Cfg.EcAddEntryAlias(ec0.s<slaveid>.<name>,<alias>)"
 ecmcConfigOrDie "Cfg.CreatePLC(<plcid>,<sample rate ms>)"
 ecmcConfigOrDie "Cfg.LoadPLCFile(<plcid>,<filename>)"
 ecmcConfigOrDie "Cfg.AppendPLCExpr(<plcid>)=ax1.enc.homepos:=25#"

@@ -23,6 +23,13 @@
 extern app_mode_type appModeStat;
 extern double mcuFrequency;
 
+static int validateLocalEcEntryAliasId(const std::string& id) {
+  if ((id.rfind(ECMC_EC_STR, 0) == 0) && (id.find(".s") != std::string::npos)) {
+    return ERROR_EC_ASYN_ALIAS_NOT_VALID;
+  }
+  return 0;
+}
+
 ecmcEc::ecmcEc(ecmcAsynPortDriver *asynPortDriver) {
   initVars();
   setErrorID(ERROR_EC_STATUS_NOT_OK);
@@ -930,6 +937,81 @@ int ecmcEc::addEntry(
   ecAsynParams_[ECMC_ASYN_EC_PAR_ENTRY_COUNT_ID]->refreshParam(1);
   asynPortDriver_->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
                                       ECMC_ASYN_DEFAULT_ADDR);
+
+  return 0;
+}
+
+int ecmcEc::addEntryAlias(uint16_t    position,
+                          std::string entryId,
+                          std::string alias) {
+  ecmcEcSlave *slave = findSlave(position);
+
+  if (!slave) {
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: Slave with busposition %d not found (0x%x).\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           position,
+           ERROR_EC_MAIN_SLAVE_NULL);
+    return setErrorID(__FILE__,
+                      __FUNCTION__,
+                      __LINE__,
+                      ERROR_EC_MAIN_SLAVE_NULL);
+  }
+
+  int errorCode = validateLocalEcEntryAliasId(entryId);
+
+  if (errorCode) {
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
+
+  errorCode = validateLocalEcEntryAliasId(alias);
+
+  if (errorCode) {
+    return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+  }
+
+  errorCode = slave->addEntryAlias(entryId, alias);
+
+  if (errorCode) {
+    return errorCode;
+  }
+
+  if (asynPortDriver_) {
+    char targetName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+    char aliasName[EC_MAX_OBJECT_PATH_CHAR_LENGTH];
+    unsigned int targetCount = snprintf(targetName,
+                                        sizeof(targetName),
+                                        ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d.%s",
+                                        masterIndex_,
+                                        position,
+                                        entryId.c_str());
+    unsigned int aliasCount = snprintf(aliasName,
+                                       sizeof(aliasName),
+                                       ECMC_EC_STR "%d." ECMC_SLAVE_CHAR "%d.%s",
+                                       masterIndex_,
+                                       position,
+                                       alias.c_str());
+
+    if ((targetCount >= sizeof(targetName) - 1) ||
+        (aliasCount >= sizeof(aliasName) - 1)) {
+      ecmcRtLoggerLogError(
+        "%s/%s:%d: ERROR: Failed to generate EtherCAT entry alias name. Buffer too small (0x%x).\n",
+        __FILE__,
+        __FUNCTION__,
+        __LINE__,
+        ERROR_EC_ALIAS_TO_LONG);
+      return setErrorID(__FILE__,
+                        __FUNCTION__,
+                        __LINE__,
+                        ERROR_EC_ALIAS_TO_LONG);
+    }
+
+    errorCode = asynPortDriver_->addParamAlias(targetName, aliasName);
+    if (errorCode) {
+      return setErrorID(__FILE__, __FUNCTION__, __LINE__, errorCode);
+    }
+  }
 
   return 0;
 }

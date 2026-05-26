@@ -368,9 +368,10 @@ asynStatus ecmcAsynPortDriver::appendAvailParam(ecmcAsynDataItem *dataItem,
   * */
 ecmcAsynDataItem * ecmcAsynPortDriver::findAvailParam(const char *name) {
   // const char* functionName = "findAvailParam";
+  const char *resolvedName = resolveParamAlias(name);
   for (int i = 0; i < ecmcParamAvailCount_; i++) {
     if (pEcmcParamAvailArray_[i]) {
-      if (strcmp(pEcmcParamAvailArray_[i]->getParamName(), name) == 0) {
+      if (strcmp(pEcmcParamAvailArray_[i]->getParamName(), resolvedName) == 0) {
         return pEcmcParamAvailArray_[i];
       }
     }
@@ -386,9 +387,10 @@ ecmcAsynDataItem * ecmcAsynPortDriver::findAvailParam(const char *name) {
   **/
 ecmcDataItem * ecmcAsynPortDriver::findAvailDataItem(const char *name) {
   // const char* functionName = "findAvailParam";
+  const char *resolvedName = resolveParamAlias(name);
   for (int i = 0; i < ecmcParamAvailCount_; i++) {
     if (pEcmcParamAvailArray_[i]) {
-      if (strcmp(pEcmcParamAvailArray_[i]->getName(), name) == 0) {
+      if (strcmp(pEcmcParamAvailArray_[i]->getName(), resolvedName) == 0) {
         return (ecmcDataItem *)pEcmcParamAvailArray_[i];
       }
     }
@@ -413,17 +415,83 @@ ecmcAsynDataItem * ecmcAsynPortDriver::addNewAvailParam(const char    *name,
 }
 
 bool ecmcAsynPortDriver::checkParamExist(const char *name) {
+  const char *resolvedName = resolveParamAlias(name);
   for (int i = 0; i < ecmcParamAvailCount_; i++) {
     if (!pEcmcParamAvailArray_[i]) {
       return 0;
     }
 
-    if ((strstr(name, pEcmcParamAvailArray_[i]->getParamName()) != NULL) &&
-        (strlen(name) == strlen(pEcmcParamAvailArray_[i]->getParamName()))) {
+    if ((strstr(resolvedName, pEcmcParamAvailArray_[i]->getParamName()) != NULL) &&
+        (strlen(resolvedName) == strlen(pEcmcParamAvailArray_[i]->getParamName()))) {
       return true;
     }
   }
   return false;
+}
+
+const char* ecmcAsynPortDriver::resolveParamAlias(const char *name) const {
+  if (!name) {
+    return "";
+  }
+
+  std::map<std::string, std::string>::const_iterator alias =
+    paramAliases_.find(name);
+  if (alias == paramAliases_.end()) {
+    return name;
+  }
+  return alias->second.c_str();
+}
+
+int ecmcAsynPortDriver::addParamAlias(const char *name, const char *alias) {
+  const char *functionName = "addParamAlias";
+
+  if (!name || !alias || !name[0] || !alias[0]) {
+    asynPrint(pasynUserSelf,
+              ASYN_TRACE_ERROR,
+              "%s:%s: ERROR: Invalid parameter alias.\n",
+              driverName,
+              functionName);
+    return ERROR_ASYN_CMD_FAIL;
+  }
+
+  const char *resolvedName = resolveParamAlias(name);
+  if (!findAvailParam(resolvedName)) {
+    asynPrint(pasynUserSelf,
+              ASYN_TRACE_ERROR,
+              "%s:%s: ERROR: Parameter alias target %s not found.\n",
+              driverName,
+              functionName,
+              resolvedName);
+    return ERROR_ASYN_CMD_FAIL;
+  }
+
+  if (strcmp(resolvedName, alias) == 0) {
+    return 0;
+  }
+
+  const char *resolvedAlias = resolveParamAlias(alias);
+  if (strcmp(resolvedAlias, alias) != 0) {
+    asynPrint(pasynUserSelf,
+              ASYN_TRACE_ERROR,
+              "%s:%s: ERROR: Parameter alias %s already exists.\n",
+              driverName,
+              functionName,
+              alias);
+    return ERROR_ASYN_CMD_FAIL;
+  }
+
+  if (findAvailParam(alias)) {
+    asynPrint(pasynUserSelf,
+              ASYN_TRACE_ERROR,
+              "%s:%s: ERROR: Parameter alias %s conflicts with existing parameter.\n",
+              driverName,
+              functionName,
+              alias);
+    return ERROR_ASYN_CMD_FAIL;
+  }
+
+  paramAliases_[alias] = resolvedName;
+  return 0;
 }
 
 /** Create and add new parameter to list of available parameters\n
@@ -1016,8 +1084,9 @@ asynStatus ecmcAsynPortDriver::drvUserCreate(asynUser    *pasynUser,
     return asynError;
   }
 
+  const char *lookupParamName = resolveParamAlias(newParam->getParamName());
   int index = 0;
-  status = findParam(ECMC_ASYN_DEFAULT_LIST, newParam->getParamName(), &index);
+  status = findParam(ECMC_ASYN_DEFAULT_LIST, lookupParamName, &index);
 
   if (status != asynSuccess) {
     // Param not found see if found in available list

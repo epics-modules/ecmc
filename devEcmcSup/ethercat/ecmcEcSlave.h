@@ -56,6 +56,7 @@
 #define ERROR_EC_SLAVE_ADD_DATA_ITEM_FAIL 0x24015
 #define ERROR_EC_SLAVE_SDO_SETTINGS_MISSING 0x24016
 #define ERROR_EC_SLAVE_SDO_CH_ID_OUT_OF_RANGE 0x24017
+#define ERROR_EC_SLAVE_ENTRY_ALIAS_EXISTS 0x24018
 
 typedef struct {
   int needSdo; 
@@ -131,6 +132,8 @@ public:
     int32_t sync1Shift);
   ecmcEcEntry* findEntry(std::string id);
   int          findEntryIndex(std::string id);
+  int          addEntryAlias(std::string entryId,
+                             std::string alias);
   int          selectAsReferenceDC();
   int          setWatchDogConfig(
 

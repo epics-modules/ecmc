@@ -155,6 +155,9 @@ public:
     ecmcEcDataType dt,
     std::string    id,
     int            useInRealTime);
+  int addEntryAlias(uint16_t    position,
+                    std::string entryId,
+                    std::string alias);
   int addSimEntry(int       position,     // Slave position.
                   std::string    id,
                   ecmcEcDataType dt,

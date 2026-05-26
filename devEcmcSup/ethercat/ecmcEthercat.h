@@ -243,6 +243,29 @@ int ecAddEntry(
   char    *entryIDString,
   int      updateInRealTime);
 
+/** \brief Adds an alias for an already configured EtherCAT entry.\n
+ *
+ *  The alias can be used anywhere the original entry name can be used,
+ *  including EtherCAT links, PLC expressions, C++ logic item bindings, and
+ *  EPICS/asyn record links.
+ *
+ *  \param[in] slaveBusPosition Position of the EtherCAT slave on the bus.\n
+ *  \param[in] entryIDString Existing entry identification string.\n
+ *  \param[in] aliasIDString New alias identification string.\n
+ *
+ * \note Examples:\n
+ * "Cfg.EcAddEntryAlias(1,analogInput01,ai01)"\n
+ * "Cfg.EcAddEntryAlias(ec0.s1.analogInput01,ai01)"\n
+ */
+int ecAddEntryAlias(
+  uint16_t slaveBusPosition,
+  char    *entryIDString,
+  char    *aliasIDString);
+
+int ecAddEntryAliasByPath(
+  char *entryPath,
+  char *aliasIDString);
+
 /** \brief Adds an async SDO object.\n
 *
 * Adds a SDO object for SDO read and write during realtime.

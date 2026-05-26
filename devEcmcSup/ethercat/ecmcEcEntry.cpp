@@ -520,6 +520,34 @@ std::string ecmcEcEntry::getIdentificationName() {
   return idString_;
 }
 
+bool ecmcEcEntry::matchesIdentificationName(const std::string& id) {
+  if (idString_.compare(id) == 0) {
+    return true;
+  }
+
+  for (size_t i = 0; i < aliasStrings_.size(); i++) {
+    if (aliasStrings_[i].compare(id) == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+int ecmcEcEntry::addAlias(const std::string& alias) {
+  if (alias.empty() || (alias.compare(idString_) == 0)) {
+    return 0;
+  }
+
+  for (size_t i = 0; i < aliasStrings_.size(); i++) {
+    if (aliasStrings_[i].compare(alias) == 0) {
+      return 0;
+    }
+  }
+
+  aliasStrings_.push_back(alias);
+  return 0;
+}
+
 int ecmcEcEntry::updateAsyn(bool force) {
   if (!entryAsynParam_) {
     return 0;
