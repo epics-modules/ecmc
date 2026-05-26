@@ -164,12 +164,18 @@ int ecmcPLCTask::compile() {
 
   if (exprtk_->compile()) {
     compiled_ = false;
-    ecmcRtLoggerLogError("%s/%s:%d: ERROR: PLC%d compile error: %s.\n",
+    const std::string parserError = exprtk_->getParserError();
+    LOGERR("%s/%s:%d: ERROR: PLC%d compile error: %s.\n",
            __FILE__,
            __FUNCTION__,
            __LINE__,
            plcIndex_,
-           exprtk_->getParserError().c_str());
+           parserError.c_str());
+    ecmcRtLoggerLogError("%s/%s:%d: ERROR: PLC%d compile error. Full diagnostics printed to shell.\n",
+           __FILE__,
+           __FUNCTION__,
+           __LINE__,
+           plcIndex_);
     return setErrorID(__FILE__, __FUNCTION__, __LINE__,
                       ERROR_PLC_COMPILE_ERROR);
   }
