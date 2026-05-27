@@ -177,6 +177,10 @@ private:
                                     ecmcAsynDataItem *param,
                                     int               listIndex,
                                     int               details);
+  void              reportParamAliases(FILE             *fp,
+                                       ecmcAsynDataItem *param);
+  bool              paramNameOrAliasMatches(ecmcAsynDataItem *param,
+                                            const char       *pattern);
   bool allowRtThreadCom_;
   ecmcAsynDataItem **pEcmcParamAvailArray_;
   ecmcAsynDataItem **pEcmcParamInUseArray_;

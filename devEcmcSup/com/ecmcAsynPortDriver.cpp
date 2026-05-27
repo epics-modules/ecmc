@@ -1325,6 +1325,67 @@ int32_t ecmcAsynPortDriver::calcFastestUpdateRate() {
   return fastestParamUpdateCycles_;
 }
 
+void ecmcAsynPortDriver::reportParamAliases(FILE             *fp,
+                                            ecmcAsynDataItem *param) {
+  if (!fp || !param) {
+    return;
+  }
+
+  const char *paramName = param->getParamName();
+  bool firstAlias = true;
+
+  for (std::map<std::string, std::string>::const_iterator alias =
+         paramAliases_.begin();
+       alias != paramAliases_.end();
+       ++alias) {
+    if (alias->second.compare(paramName) != 0) {
+      continue;
+    }
+
+    if (firstAlias) {
+      fprintf(fp, "    Param aliases:             %s", alias->first.c_str());
+      firstAlias = false;
+    } else {
+      fprintf(fp, ", %s", alias->first.c_str());
+    }
+  }
+
+  if (firstAlias) {
+    fprintf(fp, "    Param aliases:             <none>");
+  }
+  fprintf(fp, "\n");
+}
+
+bool ecmcAsynPortDriver::paramNameOrAliasMatches(ecmcAsynDataItem *param,
+                                                 const char       *pattern) {
+  if (!param || !pattern) {
+    return false;
+  }
+
+  const char *paramName = param->getParamName();
+  if (epicsStrGlobMatch(paramName, pattern)) {
+    return true;
+  }
+
+  for (std::map<std::string, std::string>::const_iterator alias =
+         paramAliases_.begin();
+       alias != paramAliases_.end();
+       ++alias) {
+    if (alias->second.compare(paramName) == 0) {
+      if (epicsStrGlobMatch(alias->first.c_str(), pattern)) {
+        return true;
+      }
+
+      const char *localAlias = strrchr(alias->first.c_str(), '.');
+      if (localAlias && epicsStrGlobMatch(localAlias + 1, pattern)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 void ecmcAsynPortDriver::refreshAllInUseParamsRT() {
   const int paramCount = ecmcParamInUseCount_;
   for (int i = 0; i < paramCount; i++) {
@@ -1353,12 +1414,25 @@ void ecmcAsynPortDriver::reportParamInfo(FILE             *fp,
   }
 
   if( details < 0 ) {
-   fprintf(fp, "p[%d] = %s\n",listIndex, param->getName());
+   fprintf(fp, "p[%d] = %s",listIndex, param->getName());
+   bool firstAlias = true;
+   for (std::map<std::string, std::string>::const_iterator alias =
+          paramAliases_.begin();
+        alias != paramAliases_.end();
+        ++alias) {
+     if (alias->second.compare(param->getParamName()) != 0) {
+       continue;
+     }
+     fprintf(fp, "%s%s", firstAlias ? " aliases=" : ",", alias->first.c_str());
+     firstAlias = false;
+   }
+   fprintf(fp, "\n");
    return;
   }
 
   fprintf(fp, "  Parameter %d:\n",                   listIndex);
   fprintf(fp, "    Param name:                %s\n", paramInfo->name);
+  reportParamAliases(fp, param);
   fprintf(fp, "    Param index:               %d\n", paramInfo->index);
   fprintf(fp, "    Param type:                %s (%d)\n",
           asynTypeToString((long)paramInfo->asynType), paramInfo->asynType);
@@ -1587,7 +1661,7 @@ void ecmcAsynPortDriver::grepParam(FILE *fp, const char *pattern, int details) {
       ecmcParamInfo *paramInfo = pEcmcParamAvailArray_[i]->getParamInfo();
 
       if (paramInfo) {
-        if (epicsStrGlobMatch(paramInfo->name, pattern)) {
+        if (paramNameOrAliasMatches(pEcmcParamAvailArray_[i], pattern)) {
           reportParamInfo(fp, pEcmcParamAvailArray_[i], i,details);
         }
       }
