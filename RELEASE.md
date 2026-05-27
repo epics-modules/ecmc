@@ -1,5 +1,19 @@
 Release Notes
 ===
+# 11.0.8_RC1
+* Add EtherCAT entry aliases with `Cfg.EcAddEntryAlias(<ecPath>,<alias>)` and `Cfg.EcAddEntryAlias(<slave>,<entry>,<alias>)`.
+* Allow EtherCAT entry aliases to resolve through EtherCAT links, PLC expressions, C++ logic item bindings, plugin `ecmcDataItem` lookup, and EPICS/asyn record links.
+* Allow multiple aliases per EtherCAT entry and reject aliases that conflict with other entries or existing asyn parameters.
+* Extend `ecmcReport` and `ecmcGrepParam` to print parameter aliases, and allow `ecmcGrepParam` to match aliases.
+* Add a global simulation entry namespace.
+* Improve homing target-position handling by refreshing target position after homing and after encoder switch, and by using `atTarget`/busy state for homing post-move completion.
+* Restore startup second-counter reporting.
+* Improve `Cfg.LoadCppLogic` error handling and return C++ logic creation errors over the ABI.
+* Add 64-bit and `UINT32TOFLOAT64` support for C++ logic/asyn integration.
+* Add C++ logic helpers for EtherCAT state/timing, axis and axis-group status/control, data storage read/write/append, M2M shared-memory access, IOC state/exit requests, macro parsing, debug text publishing, and array/byte item bindings.
+* Tighten `EcSlaveVerify` command parsing and support verifying against multiple product IDs and revision IDs.
+* Restore PLC compile-error printout.
+
 # 11.0.7
 * Add LUT (lookup table) support for cpp-logic plugins
 * Add the `cpp_logic` C/C++ runtime interface with loader support, dedicated asyn ports, EPICS bindings, string/array/waveform exports, macro parsing, helper headers, examples, and an offline substitutions generator.
