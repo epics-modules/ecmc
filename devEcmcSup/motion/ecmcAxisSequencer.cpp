@@ -3092,6 +3092,8 @@ int ecmcAxisSequencer::stopSeq() {
   auto * const primEnc = getPrimEnc();
   if (primEnc != NULL) {
     primEnc->setHomeExtTrigg(0);
+    primEnc->setArmLatch(false);
+    primEnc->setLatchControlEnabled(false);
   }
 
   seqInProgress_  = false;
@@ -3200,6 +3202,11 @@ int ecmcAxisSequencer::checkVelAccDec() {
 void ecmcAxisSequencer::initHomingSeq() {
   auto * const primEnc = getPrimEnc();
   primEnc->setHomed(false);
+  primEnc->setArmLatch(false);
+  const ecmcHomingType homeSeqId =
+    static_cast<ecmcHomingType>(data_->status_.cmdData);
+  primEnc->setLatchControlEnabled(homeSeqId == ECMC_SEQ_HOME_LOW_LIM_INDEX ||
+                                  homeSeqId == ECMC_SEQ_HOME_HIGH_LIM_INDEX);
   traj_->setMotionMode(ECMC_MOVE_MODE_VEL);
   traj_->setExecute(0);
   traj_->setAcc(homeAcc_);
@@ -3228,6 +3235,7 @@ void ecmcAxisSequencer::finalizeHomingSeq(double newPosition) {
       encArray_[i]->setActPos(newPosition);
       encArray_[i]->setHomed(true);
       encArray_[i]->setArmLatch(false);
+      encArray_[i]->setLatchControlEnabled(false);
     }
   }
 

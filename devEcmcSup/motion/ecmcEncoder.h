@@ -93,6 +93,8 @@ public:
   uint64_t              getRawMask();
   bool                  getLatchFuncEnabled();
   int                   setHomeLatchArmControlWord(uint64_t control, int bits);
+  void                  setLatchControlEnabled(bool enable);
+  bool                  getLatchControlEnabled();
   void                  setArmLatch(bool arm);
   bool                  getArmLatch();
   bool                  getNewValueLatched();
@@ -236,6 +238,8 @@ protected:
   uint64_t encLatchControlWordArm_;
   uint64_t encLatchControlWordIdle_;
   int      encLatchControlBits_;
+  bool     encLatchControlEnabled_;
+  bool     encLatchControlDisablePending_;
   bool     encLatchArm_;
   double actEncLatchPos_;
   bool enablePositionFilter_;

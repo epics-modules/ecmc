@@ -162,11 +162,13 @@ void ecmcEncoder::initVars() {
   enableDelayTime_        = false;
   delayCompStateValid_    = false;
   lookupTableScale_       = 1;
-  encLatchArm_            = 0;
-  encLatchControlWordArm_ = 1;
-  encLatchControlWordIdle_= 0;
-  encLatchControlBits_    = 1;  // default to write 1 bit to arm latch
-  allowOverUnderFlow_     = true;  // Allow as default
+  encLatchArm_                   = 0;
+  encLatchControlEnabled_        = false;
+  encLatchControlDisablePending_ = false;
+  encLatchControlWordArm_        = 1;
+  encLatchControlWordIdle_       = 0;
+  encLatchControlBits_           = 1;  // default to write 1 bit to arm latch
+  allowOverUnderFlow_            = true;  // Allow as default
 }
 
 bool ecmcEncoder::isPrimary() const {
@@ -1008,7 +1010,7 @@ int ecmcEncoder::writeEntries() {
     return 0;
   }
 
-  if (encLatchFunctEnabled_) {
+  if (encLatchFunctEnabled_ && encLatchControlEnabled_) {
     // Arm latch or Idle
     uint64_t wordToWrite = encLatchControlWordIdle_;
     if(encLatchArm_) {
@@ -1018,6 +1020,9 @@ int ecmcEncoder::writeEntries() {
     if (writeEcEntryBits(ECMC_ENCODER_ENTRY_INDEX_LATCH_CONTROL,
                             encLatchControlBits_, wordToWrite)) {
         encLocalErrorId_ = ERROR_ENC_ENTRY_WRITE_FAIL;  // Write to error id will happen in readEntries        
+    } else if (encLatchControlDisablePending_) {
+      encLatchControlEnabled_ = false;
+      encLatchControlDisablePending_ = false;
     }
     //printf("Writing arm cmd: %" PRIu64 "\n",wordToWrite);
   }
@@ -1273,6 +1278,25 @@ int ecmcEncoder::countBitWidthOfMask(uint64_t mask, int trailZeros) {
 */
 bool ecmcEncoder::getLatchFuncEnabled() {
   return encLatchFunctEnabled_;
+}
+
+void ecmcEncoder::setLatchControlEnabled(bool enable) {
+  if (enable) {
+    encLatchControlEnabled_ = true;
+    encLatchControlDisablePending_ = false;
+    return;
+  }
+
+  encLatchArm_ = false;
+  if (encLatchControlEnabled_) {
+    encLatchControlDisablePending_ = true;
+  } else {
+    encLatchControlDisablePending_ = false;
+  }
+}
+
+bool ecmcEncoder::getLatchControlEnabled() {
+  return encLatchControlEnabled_;
 }
 
 /*
