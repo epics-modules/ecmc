@@ -15,6 +15,7 @@
 #include <string>
 #include <stdio.h>
 #include <errno.h>
+#include <limits.h>
 #include <math.h>
 #include <unistd.h>
 #include <iocsh.h>
@@ -2065,6 +2066,312 @@ static void initCallFunc_7(const iocshArgBuf *args) {
   ecmcGrepRecord(args[0].sval);
 }
 
+static bool isEndOfValue(char *endPtr) {
+  if (!endPtr) {
+    return false;
+  }
+
+  while (*endPtr == ' ' || *endPtr == '\t') {
+    endPtr++;
+  }
+  return *endPtr == '\0';
+}
+
+static int parseEcmcInt32Value(const char *value, epicsInt32 *parsedValue) {
+  if (!value || !parsedValue) {
+    return asynError;
+  }
+
+  errno = 0;
+  char *endPtr = NULL;
+  long parsed = strtol(value, &endPtr, 0);
+
+  if (errno || endPtr == value || !isEndOfValue(endPtr) ||
+      parsed > INT_MAX || parsed < INT_MIN) {
+    return asynError;
+  }
+
+  *parsedValue = (epicsInt32)parsed;
+  return asynSuccess;
+}
+
+static int parseEcmcUInt32Value(const char *value, epicsUInt32 *parsedValue) {
+  if (!value || !parsedValue) {
+    return asynError;
+  }
+
+  while (*value == ' ' || *value == '\t') {
+    value++;
+  }
+
+  if (*value == '-') {
+    return asynError;
+  }
+
+  errno = 0;
+  char *endPtr = NULL;
+  unsigned long parsed = strtoul(value, &endPtr, 0);
+
+  if (errno || endPtr == value || !isEndOfValue(endPtr) ||
+      parsed > UINT_MAX) {
+    return asynError;
+  }
+
+  *parsedValue = (epicsUInt32)parsed;
+  return asynSuccess;
+}
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+static int parseEcmcInt64Value(const char *value, epicsInt64 *parsedValue) {
+  if (!value || !parsedValue) {
+    return asynError;
+  }
+
+  errno = 0;
+  char *endPtr = NULL;
+  long long parsed = strtoll(value, &endPtr, 0);
+
+  if (errno || endPtr == value || !isEndOfValue(endPtr)) {
+    return asynError;
+  }
+
+  *parsedValue = (epicsInt64)parsed;
+  return asynSuccess;
+}
+#endif // ECMC_ASYN_ASYNPARAMINT64
+
+static int parseEcmcFloat64Value(const char *value, epicsFloat64 *parsedValue) {
+  if (!value || !parsedValue) {
+    return asynError;
+  }
+
+  errno = 0;
+  char *endPtr = NULL;
+  double parsed = strtod(value, &endPtr);
+
+  if (errno || endPtr == value || !isEndOfValue(endPtr)) {
+    return asynError;
+  }
+
+  *parsedValue = (epicsFloat64)parsed;
+  return asynSuccess;
+}
+
+/* EPICS iocsh shell command: ecmcWriteParam*/
+int ecmcWriteParam(const char *paramName, const char *value) {
+  if (!ecmcAsynPortObj) {
+    printf(
+      "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+    printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
+    return asynError;
+  }
+
+  if (!paramName || !paramName[0]) {
+    printf("Error: Parameter name missing.\n");
+    printf("       Use \"ecmcWriteParam <paramName> <value>\".\n");
+    return asynError;
+  }
+
+  if (!value) {
+    printf("Error: Value missing.\n");
+    printf("       Use \"ecmcWriteParam <paramName> <value>\".\n");
+    return asynError;
+  }
+
+  ecmcAsynDataItem *param = ecmcAsynPortObj->findAvailParam(paramName);
+  if (!param) {
+    printf("Error: Parameter \"%s\" not found.\n", paramName);
+    printf("       Use \"ecmcGrepParam <pattern>\" to list ecmc params.\n");
+    return asynError;
+  }
+
+  if (!param->getEcmcDataPointerValid()) {
+    printf("Error: Parameter \"%s\" has no valid ECMC data pointer.\n",
+           paramName);
+    return asynError;
+  }
+
+  if (!param->getAllowWriteToEcmc()) {
+    printf("Error: Parameter \"%s\" is read-only.\n", paramName);
+    return asynError;
+  }
+
+  asynStatus status = asynError;
+
+  switch (param->getAsynParameterType()) {
+  case asynParamInt32: {
+    epicsInt32 parsed = 0;
+    if (parseEcmcInt32Value(value, &parsed)) {
+      printf("Error: Failed to parse \"%s\" as int32 for parameter \"%s\".\n",
+             value,
+             paramName);
+      return asynError;
+    }
+    status = param->writeInt32(parsed);
+    break;
+  }
+
+  case asynParamUInt32Digital: {
+    epicsUInt32 parsed = 0;
+    if (parseEcmcUInt32Value(value, &parsed)) {
+      printf("Error: Failed to parse \"%s\" as uint32 for parameter \"%s\".\n",
+             value,
+             paramName);
+      return asynError;
+    }
+    status = param->writeUInt32Digital(parsed, 0xffffffff);
+    break;
+  }
+
+  case asynParamFloat64: {
+    epicsFloat64 parsed = 0;
+    if (parseEcmcFloat64Value(value, &parsed)) {
+      printf("Error: Failed to parse \"%s\" as float64 for parameter \"%s\".\n",
+             value,
+             paramName);
+      return asynError;
+    }
+    status = param->writeFloat64(parsed);
+    break;
+  }
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+  case asynParamInt64: {
+    epicsInt64 parsed = 0;
+    if (parseEcmcInt64Value(value, &parsed)) {
+      printf("Error: Failed to parse \"%s\" as int64 for parameter \"%s\".\n",
+             value,
+             paramName);
+      return asynError;
+    }
+    status = param->writeInt64(parsed);
+    break;
+  }
+#endif // ECMC_ASYN_ASYNPARAMINT64
+
+  default:
+    printf("Error: Parameter \"%s\" has unsupported asyn type %s (%d).\n",
+           paramName,
+           asynTypeToString((long)param->getAsynParameterType()),
+           param->getAsynParameterType());
+    return asynError;
+  }
+
+  if (status != asynSuccess) {
+    printf("Error: Write of \"%s\" to parameter \"%s\" failed.\n",
+           value,
+           paramName);
+    return status;
+  }
+
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_16 =
+{ "Parameter name", iocshArgString };
+static const iocshArg initArg1_16 =
+{ "Value", iocshArgString };
+static const iocshArg *const initArgs_16[]  = { &initArg0_16, &initArg1_16 };
+static const iocshFuncDef initFuncDef_16 =
+{ "ecmcWriteParam", 2, initArgs_16 };
+static void initCallFunc_16(const iocshArgBuf *args) {
+  ecmcWriteParam(args[0].sval, args[1].sval);
+}
+
+/* EPICS iocsh shell command: ecmcReadParam*/
+int ecmcReadParam(const char *paramName) {
+  if (!ecmcAsynPortObj) {
+    printf(
+      "Error: No ecmcAsynPortDriver object found (ecmcAsynPortObj==NULL).\n");
+    printf("       Use ecmcAsynPortDriverConfigure() to create object.\n");
+    return asynError;
+  }
+
+  if (!paramName || !paramName[0]) {
+    printf("Error: Parameter name missing.\n");
+    printf("       Use \"ecmcReadParam <paramName>\".\n");
+    return asynError;
+  }
+
+  ecmcAsynDataItem *param = ecmcAsynPortObj->findAvailParam(paramName);
+  if (!param) {
+    printf("Error: Parameter \"%s\" not found.\n", paramName);
+    printf("       Use \"ecmcGrepParam <pattern>\" to list ecmc params.\n");
+    return asynError;
+  }
+
+  if (!param->getEcmcDataPointerValid()) {
+    printf("Error: Parameter \"%s\" has no valid ECMC data pointer.\n",
+           paramName);
+    return asynError;
+  }
+
+  asynStatus status = asynError;
+
+  switch (param->getAsynParameterType()) {
+  case asynParamInt32: {
+    epicsInt32 value = 0;
+    status = param->readInt32(&value);
+    if (status == asynSuccess) {
+      printf("%s = %d\n", paramName, (int)value);
+    }
+    break;
+  }
+
+  case asynParamUInt32Digital: {
+    epicsUInt32 value = 0;
+    status = param->readUInt32Digital(&value, 0xffffffff);
+    if (status == asynSuccess) {
+      printf("%s = %u\n", paramName, (unsigned int)value);
+    }
+    break;
+  }
+
+  case asynParamFloat64: {
+    epicsFloat64 value = 0;
+    status = param->readFloat64(&value);
+    if (status == asynSuccess) {
+      printf("%s = %.17g\n", paramName, (double)value);
+    }
+    break;
+  }
+
+#ifdef ECMC_ASYN_ASYNPARAMINT64
+  case asynParamInt64: {
+    epicsInt64 value = 0;
+    status = param->readInt64(&value);
+    if (status == asynSuccess) {
+      printf("%s = %" PRId64 "\n", paramName, (int64_t)value);
+    }
+    break;
+  }
+#endif // ECMC_ASYN_ASYNPARAMINT64
+
+  default:
+    printf("Error: Parameter \"%s\" has unsupported asyn type %s (%d).\n",
+           paramName,
+           asynTypeToString((long)param->getAsynParameterType()),
+           param->getAsynParameterType());
+    return asynError;
+  }
+
+  if (status != asynSuccess) {
+    printf("Error: Read of parameter \"%s\" failed.\n", paramName);
+    return status;
+  }
+
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_17 =
+{ "Parameter name", iocshArgString };
+static const iocshArg *const initArgs_17[]  = { &initArg0_17 };
+static const iocshFuncDef initFuncDef_17 =
+{ "ecmcReadParam", 1, initArgs_17 };
+static void initCallFunc_17(const iocshArgBuf *args) {
+  ecmcReadParam(args[0].sval);
+}
+
 static const char *allowedSpecInt[] = {
   "d", "i", "o", "u", "x", "l", "\0"
 };
@@ -2876,6 +3183,8 @@ void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef_13, initCallFunc_13);
   iocshRegister(&initFuncDef_14, initCallFunc_14);
   iocshRegister(&initFuncDef_15, initCallFunc_15);
+  iocshRegister(&initFuncDef_16, initCallFunc_16);
+  iocshRegister(&initFuncDef_17, initCallFunc_17);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);
