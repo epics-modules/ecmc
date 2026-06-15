@@ -3685,6 +3685,11 @@ int ecmcAxisBase::getSumInterlockOrStop() {
   return (data_.interlocks_.interlockStatus > 0);
 }
 
+int ecmcAxisBase::getSoftLimitInterlock() {
+  return data_.interlocks_.fwdSoftLimitInterlock ||
+         data_.interlocks_.bwdSoftLimitInterlock;
+}
+
 int ecmcAxisBase::getPrintDbg() {
   return data_.control_.controlWord_.enableDbgPrintout;
 }

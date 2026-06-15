@@ -131,6 +131,7 @@ private:
     bool ecmcBusy;
     bool ecmcSafetyInterlock;
     bool ecmcSummaryInterlock;
+    bool ecmcSoftLimitInterlock;
     int  ecmcTrjSrc;
     bool ecmcAtTarget;
     bool ecmcAtTargetMonEnable;

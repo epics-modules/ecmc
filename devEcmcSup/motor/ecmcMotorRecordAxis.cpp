@@ -1781,18 +1781,6 @@ void ecmcMotorRecordAxis::callParamCallbacksUpdateError() {
 
     /* End of error/warning text messages */
 
-    /* Axis has a problem: Report to motor record */
-
-    /*
-     * Site note: Some versions of the motor module needed and
-     *  #ifdef motorFlagsNoStopProblemString
-     * here. Today these versions are history, and the
-     * motorFlagsNoStopProblemString is no longer defined in the
-     * motor module. So we need to remove the #ifdef here.
-     */
-    setIntegerParam(pC_->motorStatusProblem_,
-                    drvlocal.eeAxisError != eeAxisErrorNoError);
-
     /* MCU has a problem: set the red light in CSS */
     setIntegerParam(pC_->ecmcMotorRecordErr_,
                     drvlocal.eeAxisError == eeAxisErrorMCUError);
@@ -1840,6 +1828,7 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
   drvlocal.axisPrintDbg = drvlocal.ecmcAxis->getPrintDbg();
   drvlocal.axisInStartup = drvlocal.ecmcAxis->getInStartupPhase();  
   drvlocal.ecmcSummaryInterlock = drvlocal.ecmcAxis->getMon()->getSumInterlock();
+  drvlocal.ecmcSoftLimitInterlock = drvlocal.ecmcAxis->getSoftLimitInterlock();
   drvlocal.ecmcTrjSrc = drvlocal.ecmcAxis->getTrajDataSourceType() == 
                         ECMC_DATA_SOURCE_EXTERNAL;
 
@@ -2126,6 +2115,9 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 
 
   updateError();
+  setIntegerParam(pC_->motorStatusProblem_,
+                  (drvlocal.eeAxisError != eeAxisErrorNoError) ||
+                  drvlocal.ecmcSoftLimitInterlock);
   callParamCallbacks();
   
 //

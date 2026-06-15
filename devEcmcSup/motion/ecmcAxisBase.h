@@ -284,6 +284,7 @@ public:
 
   int        getSumInterlock();
   int        getSumInterlockOrStop();  // also include no_execute stop interlock
+  int        getSoftLimitInterlock();
   int        getPrintDbg();
   ecmcAxisPVTSequence* getPVTObject();
   double     getCurrentPositionSetpoint();
