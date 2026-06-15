@@ -3167,6 +3167,111 @@ static void initCallFunc_15(const iocshArgBuf *args) {
   ecmcGetSlaveIdFromEcPath(args[0].sval, args[1].sval);
 }
 
+/** EPICS iocsh shell command: ecmcGetEcEntryChannelFromEcPath
+
+ * Extracts channel id from ec<masterid>.s<slaveid>.<entry><channel>
+*/
+
+void ecmcGetEcEntryChannelFromEcPathHelp() {
+  printf("\n");
+  printf("       Use \"ecmcGetEcEntryChannelFromEcPath(<ec_path>,<var_result_channel_id>)\" to get the channel id from a ec-path\n");
+  printf("          <ec_path>               : path to a ethercat entry (ec<masterid>.s<slaveid>.<entry><channel>)\n");
+  printf("          <var_result_channel_id> : result will be stored in this env variable.\n");
+  printf("\n");
+  printf("       If the channel id cannot be identified then \"<var_result_channel_id>\" will be set to \"-2\".\n");
+  printf("\n");
+  printf("       Examples:\n");
+  printf("          ecmcGetEcEntryChannelFromEcPath(ec1.s12.positionActual01,RESULT)   -> RESULT=01\n");
+  printf("          ecmcGetEcEntryChannelFromEcPath(ec1.s12.positionActual01_2,RESULT) -> RESULT=01\n");
+  printf("          ecmcGetEcEntryChannelFromEcPath(ec1.s12.binaryInputs01.0,RESULT)   -> RESULT=01\n");
+  printf("\n");
+}
+
+int ecmcGetEcEntryChannelFromEcPath(const char *ec_path, const char *env_var_str) {
+
+  if(!ec_path || !env_var_str) {
+    ecmcGetEcEntryChannelFromEcPathHelp();
+    return asynError;
+  }
+
+  char pathBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  char aliasBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  char resultBuffer[ECMC_CMD_MAX_SINGLE_CMD_LENGTH];
+  memset(pathBuffer, 0, sizeof(pathBuffer));
+  memset(aliasBuffer, 0, sizeof(aliasBuffer));
+  memset(resultBuffer, 0, sizeof(resultBuffer));
+  int masterId = -1;
+  int slaveId  = -2;
+  int bitId    = -1;
+  epicsEnvSet(env_var_str, "-2");  // fail as default
+
+  size_t charCount = snprintf(pathBuffer, sizeof(pathBuffer), "%s", ec_path);
+  if (charCount >= sizeof(pathBuffer) - 1) {
+    printf("Write buffer size exceeded, format results in a too long string.\n");
+    return asynError;
+  }
+
+  if (parseEcPath(pathBuffer, &masterId, &slaveId, aliasBuffer, &bitId) != 0) {
+    return asynSuccess;
+  }
+
+  if (slaveId < 0) {
+    return asynSuccess;
+  }
+
+  size_t aliasLen = strlen(aliasBuffer);
+  if (aliasLen == 0) {
+    return asynSuccess;
+  }
+
+  size_t searchEnd = aliasLen;
+  char *arraySuffix = strrchr(aliasBuffer, '_');
+  if ((arraySuffix != NULL) && (arraySuffix != aliasBuffer)) {
+    searchEnd = arraySuffix - aliasBuffer;
+  }
+
+  size_t channelEnd = searchEnd;
+  size_t channelStart = channelEnd;
+  while ((channelStart > 0) &&
+         (aliasBuffer[channelStart - 1] >= '0') &&
+         (aliasBuffer[channelStart - 1] <= '9')) {
+    channelStart--;
+  }
+
+  if (channelStart == channelEnd) {
+    return asynSuccess;
+  }
+
+  size_t channelLen = channelEnd - channelStart;
+  if (channelLen >= sizeof(resultBuffer)) {
+    printf("Write buffer size exceeded, format results in a too long string.\n");
+    return asynError;
+  }
+
+  memcpy(resultBuffer, aliasBuffer + channelStart, channelLen);
+  resultBuffer[channelLen] = '\0';
+
+  // Write result
+  epicsEnvSet(env_var_str, resultBuffer);
+  return asynSuccess;
+}
+
+static const iocshArg initArg0_18 =
+{ "EtherCAT path (ec<mid>.s<sid>.<alias>)", iocshArgString };
+
+static const iocshArg initArg1_18 =
+{ "Env var name for return channel id", iocshArgString };
+
+static const iocshArg *const initArgs_18[] = { &initArg0_18,
+                                               &initArg1_18
+};
+
+static const iocshFuncDef initFuncDef_18 =
+{ "ecmcGetEcEntryChannelFromEcPath", 2, initArgs_18 };
+static void initCallFunc_18(const iocshArgBuf *args) {
+  ecmcGetEcEntryChannelFromEcPath(args[0].sval, args[1].sval);
+}
+
 void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef,    initCallFunc);
   iocshRegister(&initFuncDef_2,  initCallFunc_2);
@@ -3185,6 +3290,7 @@ void ecmcAsynPortDriverRegister(void) {
   iocshRegister(&initFuncDef_15, initCallFunc_15);
   iocshRegister(&initFuncDef_16, initCallFunc_16);
   iocshRegister(&initFuncDef_17, initCallFunc_17);
+  iocshRegister(&initFuncDef_18, initCallFunc_18);
 }
 
 epicsExportRegistrar(ecmcAsynPortDriverRegister);
