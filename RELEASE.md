@@ -1,7 +1,9 @@
 Release Notes
 ===
-# 11.0.8_RC1
+# 11.0.8
 * Add IOC shell commands `ecmcReadParam(<paramName>)` and `ecmcWriteParam(<paramName>,<value>)` for scalar ecmc data items listed by `ecmcGrepParam`, including parameter alias lookup.
+* Add IOC shell command `ecmcGetEcEntryChannelFromEcPath(<ecPath>,<envVar>)` to extract EtherCAT entry channel IDs into EPICS environment variables.
+* Set the motor record `PROBLEM` bit when the axis is in an ecmc forward or backward soft-limit interlock.
 * Add EtherCAT entry aliases with `Cfg.EcAddEntryAlias(<ecPath>,<alias>)` and `Cfg.EcAddEntryAlias(<slave>,<entry>,<alias>)`.
 * Allow EtherCAT entry aliases to resolve through EtherCAT links, PLC expressions, C++ logic item bindings, plugin `ecmcDataItem` lookup, and EPICS/asyn record links.
 * Allow multiple aliases per EtherCAT entry and reject aliases that conflict with other entries or existing asyn parameters.
