@@ -16,7 +16,7 @@
 #define ECMC_PLUGIN_H_
 
 #include <stdint.h>
-#include "../logic/ecmcCppLogic.h"
+#include "ecmcCppLogic.h"
 
 # ifdef __cplusplus
 extern "C" {
