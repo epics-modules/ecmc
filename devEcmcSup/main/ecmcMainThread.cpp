@@ -681,7 +681,7 @@ int lockMem(int size) {
     // return ERROR_MAIN_MLOCKALL_FAIL;
   } else {
     // Memlock OK
-    threadDiag.status = threadDiag.status || 0x2;
+    threadDiag.status = threadDiag.status | 0x2;
   }
   mainAsynParams[ECMC_ASYN_MAIN_PAR_STATUS_ID]->refreshParamRT(1);
 
