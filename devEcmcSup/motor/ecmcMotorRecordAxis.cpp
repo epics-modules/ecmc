@@ -1926,13 +1926,21 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
   // Ensure data is polled after command was executed ensure 2 polls after 
   if (dataIsSampledAfterNewCmd()/* && pollsAfterNewCommandCounter_>=2*/) {
     if(!drvlocal.moveReady && !drvlocal.ecmcBusy) {
+      // DMOV reports that the operation has terminated. AtTarget and the
+      // alarm/problem status distinguish successful arrival from an abort.
+      const bool terminalFailure =
+        drvlocal.status_.errorCode != 0 ||
+        drvlocal.ecmcSummaryInterlock ||
+        drvlocal.ecmcSoftLimitInterlock;
+      const bool commandStopped =
+        !drvlocal.status_.statusWord_.execute ||
+        !drvlocal.status_.statusWord_.enable ||
+        !drvlocal.status_.statusWord_.enabled;
+
       if(drvlocal.ecmcAtTargetMonEnable) {
-        drvlocal.moveReady = !drvlocal.ecmcBusy && drvlocal.status_.statusWord_.attarget; //&& !drvlocal.status_.statusWord_.enabled;
+        drvlocal.moveReady = drvlocal.status_.statusWord_.attarget ||
+                             terminalFailure || commandStopped;
       } else {
-        drvlocal.moveReady = !drvlocal.ecmcBusy;// && !drvlocal.status_.statusWord_.enabled;
-      }
-      // If killed then set dmove = true
-      if(!drvlocal.status_.statusWord_.enable && !drvlocal.ecmcBusy) {
         drvlocal.moveReady = true;
       }
     }

@@ -13,6 +13,7 @@
 #ifndef SRC_ECMCAXISDATA_H_
 #define SRC_ECMCAXISDATA_H_
 
+#include <stdint.h>
 #include <stdio.h>
 #include "string.h"
 #include "ecmcDefinitions.h"
@@ -122,7 +123,7 @@ typedef struct {
   int     errorCode;
   int     warningCode;
   int     axisId;
-  int     cycleCounter;
+  uint32_t cycleCounter;
   axisTypes axisType;
   double  sampleTime;
   ecmcAxisStatusWordType statusWord_;  

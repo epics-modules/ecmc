@@ -1160,8 +1160,8 @@ bool ecmcAxisBase::getTrajBusy() {
 }
 
 int ecmcAxisBase::getCycleCounter() {
-  /// Use for watchdog purpose (will overflow)
-  return  data_.status_.cycleCounter;
+  /// Free-running 32-bit watchdog counter.
+  return static_cast<int32_t>(data_.status_.cycleCounter);
 }
 
 bool ecmcAxisBase::getEnable() {
@@ -1503,7 +1503,7 @@ int ecmcAxisBase::getAxisDebugInfoData(char *buffer,
                      data_.status_.currentVelocityActual,
                      data_.status_.currentvelocityFFRaw,
                      data_.status_.currentVelocitySetpointRaw,
-                      data_.status_.cycleCounter,
+                      static_cast<int32_t>(data_.status_.cycleCounter),
                      data_.status_.errorCode,
                      (int)data_.status_.command,
                      data_.status_.cmdData,
