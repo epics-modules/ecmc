@@ -224,7 +224,7 @@ private:
   size_t profileMaxPoints_;  
   bool updateFirstPollDone_;
   friend class ecmcMotorRecordController;
-  int ecmcCycleCounterAtNewCmd_;
+  uint32_t ecmcCycleCounterAtNewCmd_;
 };
 
 #endif // ifndef ECMC_MOTOR_RECORD_AXIS_H

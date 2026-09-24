@@ -3423,6 +3423,6 @@ void ecmcMotorRecordAxis::newCmd() {
 }
 
 bool ecmcMotorRecordAxis::dataIsSampledAfterNewCmd() {
-  // the diff >1000 is just to handle overfows so not stuck in DMOV=0.
-  return drvlocal.status_.cycleCounter > ecmcCycleCounterAtNewCmd_ || abs(ecmcCycleCounterAtNewCmd_ - drvlocal.status_.cycleCounter) > 1000;
+  const uint32_t currentCycle = drvlocal.status_.cycleCounter;
+  return static_cast<int32_t>(currentCycle - ecmcCycleCounterAtNewCmd_) > 0;
 }
