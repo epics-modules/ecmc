@@ -78,6 +78,11 @@ static inline void setShmAccessErrorIfNeeded(int errorCode) {
   }
 }
 
+static void printStartupTimeoutLogBuffers() {
+  LOGERR("Printing ECMC configuration log buffer after EtherCAT startup timeout.\n");
+  ecmcLogBufferPrint();
+}
+
 static inline bool writeMasterStatus(int masterId, char status) {
   if (!shmObj.valid) {
     setShmAccessErrorIfNeeded(shmInitError ? shmInitError : ERROR_SHM_NULL);
@@ -749,6 +754,7 @@ int waitForEcMasterScan(int timeoutSeconds) {
 
     if (!ec->getScanBusyNotRT()) {
       LOGINFO("EtherCAT bus ready (not scanning).\n");
+      ec->warnEcPortWiring();
       return 0;
     } else {
       LOGINFO("Waiting for master to complete scan of slaves.\n");
@@ -756,6 +762,7 @@ int waitForEcMasterScan(int timeoutSeconds) {
   }
   LOGERR("Timeout error: EtherCAT bus not ready with scan in %d s.\n",
          timeoutSeconds);
+  printStartupTimeoutLogBuffers();
   setAppMode(0);
   return ERROR_MAIN_EC_SCAN_TIMEOUT;
 }
@@ -796,6 +803,7 @@ int waitForThreadToStart(int timeoutSeconds) {
   }
   LOGERR("Timeout error: EtherCAT bus/timing startup did not finish in %ds.\n",
          timeoutSeconds);
+  printStartupTimeoutLogBuffers();
   const bool timingPending = !ec->timingStartupReady(true);
   const int startupError = timingPending ?
     ERROR_MAIN_EC_TIMING_STARTUP_TIMEOUT : ec->getErrorID();

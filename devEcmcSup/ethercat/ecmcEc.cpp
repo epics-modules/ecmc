@@ -314,11 +314,15 @@ static void warnEcPortWiring(ec_master_t *master, int masterIndex) {
     return;
   }
 
+  printf("INFO: Checking EtherCAT port wiring on master %d.\n", masterIndex);
+
   ec_master_info_t masterInfo = {};
   if (ecrt_master(master, &masterInfo) || masterInfo.scan_busy) {
     ecmcLogBufferLogWarning(
       "ec%d: EtherCAT wiring check unavailable (master information unavailable "
       "or bus scan in progress).", masterIndex);
+    printf("WARNING: ec%d: EtherCAT wiring check unavailable (master information "
+           "unavailable or bus scan in progress).\n", masterIndex);
     ecmcRtLoggerLogWarning(
       "WARNING: ec%d: EtherCAT wiring check unavailable (master information "
       "unavailable or bus scan in progress).\n", masterIndex);
@@ -331,6 +335,8 @@ static void warnEcPortWiring(ec_master_t *master, int masterIndex) {
       ecmcLogBufferLogWarning(
         "ec%d.s%u: EtherCAT wiring check unavailable (slave information read failed).",
         masterIndex, position);
+      printf("WARNING: ec%d.s%u: EtherCAT wiring check unavailable "
+             "(slave information read failed).\n", masterIndex, position);
       ecmcRtLoggerLogWarning(
         "WARNING: ec%d.s%u: EtherCAT wiring check unavailable "
         "(slave information read failed).\n", masterIndex, position);
@@ -384,12 +390,16 @@ static void warnEcPortWiring(ec_master_t *master, int masterIndex) {
       // Explicitly retain the startup warning even when console warnings are
       // disabled by the RT logger control word (the default is errors only).
       ecmcLogBufferLogWarning("%s", message);
+      printf("WARNING: %s\n", message);
       ecmcRtLoggerLogWarning("WARNING: %s\n", message);
       break;  // One wiring warning per slave and activation.
     }
   }
 }
 
+void ecmcEc::warnEcPortWiring() {
+  ::warnEcPortWiring(master_, masterIndex_);
+}
 
 int ecmcEc::activate() {
   ECMC_RT_LOG_ETHERCAT_DEBUG(-1,
@@ -397,8 +407,6 @@ int ecmcEc::activate() {
                              __FILE__,
                              __FUNCTION__,
                              __LINE__);
-
-  warnEcPortWiring(master_, masterIndex_);
 
   // DC configuration is immutable in runtime. Cache the master-level summary
   // once instead of inspecting every slave in the cyclic send path.

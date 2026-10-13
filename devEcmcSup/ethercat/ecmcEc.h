@@ -194,6 +194,7 @@ public:
   int           findSlaveIndex(int  busPosition,
                                int *slaveIndex);
   int           statusOK();
+  void          warnEcPortWiring();
   int           setDomainFailedCyclesLimitInterlock(int cycles);
   void          slowExecute();
   int           reset();

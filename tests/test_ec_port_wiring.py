@@ -11,8 +11,11 @@ import tempfile
 root = Path(__file__).resolve().parents[1]
 source = (root / 'devEcmcSup/ethercat/ecmcEc.cpp').read_text()
 implementation = source[source.index('static void warnEcPortWiring('):
-                        source.index('int ecmcEc::activate()')]
-assert 'warnEcPortWiring(master_, masterIndex_);' in source.split(
+                        source.index('void ecmcEc::warnEcPortWiring()')]
+main_source = (root / 'devEcmcSup/main/ecmcMainThread.cpp').read_text()
+assert 'ec->warnEcPortWiring();' in main_source.split(
+    'if (!ec->getScanBusyNotRT())', 1)[1].split('return 0;', 1)[0]
+assert 'warnEcPortWiring(master_, masterIndex_);' not in source.split(
     'int ecmcEc::activate()', 1)[1].split('ecrt_master_activate(master_)', 1)[0]
 
 stubs = r'''

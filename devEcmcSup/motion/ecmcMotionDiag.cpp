@@ -8,6 +8,7 @@
 \*************************************************************************/
 
 #include "ecmcMotionDiag.h"
+#include "ecmcAxisReal.h"
 #include "ecmcGeneral.h"
 #include "ecmcGlobalsExtern.h"
 #include "ecmcRtLogger.h"
