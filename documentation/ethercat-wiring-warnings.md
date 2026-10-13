@@ -3,9 +3,9 @@
 After the IgH master scan completes, ECMC checks slaves that were explicitly
 enabled for Ethernet port wiring diagnostics. The check is independent of
 whether DC is enabled. The standard ecmccfg hardware snippets enable it for
-Beckhoff EK1100, EK1101, EKM1101 and EK1501-0010 couplers, Technosoft iPOS
-drives, the Nanotec N6 drive, SmarAct MCS2 controllers, Festo CMMT-ST drives,
-Kuhnke FIODrive and MonoDAQ E-gMeter.
+Beckhoff EK1100, EK1101, EKM1101 and EK1501-0010 couplers, Beckhoff EP/EPP
+boxes, Technosoft iPOS drives, the Nanotec N6 drive, SmarAct MCS2 controllers,
+Festo CMMT-ST drives, Kuhnke FIODrive and MonoDAQ E-gMeter.
 These diagnostics only warn: they do not set an ECMC error, block startup,
 write ESC registers, or change DC configuration. They run once per activation,
 not in the cyclic task and not continuously after a cable is reconnected.
