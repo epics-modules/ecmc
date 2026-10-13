@@ -1,8 +1,10 @@
 # EtherCAT startup wiring warnings
 
-Before activating the master, ECMC checks the completed IgH bus scan for
-Ethernet port wiring anomalies. It checks all discovered slaves, including
-couplers without configured PDOs, independently of whether DC is enabled.
+After the IgH master scan completes, ECMC checks slaves that were explicitly
+enabled for Ethernet port wiring diagnostics. The check is independent of
+whether DC is enabled. The standard ecmccfg hardware snippets enable it for
+Beckhoff EK1100, EK1101 and EKM1101 couplers, Technosoft iPOS drives, the
+Nanotec N6 drive, SmarAct MCS2 controllers and Festo CMMT-ST drives.
 These diagnostics only warn: they do not set an ECMC error, block startup,
 write ESC registers, or change DC configuration. They run once per activation,
 not in the cyclic task and not continuously after a cable is reconnected.
@@ -22,9 +24,30 @@ control word. The buffer entry is retained even with console warnings disabled.
   ET1100-style timestamp latching this indicates arrival through a nonzero port.
 
 For an EK1100, port 0 is IN, port 1 is E-bus, and port 2 is OUT. The checks use
-the ESC port descriptors, not product names or an assumption that port 1 is OUT.
-Internal E-bus ports are excluded. Redundant or intentionally reversed networks
-can also produce these warnings; inspect the intended topology.
+the ESC port descriptors and do not assume that port 1 is OUT. Internal E-bus
+ports are excluded. Redundant or intentionally reversed networks can also
+produce these warnings; inspect the intended topology.
+
+The check is disabled by default for every slave. Enable or disable it by bus
+position after `Cfg.EcAddSlave(...)`:
+
+```text
+ecmcConfigOrDie "Cfg.EcSetSlavePortWiringCheckEnable(3,1)"
+ecmcConfigOrDie "Cfg.EcSetSlavePortWiringCheckEnable(3,0)"
+```
+
+This opt-in model also allows hardware snippets for other devices, such as
+Rechner or Nanotec products with a verified port layout, to enable the same
+diagnostic without adding product-specific logic to ecmc.
+
+A global switch is enabled by default. It can suppress every selected slave
+without changing the per-slave settings:
+
+```text
+ecmcConfigOrDie "Cfg.EcSetPortWiringCheckEnable(0)"
+```
+
+Setting it back to `1` restores the checks selected by the hardware snippets.
 
 ## Limits
 

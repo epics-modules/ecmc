@@ -95,6 +95,7 @@ void ecmcEcSlave::initVars() {
   slavePosition_     = 0;  // Slave position.
   vendorId_          = 0;  // Expected vendor ID.
   productCode_       = 0;  // Expected product code.
+  portWiringCheckEnabled_ = false;
   slaveConfig_       = NULL;
   syncManCounter_    = 0;
   entryCounter_      = 0;
@@ -1988,6 +1989,15 @@ int ecmcEcSlave::setSDOSettingsDone(int chId, int done) {
 int ecmcEcSlave::setEnableSDOCheck(int enable) {
   enableSDOCheck_ = enable;
   return 0;
+}
+
+int ecmcEcSlave::setPortWiringCheckEnable(int enable) {
+  portWiringCheckEnabled_ = enable != 0;
+  return 0;
+}
+
+bool ecmcEcSlave::getPortWiringCheckEnable() const {
+  return portWiringCheckEnabled_;
 }
 
 int ecmcEcSlave::addSimEntry(std::string    id,

@@ -195,6 +195,7 @@ public:
                                int *slaveIndex);
   int           statusOK();
   void          warnEcPortWiring();
+  int           setPortWiringCheckEnable(bool enable);
   int           setDomainFailedCyclesLimitInterlock(int cycles);
   void          slowExecute();
   int           reset();
@@ -278,6 +279,7 @@ private:
   int masterOK_;
   int domainsOK_;
   bool inStartupPhase_;
+  bool portWiringCheckEnabled_;
 
   ecmcEcMemMap *ecMemMapArray_[EC_MAX_MEM_MAPS];
   ecmcEcMemMap *ecMemMapRtInput_[EC_MAX_MEM_MAPS];

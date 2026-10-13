@@ -1201,6 +1201,35 @@ int ecSetEntryUpdateInRealtime(
   */
 int ecSetDiagnostics(int enable);
 
+/** \brief Globally enable EtherCAT startup port-wiring checks.\n
+  *
+  * This master switch is enabled by default. Disabling it suppresses all
+  * per-slave checks without changing their individual enable state.
+  *
+  * \param[in] enable Zero disables all checks; nonzero enables configured
+  * per-slave checks.\n
+  * \return 0 if successful.\n
+  *
+  * \note Example: Disable all startup port-wiring checks.\n
+  *  "Cfg.EcSetPortWiringCheckEnable(0)" //Command string to ecmcCmdParser.c\n
+  */
+int ecSetPortWiringCheckEnable(int enable);
+
+/** \brief Enable the startup check for reversed EtherCAT wiring on a slave.\n
+  *
+  * The warning-only check is disabled by default and runs after the master
+  * scan completes. Hardware snippets enable it for devices with a known IN/OUT
+  * port layout.
+  *
+  * \param[in] slaveBusPosition EtherCAT bus position.\n
+  * \param[in] enable Zero disables the check; any nonzero value enables it.\n
+  * \return 0 if successful.\n
+  *
+  * \note Example: Enable the startup wiring check for slave 3.\n
+  *  "Cfg.EcSetSlavePortWiringCheckEnable(3,1)" //Command string to ecmcCmdParser.c\n
+  */
+int ecSetSlavePortWiringCheckEnable(int slaveBusPosition, int enable);
+
 /** \brief Set allowed bus cycles in row of none complete domain
  * data transfer.\n
  *

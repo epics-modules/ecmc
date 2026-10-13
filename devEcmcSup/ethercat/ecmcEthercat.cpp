@@ -1451,6 +1451,23 @@ int ecSetDiagnostics(int value) {  // Set diagnostics mode
   return ec->setDiagnostics(value);
 }
 
+int ecSetPortWiringCheckEnable(int enable) {
+  LOGINFO4("%s/%s:%d enable=%d\n", __FILE__, __FUNCTION__, __LINE__, enable);
+
+  return ec->setPortWiringCheckEnable(enable != 0);
+}
+
+int ecSetSlavePortWiringCheckEnable(int slaveBusPosition, int enable) {
+  LOGINFO4("%s/%s:%d slave=%d enable=%d\n",
+           __FILE__, __FUNCTION__, __LINE__, slaveBusPosition, enable);
+
+  ecmcEcSlave *slave = ec->findSlave(slaveBusPosition);
+  if (!slave) {
+    return ERROR_MAIN_EC_SLAVE_NULL;
+  }
+  return slave->setPortWiringCheckEnable(enable);
+}
+
 int ecSetDomainFailedCyclesLimit(int value) {
   LOGINFO4("%s/%s:%d value=%d\n", __FILE__, __FUNCTION__, __LINE__, value);
 

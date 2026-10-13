@@ -221,6 +221,8 @@ public:
   int setNeedSDOSettings(int chid, int need);
   int setSDOSettingsDone(int chid, int done);
   int setEnableSDOCheck(int enable);
+  int setPortWiringCheckEnable(int enable);
+  bool getPortWiringCheckEnable() const;
 
 private:
   void               initVars();
@@ -259,6 +261,7 @@ private:
   int32_t slavePosition_;   // Slave position.
   uint32_t vendorId_;       // Expected vendor ID.
   uint32_t productCode_;    // Expected product code.
+  bool portWiringCheckEnabled_;
   ec_slave_config_t *slaveConfig_;
   ecmcEcSyncManager *syncManagerArray_[EC_MAX_SYNC_MANAGERS];
   ecmcEcEntry *entryList_[EC_MAX_ENTRIES];

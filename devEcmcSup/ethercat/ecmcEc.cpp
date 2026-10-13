@@ -75,6 +75,7 @@ void ecmcEc::initVars() {
   startupCounter_        = 0;
   domainCounter_         = 0;
   allowOffline_          = 0;
+  portWiringCheckEnabled_ = true;
   epicsTimeGetCurrent(&epicsTime_);
   clock_gettime(CLOCK_REALTIME, &timeRel_);
   clock_gettime(CLOCK_REALTIME, &timeAbs_);
@@ -309,7 +310,9 @@ ecmcEcSlave * ecmcEc::getSlave(int slaveIndex) {
 
 // Startup-only diagnostics using the master's completed scan. Never issue
 // register writes, modify DC setup, or turn a wiring warning into an interlock.
-static void warnEcPortWiring(ec_master_t *master, int masterIndex) {
+static void warnEcPortWiring(ec_master_t *master,
+                             int masterIndex,
+                             ecmcEc *ec) {
   if (!master) {
     return;
   }
@@ -340,6 +343,11 @@ static void warnEcPortWiring(ec_master_t *master, int masterIndex) {
       ecmcRtLoggerLogWarning(
         "WARNING: ec%d.s%u: EtherCAT wiring check unavailable "
         "(slave information read failed).\n", masterIndex, position);
+      continue;
+    }
+
+    ecmcEcSlave *slave = ec ? ec->findSlave(position) : NULL;
+    if (!slave || !slave->getPortWiringCheckEnable()) {
       continue;
     }
 
@@ -398,7 +406,15 @@ static void warnEcPortWiring(ec_master_t *master, int masterIndex) {
 }
 
 void ecmcEc::warnEcPortWiring() {
-  ::warnEcPortWiring(master_, masterIndex_);
+  if (!portWiringCheckEnabled_) {
+    return;
+  }
+  ::warnEcPortWiring(master_, masterIndex_, this);
+}
+
+int ecmcEc::setPortWiringCheckEnable(bool enable) {
+  portWiringCheckEnabled_ = enable;
+  return 0;
 }
 
 int ecmcEc::activate() {

@@ -2764,6 +2764,23 @@ static int handleCfgCommand(const char *myarg_1) {
     return ecSetDiagnostics(iValue);
   }
 
+  /*Cfg.EcSetPortWiringCheckEnable(int enable)*/
+  nvals = sscanf(myarg_1, "EcSetPortWiringCheckEnable(%d)", &iValue);
+
+  if (nvals == 1) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSetPortWiringCheckEnable");
+    return ecSetPortWiringCheckEnable(iValue);
+  }
+
+  /*Cfg.EcSetSlavePortWiringCheckEnable(int slavepos, int enable)*/
+  nvals = sscanf(myarg_1, "EcSetSlavePortWiringCheckEnable(%d,%d)",
+                 &iValue, &iValue2);
+
+  if (nvals == 2) {
+    RETURN_ERROR_IF_RUNTIME_CFG_CMD("EcSetSlavePortWiringCheckEnable");
+    return ecSetSlavePortWiringCheckEnable(iValue, iValue2);
+  }
+
   /*Cfg.EcEnablePrintouts(int enable)*/
   nvals = sscanf(myarg_1, "EcEnablePrintouts(%d)", &iValue);
 
