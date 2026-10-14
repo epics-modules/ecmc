@@ -15,6 +15,8 @@ Release Notes
 * Add PLC function `mc_ctrl_i_reset(<axis_id>,<reset>)` to reset an axis PID controller's integral part when `reset` is nonzero.
 * Add `Cfg.SetAxisCntrlResetIAtRmp(<axis_id>,<enable>)` and `Cfg.SetAxisCntrlFreezeIAtRmp(<axis_id>,<enable>)`, with matching getters and `controller.resetIAtRmp` / `controller.freezeIAtRmp` YAML settings, to reset or freeze the PID integral part while an internal trajectory is busy.
 * Add position- and time-based sequence triggers with eight predefined trigger IDs per sequence, scalar data-item outputs, pulse timing, completion waits, reverse-position ranges, and EPICS-visible soft-trigger counters.
+* Add generic axis touch-probe support with arm, valid, position, sequence, event-time, and raw timestamp readbacks through asyn parameters and PLC helper functions.
+* Add generic timed position-compare support for axis positions, including EtherCAT output/start-time entry links, lead-time scheduling, status readbacks, cancellation, and PLC helper functions.
 * Add motion-sequencer parser commands:
   ```
   CreateMotionSeq                 SetMotionSeqStep
@@ -69,6 +71,9 @@ Release Notes
   disable requests are consumed by the realtime thread. ecmccfg exposes these
   commands as `MCU-StopAll` and `MCU-DisableAll`.
 * Add optional startup ordering that allows EPICS to start before realtime execution, supporting restore workflows that must complete before ecmc motion and PLC processing begin.
+* Add EtherCAT startup wiring diagnostics for configured slaves. The check now runs immediately after master scan, before realtime activation, and reports the master/slave being checked so wrong-port cabling can be identified even when later DC/timing startup fails.
+* Print the ECMC configuration log buffer when EtherCAT startup times out, making startup diagnostics available even when application mode cannot be entered.
+* Fix ecmccfg ESI `mbbiDirect` binary-input FLNK expansion so generated forward links no longer get a trailing `}`. This avoids EPICS 7.0.10 IOC startup hangs caused by malformed local CA links.
 
 # 11.0.9
 * Fix sync between ecmc and motor record (DMOV)
