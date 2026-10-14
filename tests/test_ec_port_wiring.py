@@ -47,6 +47,18 @@ std::vector<ec_slave_info_t> slaves;
 std::vector<std::string> buffered, console;
 bool busy = false, masterFailure = false;
 int failedPosition = -1;
+struct ecmcEcSlave {
+  bool enabled = true;
+  bool getPortWiringCheckEnable() const { return enabled; }
+};
+struct ecmcEc {
+  std::vector<ecmcEcSlave> configured;
+  ecmcEcSlave *findSlave(unsigned int position) {
+    if (position >= configured.size()) return nullptr;
+    return &configured[position];
+  }
+};
+ecmcEc ecmc;
 int ecrt_master(ec_master_t *, ec_master_info_t *info) {
   info->slave_count = slaves.size(); info->scan_busy = busy;
   return masterFailure ? -1 : 0;
@@ -70,7 +82,8 @@ int main() {
   int dummy;
   auto master = reinterpret_cast<ec_master_t *>(&dummy);
   auto check = [&](const char *expected) {
-    buffered.clear(); console.clear(); warnEcPortWiring(master, 2);
+    ecmc.configured.assign(slaves.size(), ecmcEcSlave{});
+    buffered.clear(); console.clear(); warnEcPortWiring(master, 2, &ecmc);
     assert(buffered.size() == (expected ? 1u : 0u));
     assert(console.size() == buffered.size());
     if (expected) {
@@ -118,10 +131,13 @@ int main() {
   failedPosition = 0; check("slave information read failed"); failedPosition = -1;
   // A read failure must not prevent checking later slaves.
   slaves.push_back(good); slaves[1].ports[0].link.link_up = false;
+  ecmc.configured.assign(slaves.size(), ecmcEcSlave{});
   failedPosition = 0; buffered.clear(); console.clear();
-  warnEcPortWiring(master, 2); assert(buffered.size() == 2);
+  warnEcPortWiring(master, 2, &ecmc); assert(buffered.size() == 2);
   assert(buffered[1].find("ec2.s1") != std::string::npos);
-  buffered.clear(); warnEcPortWiring(nullptr, 2); assert(buffered.empty());
+  ecmc.configured[1].enabled = false; buffered.clear(); console.clear();
+  warnEcPortWiring(master, 2, &ecmc); assert(buffered.size() == 1);
+  buffered.clear(); warnEcPortWiring(nullptr, 2, &ecmc); assert(buffered.empty());
 }
 '''
 with tempfile.TemporaryDirectory() as directory:

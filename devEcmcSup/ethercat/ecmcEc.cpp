@@ -351,6 +351,12 @@ static void warnEcPortWiring(ec_master_t *master,
       continue;
     }
 
+    printf("INFO: Checking EtherCAT port wiring for ec%d.s%u (%.*s).\n",
+           masterIndex,
+           position,
+           EC_MAX_STRING_LENGTH,
+           info.name);
+
     // External Ethernet input only: do not diagnose internal E-bus terminals
     // or assume that an unimplemented/unconfigured port is an unplugged IN.
     if (info.error_flag || info.ports[0].desc != EC_PORT_MII) {
