@@ -1,5 +1,8 @@
 Release Notes
 ===
+# 11.1.1
+* Fix overflow issue in motor interface
+
 # 11.1.0
 * Fix inclue path in ecmcPluginClient.h
 * Make `Cfg.WriteEcEntryEcPath(<ec_path>,<value>)` convert values according to the entry datatype. F32/F64 entries now accept floating-point values, signed entries accept negative values, and integer parsing retains full 64-bit precision.
