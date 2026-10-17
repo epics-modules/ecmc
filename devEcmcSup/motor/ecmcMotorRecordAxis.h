@@ -228,6 +228,7 @@ private:
   bool interlockStopActive_;
   friend class ecmcMotorRecordController;
   uint32_t ecmcCycleCounterAtNewCmd_;
+  bool waitingForStatusAfterCommand_;
 };
 
 #endif // ifndef ECMC_MOTOR_RECORD_AXIS_H

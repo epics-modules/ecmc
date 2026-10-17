@@ -313,6 +313,8 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   pvtPrepare_ = NULL;
   pvtRunning_ = NULL;
   ecmcCycleCounterAtNewCmd_ = 0;
+  // Preserve the initial wait for the first RT status sample.
+  waitingForStatusAfterCommand_ = true;
 
   updateFirstPollDone_ = false;
   interlockStopActive_ = false;
@@ -1251,6 +1253,7 @@ asynStatus ecmcMotorRecordAxis::move(double position,
     // observe accepted motion with stale moveReady state.
     drvlocal.moveReady = false;
     ecmcCycleCounterAtNewCmd_ = drvlocal.ecmcAxis->getCycleCounter();
+    waitingForStatusAfterCommand_ = true;
 #ifndef motorWaitPollsBeforeReadyString
     drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
 #endif // ifndef motorWaitPollsBeforeReadyString
@@ -1484,6 +1487,7 @@ asynStatus ecmcMotorRecordAxis::home(double minVelocity,
     // observe accepted motion with stale moveReady state.
     drvlocal.moveReady = false;
     ecmcCycleCounterAtNewCmd_ = drvlocal.ecmcAxis->getCycleCounter();
+    waitingForStatusAfterCommand_ = true;
 #ifndef motorWaitPollsBeforeReadyString
     drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
 #endif // ifndef motorWaitPollsBeforeReadyString
@@ -1638,6 +1642,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
     // observe accepted motion with stale moveReady state.
     drvlocal.moveReady = false;
     ecmcCycleCounterAtNewCmd_ = drvlocal.ecmcAxis->getCycleCounter();
+    waitingForStatusAfterCommand_ = true;
 #ifndef motorWaitPollsBeforeReadyString
     drvlocal.waitNumPollsBeforeReady += WAITNUMPOLLSBEFOREREADY;
 #endif // ifndef motorWaitPollsBeforeReadyString
@@ -2191,8 +2196,8 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
     return status;
   }
 
-  // Ensure data is polled after command was executed ensure 2 polls after 
-  if (dataIsSampledAfterNewCmd()/* && pollsAfterNewCommandCounter_>=2*/) {
+  // Wait once for an RT sample after accepting a command.
+  if (dataIsSampledAfterNewCmd()) {
     if(!drvlocal.moveReady && !drvlocal.ecmcBusy) {
       // DMOV reports that the operation has terminated. AtTarget and the
       // alarm/problem status distinguish successful arrival from an abort.
@@ -3697,19 +3702,32 @@ void ecmcMotorRecordAxis::updateError() {
 // Make sure new data is polled after new command is received (for setting DMOV)
 void ecmcMotorRecordAxis::newCmd() {
 
+  if (ecmcRTMutex)epicsMutexLock(ecmcRTMutex);
   drvlocal.moveReady = false;
+  ecmcCycleCounterAtNewCmd_ = drvlocal.ecmcAxis->getCycleCounter();
+  waitingForStatusAfterCommand_ = true;
+  if (ecmcRTMutex)epicsMutexUnlock(ecmcRTMutex);
+
   // update motor record
   setIntegerParam(pC_->motorStatusMoving_, !drvlocal.moveReady);
   setIntegerParam(pC_->motorStatusDone_,   drvlocal.moveReady);
   callParamCallbacks(); 
 
-  // latch and comapre when setting DMOV
-  ecmcCycleCounterAtNewCmd_ = drvlocal.status_.cycleCounter;
-
   //printf("Axis[%d]: New command received!\n", axisNo_);
 }
 
 bool ecmcMotorRecordAxis::dataIsSampledAfterNewCmd() {
-  const uint32_t currentCycle = drvlocal.status_.cycleCounter;
-  return static_cast<int32_t>(currentCycle - ecmcCycleCounterAtNewCmd_) > 0;
+  if (!waitingForStatusAfterCommand_) {
+    return true;
+  }
+
+  // Commands latch the live counter under the RT mutex. Any different
+  // sample is subsequent, including UINT32_MAX -> 0 wraparound. Once seen,
+  // stop comparing so long idle periods cannot make the axis busy again.
+  if (drvlocal.status_.cycleCounter == ecmcCycleCounterAtNewCmd_) {
+    return false;
+  }
+
+  waitingForStatusAfterCommand_ = false;
+  return true;
 }
