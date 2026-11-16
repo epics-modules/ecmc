@@ -23,7 +23,8 @@ def method(signature, text=source):
     return text[start:end]
 
 
-implementation = '\n'.join(method(signature) for signature in (
+implementation = method('static bool ecmcMotorRecordSoftLimitEqual(') + '\n'
+implementation += '\n'.join(method(signature) for signature in (
     'const char *ecmcMotorRecordAxis::getSoftLimitRestoreStatus()',
     'void ecmcMotorRecordAxis::captureRestoredSoftLimits(',
     'asynStatus ecmcMotorRecordAxis::syncEcmcSoftLimits(bool',

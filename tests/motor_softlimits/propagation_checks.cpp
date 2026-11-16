@@ -32,15 +32,23 @@ struct Controller {
     motorLowLimitRO_, motorHighLimitRO_, ecmcMotorRecordCfgDLLM_,
     ecmcMotorRecordCfgDHLM_, ecmcMotorRecordCfgDLLM_En_, ecmcMotorRecordCfgDHLM_En_ };
   std::map<int, double> values;
+  std::map<int, int> doubleWrites;
   int callbacks = 0;
   asynStatus getIntegerParam(int axis, int key, int *value) {
     CHECK(axis == 1); *value = static_cast<int>(values.at(key)); return asynSuccess;
+  }
+  asynStatus getDoubleParam(int axis, int key, double *value) {
+    CHECK(axis == 1);
+    auto entry = values.find(key);
+    if (entry == values.end()) return asynError;
+    *value = entry->second;
+    return asynSuccess;
   }
   asynStatus setIntegerParam(int axis, int key, int value) {
     CHECK(axis == 1); values[key] = value; return asynSuccess;
   }
   asynStatus setDoubleParam(int axis, int key, double value) {
-    CHECK(axis == 1); values[key] = value; return asynSuccess;
+    CHECK(axis == 1); values[key] = value; ++doubleWrites[key]; return asynSuccess;
   }
   void callParamCallbacks() { CHECK(lockDepth == 0); ++callbacks; }
 };
@@ -177,9 +185,9 @@ static void independentLayers() {
     CHECK(b.controller.values.at(Controller::motorHighLimit_) ==
           (scenario == 2 ? 0 : 6));
     CHECK(b.controller.values.at(Controller::motorLowLimitRO_) ==
-          (ecmcOn ? -10 : 0));
+          (ecmcOn && scenario != 2 ? -10 : 0));
     CHECK(b.controller.values.at(Controller::motorHighLimitRO_) ==
-          (ecmcOn ? 10 : 0));
+          (ecmcOn && scenario != 2 ? 10 : 0));
     b.checkEcmc(-10, 10, ecmcOn, ecmcOn);
     CHECK(b.controller.values.at(Controller::ecmcMotorRecordCfgDLLM_) == -10);
     CHECK(b.controller.values.at(Controller::ecmcMotorRecordCfgDHLM_) == 10);
@@ -204,9 +212,9 @@ static void independentLayers() {
     CHECK(b.controller.values.at(Controller::motorHighLimit_) ==
           (scenario == 2 ? 0 : 6));
     CHECK(b.controller.values.at(Controller::motorLowLimitRO_) ==
-          (ecmcOn ? -8 : 0));
+          (ecmcOn && scenario != 2 ? -8 : 0));
     CHECK(b.controller.values.at(Controller::motorHighLimitRO_) ==
-          (ecmcOn ? 9 : 0));
+          (ecmcOn && scenario != 2 ? 9 : 0));
     CHECK(b.controller.values.at(Controller::ecmcMotorRecordCfgDLLM_) == -8);
     CHECK(b.controller.values.at(Controller::ecmcMotorRecordCfgDHLM_) == 9);
   }
@@ -221,6 +229,15 @@ static void independentLayers() {
   CHECK(b.controller.values.at(Controller::motorHighLimitRO_) == 10);
   b.checkEcmc(-10, 10);
   b.monitorTarget(15, false, true); b.monitorTarget(-15, true, false);
+
+  context = "unchanged no-sync range is not republished";
+  Bench stable; stable.ecmcLimits(-10, 10); stable.motorFields(-4, 6);
+  stable.pollLimits();
+  const int lowWrites = stable.controller.doubleWrites[Controller::motorLowLimitRO_];
+  const int highWrites = stable.controller.doubleWrites[Controller::motorHighLimitRO_];
+  stable.pollLimits(); stable.pollLimits();
+  CHECK(stable.controller.doubleWrites[Controller::motorLowLimitRO_] == lowWrites);
+  CHECK(stable.controller.doubleWrites[Controller::motorHighLimitRO_] == highWrites);
 }
 
 static void syncedLayers() {

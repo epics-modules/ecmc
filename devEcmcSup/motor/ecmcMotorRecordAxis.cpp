@@ -714,18 +714,43 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParam
 
   const bool ecmcLimitsDefined =
     (enabledBwd != 0 || enabledFwd != 0) && (fValueBwd != 0 || fValueFwd != 0);
+  const bool syncEnabled = isSoftLimitSyncEnabled();
+  double motorLow = 0.0;
+  double motorHigh = 0.0;
+  const bool motorLimitsDisabled =
+    pC_->getDoubleParam(axisNo_, pC_->motorLowLimit_, &motorLow) == asynSuccess &&
+    pC_->getDoubleParam(axisNo_, pC_->motorHighLimit_, &motorHigh) == asynSuccess &&
+    motorLow == 0.0 && motorHigh == 0.0;
 
-  if (ecmcLimitsDefined) {
+  double desiredLowRO = 0.0;
+  double desiredHighRO = 0.0;
+  if (ecmcLimitsDefined && (syncEnabled || !motorLimitsDisabled)) {
     // Enabled ECMC limits always define the maximum range accepted by the
     // motor record.  Synchronization controls propagation of writable motor
-    // limits to ECMC; it does not remove this safety boundary.
-    asynMotorAxis::setDoubleParam(pC_->motorLowLimitRO_,  fValueBwd);
-    asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, fValueFwd);
+    // limits to ECMC; it does not remove this safety boundary.  Preserve the
+    // motor record's explicit 0/0 sentinel, which disables only its own layer
+    // while ECMC continues to enforce the native limits.
+    desiredLowRO = fValueBwd;
+    desiredHighRO = fValueFwd;
   } else {
-    // Motor-only mode: no enabled native limit means there is no ECMC range
-    // with which to constrain the motor record.
-    asynMotorAxis::setDoubleParam(pC_->motorLowLimitRO_,  0);
-    asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, 0);
+    // Motor-only mode has no native range to publish.  Controller-only mode
+    // also keeps this range clear so the motor 0/0 sentinel remains disabled.
+  }
+
+  // The ESS motor record treats a driver soft-limit callback as a new pair and
+  // copies both RO endpoints into DLLM/DHLM.  Do not republish an unchanged
+  // range on every poll: doing so would erase valid, narrower unsynchronized
+  // motor limits.  A changed ECMC range still produces one boundary update.
+  double publishedLowRO = 0.0;
+  double publishedHighRO = 0.0;
+  const bool havePublishedRange =
+    pC_->getDoubleParam(axisNo_, pC_->motorLowLimitRO_, &publishedLowRO) == asynSuccess &&
+    pC_->getDoubleParam(axisNo_, pC_->motorHighLimitRO_, &publishedHighRO) == asynSuccess;
+  if (!havePublishedRange ||
+      !ecmcMotorRecordSoftLimitEqual(publishedLowRO, desiredLowRO) ||
+      !ecmcMotorRecordSoftLimitEqual(publishedHighRO, desiredHighRO)) {
+    asynMotorAxis::setDoubleParam(pC_->motorLowLimitRO_, desiredLowRO);
+    asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, desiredHighRO);
   }
 
   if (force) {
