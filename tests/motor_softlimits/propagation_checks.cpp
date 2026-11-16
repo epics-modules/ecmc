@@ -80,7 +80,7 @@ struct ecmcMotorRecordAxis : asynMotorAxis {
   bool updateFirstPollDone_ = true, softLimitRestoreErrorLogged_ = false;
   bool restoredSoftLimitsCaptured_ = false, restoredSoftLimitsReady_ = false;
   double restoredSoftLimitLow_ = 0, restoredSoftLimitHigh_ = 0;
-  struct { Axis *ecmcAxis; bool restoreMotorSoftlimits = false;
+  struct { Axis *ecmcAxis; int restoreMotorSoftlimits = 0;
     bool syncEcmcMrSoftlimits = false; } drvlocal;
   ecmcMotorRecordAxis(Controller &c, Axis &axis) : pC_(&c) {
     controller = &c; drvlocal.ecmcAxis = &axis;

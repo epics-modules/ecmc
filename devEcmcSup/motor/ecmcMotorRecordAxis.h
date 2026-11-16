@@ -145,7 +145,8 @@ private:
     bool axisInStartup;
     bool ecmcIgnoreDisableAxisStatus;
     bool syncEcmcMrSoftlimits;
-    bool restoreMotorSoftlimits;
+    // 0: disabled, 1: restore motor pair to ECMC and sync, 2: motor-local restore.
+    int restoreMotorSoftlimits;
   } drvlocal;
 
   //int       restorePowerOnOffNeeded_;

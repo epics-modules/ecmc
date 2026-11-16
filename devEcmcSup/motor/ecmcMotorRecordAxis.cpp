@@ -334,9 +334,14 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
         int restoreMotorSoftlimits = 0;
         pThisOption += strlen(ECMC_AXIS_OPT_RESTORE_MR_SOFT_LIMS);
         restoreMotorSoftlimits = atoi(pThisOption);
-        drvlocal.restoreMotorSoftlimits = restoreMotorSoftlimits != 0;
+        if (restoreMotorSoftlimits < 0 || restoreMotorSoftlimits > 2) {
+          LOGERR("%s/%s:%d: ERROR: Axis[%d]: restoreMotorSoftLims must be 0, 1 or 2.\n",
+                 __FILE__, __FUNCTION__, __LINE__, axisNo_);
+          restoreMotorSoftlimits = 0;
+        }
+        drvlocal.restoreMotorSoftlimits = restoreMotorSoftlimits;
 #ifdef motorFlagsRwSoftLimitsString
-        if (drvlocal.restoreMotorSoftlimits) {
+        if (drvlocal.restoreMotorSoftlimits == 1) {
           setIntegerParam(pC_->motorFlagsRwSoftLimits_, 1);
           drvlocal.syncEcmcMrSoftlimits = true;
         }
@@ -346,7 +351,8 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
                 __FUNCTION__,
                 __LINE__,
                 axisNo_,
-                restoreMotorSoftlimits ? "enabled" : "disabled");
+                restoreMotorSoftlimits == 1 ? "enabled, synchronized" :
+                restoreMotorSoftlimits == 2 ? "enabled, motor-local" : "disabled");
       }
 
       pThisOption = pNextOption;
@@ -698,7 +704,7 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParam
 
   // Constructor/config readback must not overwrite the motor limits before
   // IOC initialization (including autosave pass 1) has supplied the restore pair.
-  if (drvlocal.restoreMotorSoftlimits && !updateFirstPollDone_) {
+  if (drvlocal.restoreMotorSoftlimits == 1 && !updateFirstPollDone_) {
     return asynSuccess;
   }
 
@@ -753,7 +759,11 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParam
     asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, desiredHighRO);
   }
 
-  if (force) {
+  // In motor-local restore mode the initialized motor fields are the fallback
+  // when autosave supplies no values.  Publish the ECMC RO boundary before
+  // autosave, but never replace those writable template fields during the
+  // pending restore window (especially motor-only mode with ECMC disabled).
+  if (force && !(drvlocal.restoreMotorSoftlimits == 2 && !updateFirstPollDone_)) {
     // Legacy initial seed: the writable motor limits follow the ECMC pair once.
     if (ecmcLimitsDefined) {
       asynMotorAxis::setDoubleParam(pC_->motorLowLimit_,  fValueBwd);
@@ -776,7 +786,9 @@ const char *ecmcMotorRecordAxis::getSoftLimitRestoreStatus() {
   if (!ecmcIocRunning()) return "waiting for IOC running";
   if (!restoredSoftLimitsCaptured_) return "waiting for post-autosave snapshot";
   if (!restoredSoftLimitsReady_) return "invalid snapshot: correct DLLM/DHLM/MRES and restart IOC";
-  if (!isSoftLimitSyncEnabled()) return "waiting for soft-limit synchronization to be enabled";
+  if (drvlocal.restoreMotorSoftlimits == 1 && !isSoftLimitSyncEnabled())
+    return "waiting for soft-limit synchronization to be enabled";
+  if (drvlocal.restoreMotorSoftlimits == 2) return "waiting for motor-local restore completion";
   return "waiting for limit-pair transfer";
 }
 
@@ -839,7 +851,7 @@ asynStatus ecmcMotorRecordAxis::initializeSoftLimits() {
   }
 
   asynStatus status;
-  if (drvlocal.restoreMotorSoftlimits) {
+  if (drvlocal.restoreMotorSoftlimits == 1) {
     // The RT startup gate does not hold the asyn motor poller. Wait explicitly
     // for the IOC hook, even when that gate is disabled. Keep restoration pending
     // if sync is disabled or the post-autosave motor snapshot is not ready yet.
@@ -853,6 +865,13 @@ asynStatus ecmcMotorRecordAxis::initializeSoftLimits() {
              __FILE__, __FUNCTION__, __LINE__, axisNo_, getSoftLimitRestoreStatus());
       softLimitRestoreErrorLogged_ = true;
     }
+  } else if (drvlocal.restoreMotorSoftlimits == 2) {
+    // Motor-local restore: wait until autosave and the post-iocInit snapshot
+    // are complete, but never copy the restored pair into ECMC.
+    if (!ecmcIocRunning() || !restoredSoftLimitsReady_) {
+      return asynError;
+    }
+    status = asynSuccess;
   } else {
     status = syncSoftLimitInterfaces(true, true);
   }

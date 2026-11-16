@@ -137,7 +137,7 @@ struct ecmcMotorRecordAxis : asynMotorAxis {
   bool failForwardWrite = false;
   struct {
     Axis *ecmcAxis;
-    bool restoreMotorSoftlimits = true, axisInStartup = false;
+    int restoreMotorSoftlimits = 1; bool axisInStartup = false;
     bool ecmcSafetyInterlock = false, ecmcBusy = false, ecmcAtTarget = false;
     bool ecmcAtTargetMonEnable = false, ecmcSummaryInterlock = false;
     bool ecmcSoftLimitInterlock = false, ecmcIgnoreDisableAxisStatus = false;
@@ -366,6 +366,27 @@ int main() {
   assert(legacy.updateFirstPollDone_ && !legacy.writes);
   assert(legacyC.values[Controller::motorHighLimit_] == 100);
   assert(legacyC.values[Controller::motorLowLimit_] == -100);
+
+  // Mode 2 waits for the autosave snapshot but leaves ECMC unchanged and
+  // does not require or enable ongoing synchronization.
+  Controller localC;
+  Axis localA;
+  ecmcMotorRecordAxis local(localC, localA);
+  local.drvlocal.restoreMotorSoftlimits = 2;
+  local.sync = false;
+  localA.rtStarted = true;
+  localA.startup = false;
+  iocReady = true;
+  // These model the standard YAML/template defaults when autosave has no
+  // saved file (or does not replace the fields).
+  localC.values[Controller::motorLowLimit_] = -40;
+  localC.values[Controller::motorHighLimit_] = 50;
+  local.captureRestoredSoftLimits(-40, 50, 1);
+  assert(local.poll(&moving) == asynSuccess);
+  assert(local.updateFirstPollDone_ && !local.writes);
+  assert(localA.monitor.low == -100 && localA.monitor.high == 100);
+  assert(localC.values[Controller::motorLowLimit_] == -40);
+  assert(localC.values[Controller::motorHighLimit_] == 50);
 }
 '''
 
