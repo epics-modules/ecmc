@@ -134,18 +134,17 @@ static void coordinateBoundary() {
     rec.off += 17; coordinateSpecial(&rec, motorRecordOFF);
     CHECK(rec.llm == 0 && rec.hlm == 0);
   }
-  // Actual device-support interpretation of the forced startup readback
-  // without synchronization: the writable seed is one-time (COMPAT), but the
-  // driver must not assert a read-only dial range, or the record clamps dial
-  // edits, including the zero pair that disables the motor limits.
+  // Actual device-support interpretation without synchronization: the
+  // writable seed is one-time (COMPAT), while enabled ECMC limits still bound
+  // the motor record through the read-only dial range.
   for (const auto &v : vectors) {
     context = "startup read-only limits with OFF=" + std::to_string(v.off);
     ++cases;
     Bench b; b.ecmcLimits(-10, 10); b.motorFields(-4, 6);
     b.motor.updateFirstPollDone_ = false;
     CHECK(b.motor.initializeSoftLimits() == asynSuccess);
-    CHECK(b.controller.values.at(Controller::motorLowLimitRO_) == 0);
-    CHECK(b.controller.values.at(Controller::motorHighLimitRO_) == 0);
+    CHECK(b.controller.values.at(Controller::motorLowLimitRO_) == -10);
+    CHECK(b.controller.values.at(Controller::motorHighLimitRO_) == 10);
     CHECK(b.controller.values.at(Controller::motorLowLimit_) == -10);
     CHECK(b.controller.values.at(Controller::motorHighLimit_) == 10);
     motor_private priv;
@@ -158,19 +157,19 @@ static void coordinateBoundary() {
     rec.bench = &b; rec.priv = &priv; rec.dset = &transactions; rec.dpvt = &device;
     rec.off = v.off; rec.dir = v.dir;
     new_motor_soft_limits(&rec, 0); // sync/MF_RW_SOFT_LIMITS disabled
-    CHECK(!priv.motorSoftLimits.motorROdialLimitsValid);
-    // No asserted RO range: independent dial limits may exceed the ECMC range.
+    CHECK(priv.motorSoftLimits.motorROdialLimitsValid);
+    // The record clamps independent motor limits to the enabled ECMC range.
     rec.hlm = v.off + 20; set_user_highlimit(&rec);
     rec.llm = v.off - 20; set_user_lowlimit(&rec);
-    CHECK(rec.dllm == -20 && rec.dhlm == 20);
+    CHECK(rec.dllm == -10 && rec.dhlm == 10);
     b.checkEcmc(-10, 10);
     // The zero pair disables the motor limits without touching ECMC.
     rec.dllm = rec.dhlm = 0; set_userlimits(&rec);
     CHECK(rec.llm == 0 && rec.hlm == 0);
-    // Runtime ECMC edits stay independent and never assert an RO range.
+    // Runtime ECMC edits stay independent and update the bounding RO range.
     b.ecmcLimits(-8, 9); b.pollLimits();
-    CHECK(b.controller.values.at(Controller::motorLowLimitRO_) == 0);
-    CHECK(b.controller.values.at(Controller::motorHighLimitRO_) == 0);
+    CHECK(b.controller.values.at(Controller::motorLowLimitRO_) == -8);
+    CHECK(b.controller.values.at(Controller::motorHighLimitRO_) == 9);
     b.monitorTarget(9.5, false, true);
     b.checkEcmc(-8, 9);
   }

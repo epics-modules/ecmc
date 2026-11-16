@@ -163,8 +163,8 @@ struct Bench {
 };
 
 static void independentLayers() {
-  // INFERRED: sync off must preserve independently configured runtime layers.
-  // Scenario 3 does not promise rejection/clipping of motor field edits.
+  // Sync off keeps the writable layers independent, while enabled ECMC limits
+  // remain the motor record's maximum permitted range.
   for (int scenario : {1, 2, 3}) {
     context = "no-sync scenario " + std::to_string(scenario);
     Bench b;
@@ -172,7 +172,14 @@ static void independentLayers() {
     b.ecmcLimits(-10, 10, ecmcOn, ecmcOn);
     b.motorFields(scenario == 2 ? 0 : -4, scenario == 2 ? 0 : 6);
     for (int i = 0; i < 3; ++i) b.pollLimits();
-    b.checkMotor(scenario == 2 ? 0 : -4, scenario == 2 ? 0 : 6);
+    CHECK(b.controller.values.at(Controller::motorLowLimit_) ==
+          (scenario == 2 ? 0 : -4));
+    CHECK(b.controller.values.at(Controller::motorHighLimit_) ==
+          (scenario == 2 ? 0 : 6));
+    CHECK(b.controller.values.at(Controller::motorLowLimitRO_) ==
+          (ecmcOn ? -10 : 0));
+    CHECK(b.controller.values.at(Controller::motorHighLimitRO_) ==
+          (ecmcOn ? 10 : 0));
     b.checkEcmc(-10, 10, ecmcOn, ecmcOn);
     CHECK(b.controller.values.at(Controller::ecmcMotorRecordCfgDLLM_) == -10);
     CHECK(b.controller.values.at(Controller::ecmcMotorRecordCfgDHLM_) == 10);
@@ -183,21 +190,36 @@ static void independentLayers() {
     CHECK(b.motor.lowCalls == 1 && b.motor.forwardedLow == -20);
     b.checkEcmc(-10, 10, ecmcOn, ecmcOn);
     b.pollLimits();
-    b.checkMotor(scenario == 2 ? 0 : -4, scenario == 2 ? 0 : 6);
+    CHECK(b.controller.values.at(Controller::motorLowLimit_) ==
+          (scenario == 2 ? 0 : -4));
+    CHECK(b.controller.values.at(Controller::motorHighLimit_) ==
+          (scenario == 2 ? 0 : 6));
     b.monitorTarget(12, false, ecmcOn);
     b.monitorTarget(-12, ecmcOn, false);
     b.monitorTarget(2, false, false);
     // ECMC-side edits remain independent too, and config readbacks still update.
     b.ecmcLimits(-8, 9, ecmcOn, ecmcOn); b.pollLimits();
-    b.checkMotor(scenario == 2 ? 0 : -4, scenario == 2 ? 0 : 6);
+    CHECK(b.controller.values.at(Controller::motorLowLimit_) ==
+          (scenario == 2 ? 0 : -4));
+    CHECK(b.controller.values.at(Controller::motorHighLimit_) ==
+          (scenario == 2 ? 0 : 6));
+    CHECK(b.controller.values.at(Controller::motorLowLimitRO_) ==
+          (ecmcOn ? -8 : 0));
+    CHECK(b.controller.values.at(Controller::motorHighLimitRO_) ==
+          (ecmcOn ? 9 : 0));
     CHECK(b.controller.values.at(Controller::ecmcMotorRecordCfgDLLM_) == -8);
     CHECK(b.controller.values.at(Controller::ecmcMotorRecordCfgDHLM_) == 9);
   }
-  context = "no sync permits wider motor limits without changing ECMC";
+  context = "no sync constrains motor range without changing ECMC";
   Bench b; b.ecmcLimits(-10, 10); b.motorFields(-20, 20);
   CHECK(b.motor.setHighLimit(20) == asynSuccess);
   CHECK(b.motor.setLowLimit(-20) == asynSuccess);
-  b.pollLimits(); b.checkMotor(-20, 20); b.checkEcmc(-10, 10);
+  b.pollLimits();
+  CHECK(b.controller.values.at(Controller::motorLowLimit_) == -20);
+  CHECK(b.controller.values.at(Controller::motorHighLimit_) == 20);
+  CHECK(b.controller.values.at(Controller::motorLowLimitRO_) == -10);
+  CHECK(b.controller.values.at(Controller::motorHighLimitRO_) == 10);
+  b.checkEcmc(-10, 10);
   b.monitorTarget(15, false, true); b.monitorTarget(-15, true, false);
 }
 
@@ -241,21 +263,19 @@ static void startupPolicies() {
     b.motor.updateFirstPollDone_ = false;
     b.controller.values[Controller::motorFlagsRwSoftLimits_] = sync;
     CHECK(b.motor.initializeSoftLimits() == asynSuccess);
-    // COMPAT/REVIEW: legacy initial seed forces writable motor values even
-    // with sync off. Without synchronization the driver must not assert a
-    // read-only dial range; the motor record would clamp dial limit edits,
-    // including the zero pair that disables the motor limits.
+    // COMPAT: legacy initial seed forces writable motor values even with sync
+    // off, and enabled ECMC limits always constrain the motor-record range.
     CHECK(b.controller.values.at(Controller::motorLowLimit_) == -10);
     CHECK(b.controller.values.at(Controller::motorHighLimit_) == 10);
-    CHECK(b.controller.values.at(Controller::motorLowLimitRO_) == (sync ? -10 : 0));
-    CHECK(b.controller.values.at(Controller::motorHighLimitRO_) == (sync ? 10 : 0));
+    CHECK(b.controller.values.at(Controller::motorLowLimitRO_) == -10);
+    CHECK(b.controller.values.at(Controller::motorHighLimitRO_) == 10);
     b.checkEcmc(-10, 10);
     CHECK(b.motor.updateFirstPollDone_);
     b.motorFields(-3, 5);
     CHECK(b.motor.initializeSoftLimits() == asynSuccess);
     b.checkMotor(-3, 5); // startup seed runs once
   }
-  context = "sync off releases the read-only dial range";
+  context = "sync off retains the ECMC read-only dial range";
   Bench b; b.ecmcLimits(-10, 10); b.motorFields(-4, 6);
   b.controller.values[Controller::motorFlagsRwSoftLimits_] = 1;
   b.pollLimits();
@@ -263,8 +283,8 @@ static void startupPolicies() {
   CHECK(b.controller.values.at(Controller::motorHighLimitRO_) == 10);
   b.controller.values[Controller::motorFlagsRwSoftLimits_] = 0;
   b.pollLimits();
-  CHECK(b.controller.values.at(Controller::motorLowLimitRO_) == 0);
-  CHECK(b.controller.values.at(Controller::motorHighLimitRO_) == 0);
+  CHECK(b.controller.values.at(Controller::motorLowLimitRO_) == -10);
+  CHECK(b.controller.values.at(Controller::motorHighLimitRO_) == 10);
   CHECK(b.controller.values.at(Controller::motorLowLimit_) == -4);
   CHECK(b.controller.values.at(Controller::motorHighLimit_) == 6);
   b.checkEcmc(-10, 10);

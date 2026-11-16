@@ -653,16 +653,6 @@ asynStatus ecmcMotorRecordAxis::updateSoftLimitSyncState(bool updateParams,
     }
     return syncSoftLimitInterfaces(updateParams);
   }
-  if (syncWasEnabled && !syncIsEnabled) {
-    // Release the read-only dial range latched by the motor record while
-    // synchronization was enabled; it would otherwise keep clamping dial
-    // limit edits, including the zero pair, after synchronization turns off.
-    asynMotorAxis::setDoubleParam(pC_->motorLowLimitRO_,  0);
-    asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, 0);
-    if (updateParams) {
-      callParamCallbacks();
-    }
-  }
 #endif //motorFlagsRwSoftLimitsString
   return asynSuccess;
 }
@@ -712,11 +702,6 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParam
     return asynSuccess;
   }
 
-  const bool syncEnabled = isSoftLimitSyncEnabled();
-  if(!syncEnabled && !force) {
-    return asynSuccess;
-  }
-
   int enabledFwd = 0,  enabledBwd = 0;
   double fValueFwd = 0.0, fValueBwd  = 0.0;
 
@@ -730,14 +715,15 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParam
   const bool ecmcLimitsDefined =
     (enabledBwd != 0 || enabledFwd != 0) && (fValueBwd != 0 || fValueFwd != 0);
 
-  if (syncEnabled && ecmcLimitsDefined) {
+  if (ecmcLimitsDefined) {
+    // Enabled ECMC limits always define the maximum range accepted by the
+    // motor record.  Synchronization controls propagation of writable motor
+    // limits to ECMC; it does not remove this safety boundary.
     asynMotorAxis::setDoubleParam(pC_->motorLowLimitRO_,  fValueBwd);
     asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, fValueFwd);
   } else {
-    // Without synchronization the motor dial limits are record-local.
-    // Publishing the ECMC limits as a read-only driver range makes the
-    // motor record clamp dial limit edits, including the zero pair that
-    // disables the motor limits.
+    // Motor-only mode: no enabled native limit means there is no ECMC range
+    // with which to constrain the motor record.
     asynMotorAxis::setDoubleParam(pC_->motorLowLimitRO_,  0);
     asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, 0);
   }
