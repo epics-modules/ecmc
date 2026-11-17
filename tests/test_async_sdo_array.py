@@ -429,8 +429,21 @@ int main() {
   assert(slave.requests[1]->reads==1); // Begins as soon as the target is OP.
   slave.operational=false; slave.requests[1]->state=EC_REQUEST_ERROR;
   queue.poll();
+  // Verification uploads tolerate five transient errors. The active request
+  // continues to be polled after its target leaves OP, while readiness still
+  // prevents the following transaction from starting.
+  assert(queue.startupRemaining()==2 && !restored.getSdoError());
+  assert(slave.requests[1]->reads==2);
+  for (int retry=1; retry<5; ++retry) {
+    slave.requests[1]->state=EC_REQUEST_ERROR;
+    queue.poll();
+    assert(queue.startupRemaining()==2 && !restored.getSdoError());
+    assert(slave.requests[1]->reads==retry+2);
+  }
+  slave.requests[1]->state=EC_REQUEST_ERROR;
+  queue.poll();
   assert(queue.startupRemaining()==1 && restored.getSdoError()==ERROR_EC_SDO_ASYNC_ERROR);
-  assert(slave.requests[1]->reads==1); // No next transaction while target is PREOP.
+  assert(slave.requests[1]->reads==6); // No next transaction while target is PREOP.
   slave.operational=true; queue.poll();
   assert(slave.requests[1]->reads==2);
   EC_WRITE_U32(slave.requests[1]->data.data(),800); slave.requests[1]->state=EC_REQUEST_SUCCESS;
