@@ -136,6 +136,7 @@ private:
     char cmdErrorMessage[80];               /* From driver */
     char sErrorMessage[80];               /* From controller */
     bool ecmcBusy;
+    unsigned int ecmcMotionCommandExecuteCounter;
     bool ecmcSafetyInterlock;
     bool ecmcSummaryInterlock;
     bool ecmcSoftLimitInterlock;
@@ -240,6 +241,8 @@ private:
   friend class ecmcMotorRecordController;
   uint32_t ecmcCycleCounterAtNewCmd_;
   bool waitingForStatusAfterCommand_;
+  unsigned int observedMotionCommandExecuteCounter_;
+  bool motionCommandExecuteCounterInitialized_;
 };
 
 #endif // ifndef ECMC_MOTOR_RECORD_AXIS_H

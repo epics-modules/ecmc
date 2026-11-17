@@ -62,6 +62,7 @@ public:
   struct Local {
     Axis *ecmcAxis = nullptr;
     bool moveReady = false, ecmcBusy = false;
+    unsigned int ecmcMotionCommandExecuteCounter = 0;
     bool ecmcSummaryInterlock = false, ecmcSoftLimitInterlock = false;
     bool ecmcAtTargetMonEnable = true;
     Status status_;
@@ -71,6 +72,8 @@ public:
   Controller *pC_ = &controller;
   uint32_t ecmcCycleCounterAtNewCmd_;
   bool waitingForStatusAfterCommand_;
+  unsigned int observedMotionCommandExecuteCounter_;
+  bool motionCommandExecuteCounterInitialized_;
   int params[2] = {-1, -1}, callbacks = 0;
   void setIntegerParam(int id, int value) { params[id] = value; }
   void callParamCallbacks() { assert(lockDepth == 0); ++callbacks; }
@@ -154,6 +157,7 @@ void testNativeMotionAfterIdle() {
     axis.drvlocal.status_.cycleCounter = 1;
     axis.expect(true);
     assert(!axis.waitingForStatusAfterCommand_);
+    ++axis.drvlocal.ecmcMotionCommandExecuteCounter;
     axis.drvlocal.ecmcBusy = true;
     axis.drvlocal.status_.cycleCounter = 2;
     axis.expect(false); // Busy wins even with a stale AtTarget indication.
@@ -164,6 +168,7 @@ void testNativeMotionAfterIdle() {
     axis.drvlocal.status_.statusWord_.attarget = true;
     axis.expect(true);
     // A second native search must also clear the completed state.
+    ++axis.drvlocal.ecmcMotionCommandExecuteCounter;
     axis.drvlocal.ecmcBusy = true;
     axis.expect(false);
     axis.drvlocal.ecmcBusy = false;
@@ -171,6 +176,27 @@ void testNativeMotionAfterIdle() {
     axis.drvlocal.status_.statusWord_.execute = false;
     axis.expect(true); // Native abort completes without AtTarget.
   }
+}
+
+void testStaleBusyCannotRestartCompletedMotor() {
+  ecmcMotorRecordAxis axis;
+  axis.drvlocal.status_.statusWord_.attarget = true;
+  axis.drvlocal.status_.cycleCounter = 1;
+  axis.expect(true);
+
+  // A delayed Busy sample without a newly executed motion command must not
+  // revoke a terminal motor state after STOP.
+  axis.drvlocal.ecmcBusy = true;
+  axis.expect(true);
+  axis.drvlocal.ecmcBusy = false;
+  axis.expect(true);
+
+  // Execute can become visible before Busy. Keep it pending, then recognize
+  // the motion when Busy arrives instead of losing the native command.
+  ++axis.drvlocal.ecmcMotionCommandExecuteCounter;
+  axis.expect(true);
+  axis.drvlocal.ecmcBusy = true;
+  axis.expect(false);
 }
 
 void testCompletionReasons() {
@@ -216,6 +242,7 @@ int main() {
   testFreshSamples();
   testCommandRearming();
   testNativeMotionAfterIdle();
+  testStaleBusyCannotRestartCompletedMotor();
   testCompletionReasons();
   puts("Motor-record DMOV: fresh samples, wraparound, idle, command rearming, "
        "native motion after idle, completion, stops, errors, and interlocks passed.");

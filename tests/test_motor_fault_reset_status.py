@@ -74,6 +74,7 @@ public:
   struct Word { bool attarget=false, execute=true, enable=true, enabled=true; };
   struct Local {
     bool moveReady=false, ecmcBusy=false, ecmcSummaryInterlock=false;
+    unsigned int ecmcMotionCommandExecuteCounter=0;
     bool ecmcSoftLimitInterlock=false, ecmcAtTargetMonEnable=true;
     struct { int errorCode=0; Word statusWord_; } status_;
     int nErrorIdMcu=0, eeAxisError=0, old_eeAxisError=0;
@@ -86,6 +87,8 @@ public:
   void *pPrintOutAsynUser=nullptr;
   const char *modNamEMC="test";
   bool terminated=false;
+  unsigned int observedMotionCommandExecuteCounter_=0;
+  bool motionCommandExecuteCounterInitialized_=false;
   int callbacks=0;
   bool dataIsSampledAfterNewCmd() { return true; }
   void updateEcmcErrorMsg(const char *) {}
@@ -129,6 +132,7 @@ int main() {
     }
     assert(axis.callbacks>=7);
     axis.terminated=false;
+    ++axis.drvlocal.ecmcMotionCommandExecuteCounter;
     axis.drvlocal.ecmcBusy=true;
     axis.drvlocal.status_.statusWord_=ecmcMotorRecordAxis::Word();
     axis.completion();

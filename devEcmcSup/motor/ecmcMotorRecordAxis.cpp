@@ -209,6 +209,8 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   ecmcCycleCounterAtNewCmd_ = 0;
   // Preserve the initial wait for the first RT status sample.
   waitingForStatusAfterCommand_ = true;
+  observedMotionCommandExecuteCounter_ = 0;
+  motionCommandExecuteCounterInitialized_ = false;
 
   updateFirstPollDone_ = false;
   softLimitRestoreErrorLogged_ = false;
@@ -2146,6 +2148,8 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
 
   drvlocal.ecmcSafetyInterlock = drvlocal.ecmcAxis->getMon()->getSafetyInterlock();
   drvlocal.ecmcBusy = drvlocal.ecmcAxis->getBusy();
+  drvlocal.ecmcMotionCommandExecuteCounter =
+    drvlocal.ecmcAxis->getMotionCommandExecuteCounter();
   drvlocal.ecmcAtTarget = drvlocal.ecmcAxis->getMon()->getAtTarget();
   drvlocal.ecmcAtTargetMonEnable = drvlocal.ecmcAxis->getMon()->getEnableAtTargetMon();
   drvlocal.axisPrintDbg = drvlocal.ecmcAxis->getPrintDbg();
@@ -2243,9 +2247,19 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
 
   // Wait once for an RT sample after accepting a command.
   if (dataIsSampledAfterNewCmd()) {
-    if (drvlocal.ecmcBusy) {
+    const bool completionWasPending = !drvlocal.moveReady;
+    const bool newMotionExecute =
+      motionCommandExecuteCounterInitialized_ &&
+      drvlocal.ecmcMotionCommandExecuteCounter !=
+        observedMotionCommandExecuteCounter_;
+
+    if (drvlocal.ecmcBusy && (!drvlocal.moveReady || newMotionExecute)) {
       // Native/PLC commands bypass the motor command handlers. Observed
       // motion must clear a previously latched completion in that case too.
+      // Require a new execute count before revoking an already published
+      // completion: a delayed/stale Busy sample must not restart the motor
+      // record after STOP. Commands already tracked by the motor record keep
+      // Busy authoritative, so this cannot prematurely complete live motion.
       drvlocal.moveReady = false;
     } else if (!drvlocal.moveReady) {
       // DMOV reports that the operation has terminated. AtTarget and the
@@ -2265,6 +2279,18 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
       } else {
         drvlocal.moveReady = true;
       }
+    }
+
+    // Establish the first valid sample as the baseline. Thereafter consume an
+    // execute count while motion is observed or while completing a command.
+    // If execute precedes Busy, retain the changed count until Busy arrives.
+    if (!motionCommandExecuteCounterInitialized_) {
+      observedMotionCommandExecuteCounter_ =
+        drvlocal.ecmcMotionCommandExecuteCounter;
+      motionCommandExecuteCounterInitialized_ = true;
+    } else if (drvlocal.ecmcBusy || completionWasPending) {
+      observedMotionCommandExecuteCounter_ =
+        drvlocal.ecmcMotionCommandExecuteCounter;
     }
   } else {
     drvlocal.moveReady = false;

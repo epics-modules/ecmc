@@ -445,7 +445,7 @@ int main() {
   assert(queue.startupRemaining()==1 && restored.getSdoError()==ERROR_EC_SDO_ASYNC_ERROR);
   assert(slave.requests[1]->reads==6); // No next transaction while target is PREOP.
   slave.operational=true; queue.poll();
-  assert(slave.requests[1]->reads==2);
+  assert(slave.requests[1]->reads==7);
   EC_WRITE_U32(slave.requests[1]->data.data(),800); slave.requests[1]->state=EC_REQUEST_SUCCESS;
   queue.poll();
   assert(!queue.startupRemaining() && queue.startupHeld()); // Error remains latched.

@@ -89,6 +89,7 @@ struct Axis {
   double loadedPosition = 0;
   int positionError = 0;
   uint32_t getCycleCounter() { return status.cycleCounter; }
+  unsigned int getMotionCommandExecuteCounter() { return 0; }
   int setPosition(double value) {
     if (positionError) return positionError;
     loadedPosition = value; return 0;
@@ -139,6 +140,7 @@ struct ecmcMotorRecordAxis : asynMotorAxis {
     Axis *ecmcAxis;
     int restoreMotorSoftlimits = 1; bool axisInStartup = false;
     bool ecmcSafetyInterlock = false, ecmcBusy = false, ecmcAtTarget = false;
+    unsigned int ecmcMotionCommandExecuteCounter = 0;
     bool ecmcAtTargetMonEnable = false, ecmcSummaryInterlock = false;
     bool ecmcSoftLimitInterlock = false, ecmcIgnoreDisableAxisStatus = false;
     int axisPrintDbg = 0, ecmcTrjSrc = 0, nErrorIdMcu = 0, axisId = 1;
