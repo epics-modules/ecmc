@@ -192,6 +192,9 @@ ecmcMotorRecordAxis::ecmcMotorRecordAxis(ecmcMotorRecordController *pC,
   profileMaxPoints_ = 0;
   // initialize
   memset(&drvlocal,       0,    sizeof(drvlocal));
+  const char *traceAxis = getenv("ECMC_MOTOR_STATUS_TRACE_AXIS");
+  motorStatusTraceEnabled_ = traceAxis && atoi(traceAxis) == axisNo_;
+
   memset(&drvlocal.dirty, 0xFF, sizeof(drvlocal.dirty));
   strcpy(profileMessage_, "");
   drvlocal.axisId       = axisNo;
@@ -1157,7 +1160,37 @@ asynStatus ecmcMotorRecordAxis::initialPollInternal(void) {
  *
  * After printing device-specific information calls asynMotorAxis::report()
  */
+void ecmcMotorRecordAxis::traceMotorStatus(const char *event, int requested) {
+  if (!motorStatusTraceEnabled_) return;
+  int done = -1, problem = -1, aggregate = -1;
+  pC_->getIntegerParam(axisNo_, pC_->motorStatusDone_, &done);
+  pC_->getIntegerParam(axisNo_, pC_->motorStatusProblem_, &problem);
+  pC_->getIntegerParam(axisNo_, pC_->motorStatus_, &aggregate);
+  snprintf(motorStatusTrace_[motorStatusTraceNext_], 512,
+    "%.6f axis=%d %s request=%d done=%d problem=%d msta=0x%x "
+    "ready=%d freshWait=%d readyWait=%d busy=%d execute=%d enable=%d enabled=%d "
+    "error=0x%x count=%u observed=%u",
+    ecmcMotorRecordgetNowTimeSecs(), axisNo_, event, requested, done, problem, aggregate,
+    drvlocal.moveReady, waitingForStatusAfterCommand_, waitNumPollsBeforeReady_,
+    drvlocal.ecmcBusy, drvlocal.status_.statusWord_.execute,
+    drvlocal.status_.statusWord_.enable, drvlocal.status_.statusWord_.enabled,
+    drvlocal.status_.errorCode, drvlocal.ecmcMotionCommandExecuteCounter,
+    observedMotionCommandExecuteCounter_);
+  motorStatusTraceNext_ = (motorStatusTraceNext_ + 1) % 128;
+  if (motorStatusTraceCount_ < 128) ++motorStatusTraceCount_;
+}
+
+void ecmcMotorRecordAxis::dumpMotorStatusTrace(FILE *fp) {
+  if (!motorStatusTraceEnabled_) return;
+  fprintf(fp, "ECMC motor status trace axis=%d (oldest first)\n", axisNo_);
+  const unsigned first = (motorStatusTraceNext_ + 128 - motorStatusTraceCount_) % 128;
+  for (unsigned i = 0; i < motorStatusTraceCount_; ++i)
+    fprintf(fp, "%s\n", motorStatusTrace_[(first + i) % 128]);
+  fflush(fp);
+}
+
 void ecmcMotorRecordAxis::report(FILE *fp, int level) {
+  if (level > 1) dumpMotorStatusTrace(fp);
   fprintf(fp, "  axis %d\n", axisNo_);
   fprintf(fp, "  Startup soft limits: %s\n", getSoftLimitRestoreStatus());
 
@@ -1720,6 +1753,7 @@ asynStatus ecmcMotorRecordAxis::moveVelocity(double minVelocity,
  * See asynMotorAxis::setPosition
  */
 asynStatus ecmcMotorRecordAxis::setPosition(double value) {
+  traceMotorStatus("setPosition entry");
   asynPrint(pPrintOutAsynUser, ASYN_TRACE_INFO,
             "%s/%s:%d: INFO: Axis[%d]: Motor record request: execute SET_POSITION requested (position=%lf).\n",
             __FILE__, __FUNCTION__, __LINE__,
@@ -2191,6 +2225,7 @@ asynStatus ecmcMotorRecordAxis::readEcmcAxisStatusData() {
  * and then calls callParamCallbacks() at the end.
  * \param[out] moving A flag that is set indicating that the axis is moving (true) or done (false). */
 asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
+  traceMotorStatus("poll entry");
   double timeBefore = ecmcMotorRecordgetNowTimeSecs();  
   // Publish even when status acquisition or restoration returns early. Changes
   // made during this poll appear on the following poll (including readiness).
@@ -2279,6 +2314,18 @@ asynStatus ecmcMotorRecordAxis::poll(bool *moving) {
       } else {
         drvlocal.moveReady = true;
       }
+    }
+
+    // asyn arms its ready-delay counter after the command handler returns.
+    // A command can finish or abort before the first poll observes Busy, so
+    // no polled Done=0 may have consumed that counter. Once a fresh RT sample
+    // confirms completion, do not suppress Done=1: clearing Problem later
+    // would otherwise make the motor record report motion again.
+    if (drvlocal.moveReady && !drvlocal.ecmcBusy) {
+      waitNumPollsBeforeReady_ = 0;
+#ifndef motorWaitPollsBeforeReadyString
+      drvlocal.waitNumPollsBeforeReady = 0;
+#endif
     }
 
     // Establish the first valid sample as the baseline. Thereafter consume an
@@ -2562,6 +2609,14 @@ asynStatus ecmcMotorRecordAxis::setClosedLoop(bool closedLoop) {
 }
 
 asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value) {
+  const char *traceEvent = function == pC_->motorStatusDone_ ? "Done" :
+                          function == pC_->motorStatusProblem_ ? "Problem" : nullptr;
+  int previousProblem = 0;
+  if (motorStatusTraceEnabled_ && traceEvent) {
+    pC_->getIntegerParam(axisNo_, pC_->motorStatusProblem_, &previousProblem);
+    traceMotorStatus(traceEvent, value);
+  }
+
   asynStatus status;
   int errorCode = 0;
 
@@ -2646,6 +2701,11 @@ asynStatus ecmcMotorRecordAxis::setIntegerParam(int function, int value) {
 
   // Call base class method
   status = asynMotorAxis::setIntegerParam(function, value);
+  if (traceEvent) {
+    traceMotorStatus("after base setter", value);
+    if (motorStatusTraceEnabled_ && function == pC_->motorStatusProblem_ &&
+        previousProblem && !value) dumpMotorStatusTrace(stderr);
+  }
   return status;
 }
 

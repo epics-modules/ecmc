@@ -297,6 +297,8 @@ void ecmcAxisSequencer::executeInternal() {
   if (internalTrajSource) {
     // HOMING 
     if (isHoming) {
+      // The AtTarget monitor needs trajectory-local idle while homing waits
+      // for settling. The overall sequence remains Busy through getBusy().
       statusWord.localBusy = trajBusy;
     } else {
      // PVT 
@@ -885,7 +887,12 @@ void ecmcAxisSequencer::setDrv(ecmcDriveBase *drv) {
 }
 
 bool ecmcAxisSequencer::getBusy() {
-  return data_->status_.statusWord_.localBusy || data_->status_.statusWord_.globalBusy;
+  // Keep sequence ownership separate from trajectory-local Busy: homing
+  // waits for AtTarget between segments, but must not publish overall Done.
+  // stopSeq() clears localSeqBusy_ on completion and abort. localBusy still
+  // covers a trajectory stop ramp after the sequence has been cancelled.
+  return data_->status_.statusWord_.localBusy || data_->status_.statusWord_.globalBusy ||
+         (data_->status_.command == ECMC_CMD_HOMING && localSeqBusy_);
 }
 
 void ecmcAxisSequencer::setJogVel(double vel) {

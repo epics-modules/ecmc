@@ -47,6 +47,13 @@ public:
                                       double resolution);
   const char *getSoftLimitRestoreStatus();
   void publishStartupDiagnostics();
+  // Opt-in, non-RT status history. Access follows the motor controller lock.
+  void traceMotorStatus(const char *event, int requested = -1);
+  void dumpMotorStatusTrace(FILE *fp);
+  bool motorStatusTraceEnabled_ = false;
+  unsigned motorStatusTraceNext_ = 0, motorStatusTraceCount_ = 0;
+  char motorStatusTrace_[128][512] = {};
+
   void       callParamCallbacksUpdateError();
   asynStatus moveVelocity(double min_velocity,
                           double max_velocity,

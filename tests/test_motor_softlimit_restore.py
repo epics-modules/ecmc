@@ -171,6 +171,7 @@ struct ecmcMotorRecordAxis : asynMotorAxis {
   asynStatus initializeSoftLimits();
   asynStatus syncSoftLimitInterfaces(bool update, bool seed = false);
   asynStatus readEcmcAxisStatusData();
+  void traceMotorStatus(const char *, int = -1) {}
   asynStatus poll(bool *);
   asynStatus setPosition(double);
   bool dataIsSampledAfterNewCmd();

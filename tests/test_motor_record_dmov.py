@@ -60,6 +60,7 @@ public:
   struct Word { bool execute = true, enable = true, enabled = true, attarget = false; };
   struct Status { uint32_t cycleCounter = 0; int errorCode = 0; Word statusWord_; };
   struct Local {
+    int waitNumPollsBeforeReady = 0;
     Axis *ecmcAxis = nullptr;
     bool moveReady = false, ecmcBusy = false;
     unsigned int ecmcMotionCommandExecuteCounter = 0;
@@ -74,6 +75,7 @@ public:
   bool waitingForStatusAfterCommand_;
   unsigned int observedMotionCommandExecuteCounter_;
   bool motionCommandExecuteCounterInitialized_;
+  int waitNumPollsBeforeReady_ = 0;
   int params[2] = {-1, -1}, callbacks = 0;
   void setIntegerParam(int id, int value) { params[id] = value; }
   void callParamCallbacks() { assert(lockDepth == 0); ++callbacks; }

@@ -593,8 +593,9 @@ void ecmcAxisBase::preExecute(bool masterOK) {
 
   }
   case ECMC_AXIS_STATE_DISABLED:
-    // Allow axes to be busy if auto enabling..
-    if (!autoEnableRequest_ ) {
+    // Keep queued motion visible while enabling or waiting for the slave
+    // group. Enable feedback can precede the transition out of DISABLED.
+    if (!autoEnableRequest_ && !motionStartPending_) {
       seq_.setGlobalBusy(false); 
     }   
     statusWord.busy = false;
@@ -1028,6 +1029,11 @@ bool ecmcAxisBase::shouldSyncSetpointToActual() {
 
 int ecmcAxisBase::setEnableLocal(bool enable) {
   if (enable && !data_.status_.statusWord_.enable) {
+    // A new enable request starts a new idle period. Drive-enabled feedback
+    // can remain high during brake closing; without this reset an expired
+    // timer disables every retry before the drive can finish re-enabling.
+    autoDisbleTimeCounter_ = 0;
+    autoDisableAtTargetLatched_ = false;
     if(enableAutoResetError_) errorReset();
     extEncVeloFilter_->initFilter(0);  // init to 0 vel
     extTrajVeloFilter_->initFilter(0);  // init to 0 vel    
@@ -4648,6 +4654,17 @@ void ecmcAxisBase::autoEnableSM() {
   }
 
   if(autoEnableTimoutS_ > 0 && autoEnableTimeCounter_ > autoEnableTimoutS_) {
+    // Capture the wait condition before disabling clears pending/busy state.
+    ecmcRtLoggerLogError(
+      "Axis[%d]: auto-enable timeout: enable=%d enabled=%d previousEnabled=%d "
+      "autoRequest=%d startPending=%d startAllowed=%d globalBusy=%d localBusy=%d "
+      "blocked=%d error=0x%x elapsed=%g limit=%g.\n",
+      data_.status_.axisId, data_.status_.statusWord_.enable,
+      data_.status_.statusWord_.enabled, data_.statusOld_.statusWord_.enabled,
+      autoEnableRequest_, motionStartPending_,
+      !motionStartPermissive_ || *motionStartPermissive_,
+      data_.status_.statusWord_.globalBusy, data_.status_.statusWord_.localBusy,
+      getBlocked(), getErrorID(), autoEnableTimeCounter_, autoEnableTimoutS_);
     setEnable(false);
     autoEnableRequest_= false;
     autoEnableTimeCounter_ = 0;

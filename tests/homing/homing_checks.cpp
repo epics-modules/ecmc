@@ -66,10 +66,16 @@ struct Bench {
     mon->setHomeSwitchPLCOverrideValue(cam && physical>=-.08 && physical<=.08);
     axis->execute(true);
   }
-  void start(int seq) { CHECK(axis->moveHome(seq,0,.2,.1,1,1)==0); }
+  void start(int seq) {
+    CHECK(axis->moveHome(seq,0,.2,.1,1,1)==0);
+    CHECK(axis->getBusy());
+    // Explicitly enabled fixture: global Busy must not hide sequence gaps.
+    CHECK(!axis->getAxisStatusDataPtr()->statusWord_.globalBusy);
+  }
   void finish() {
     for(int i=0;i<15000;++i) {
       tick(); CHECK(axis->getErrorID()==0);
+      if(axis->getSeq()->getSeqState()!=0) CHECK(axis->getBusy());
       if(i>2 && !axis->getBusy() && axis->getPrimEnc()->getHomed()) return;
     }
     CHECK(!axis->getBusy()); CHECK(axis->getPrimEnc()->getHomed());
@@ -78,6 +84,26 @@ struct Bench {
 int main() {
   try {
     int scenarios=0;
+    context="homing settling: trajectory idle but sequence busy";
+    {
+      Bench b(false,0);
+      b.start(1);
+      bool settling=false;
+      for(int i=0;i<15000;++i) {
+        b.tick(); CHECK(b.axis->getErrorID()==0);
+        if(b.axis->getSeq()->getSeqState()==4 &&
+           !b.axis->getAxisStatusDataPtr()->statusWord_.localBusy) {
+          settling=true;
+          CHECK(b.axis->getBusy());
+          CHECK(!b.axis->getAxisStatusDataPtr()->statusWord_.globalBusy);
+        }
+        if(i>2 && !b.axis->getBusy() && b.axis->getPrimEnc()->getHomed()) break;
+      }
+      CHECK(settling);
+      CHECK(b.axis->getPrimEnc()->getHomed());
+      CHECK(!b.axis->getBusy());
+      ++scenarios;
+    }
     context="ignored moves preserve homing";
     {
       Bench b(false, 0);
@@ -141,10 +167,12 @@ int main() {
       bool postMove=false, postMotion=false;
       for(int i=0;i<15000;++i) {
         b.tick(); CHECK(b.axis->getErrorID()==0);
+        if(b.axis->getSeq()->getSeqState()!=0) CHECK(b.axis->getBusy());
         if(b.axis->getSeq()->getSeqState()==1003) {
           postMove=true;
-          // State 1003 is entered before the next trajectory sample and
-          // remains active while settling. Require Busy during real travel.
+          // Busy must span the entire phase, including before the first
+          // trajectory sample and during final settling, not just travel.
+          CHECK(b.axis->getBusy());
           if(std::abs(b.axis->getAxisStatusDataPtr()->currentVelocitySetpoint)>.001) {
             postMotion=true; CHECK(b.axis->getBusy());
           }

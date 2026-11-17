@@ -12,6 +12,8 @@ import tempfile
 
 root = Path(__file__).resolve().parents[1]
 default = root.parent.parent / 'motorECMC_7.2.8.1/motor/motorApp/MotorSrc'
+if not default.exists():
+    default = root.parent.parent / 'motor_ess/motorApp/MotorSrc'
 motor = Path(os.environ.get('MOTOR_SOURCE', str(default)))
 if not (motor / 'asynMotorAxis.cpp').exists():
     print('SKIP: set MOTOR_SOURCE to the installed motor module MotorSrc directory')
@@ -73,6 +75,7 @@ class ecmcMotorRecordAxis : public asynMotorAxis {
 public:
   struct Word { bool attarget=false, execute=true, enable=true, enabled=true; };
   struct Local {
+    int waitNumPollsBeforeReady = 0;
     bool moveReady=false, ecmcBusy=false, ecmcSummaryInterlock=false;
     unsigned int ecmcMotionCommandExecuteCounter=0;
     bool ecmcSoftLimitInterlock=false, ecmcAtTargetMonEnable=true;
@@ -90,7 +93,8 @@ public:
   unsigned int observedMotionCommandExecuteCounter_=0;
   bool motionCommandExecuteCounterInitialized_=false;
   int callbacks=0;
-  bool dataIsSampledAfterNewCmd() { return true; }
+  bool fresh = true;
+  bool dataIsSampledAfterNewCmd() { return fresh; }
   void updateEcmcErrorMsg(const char *) {}
   void callParamCallbacks() {
     ++callbacks;
@@ -105,6 +109,79 @@ public:
 };
 ''' + error_method + r'''
 int main() {
+  (void)ECMC_CMD_MOVEVEL; (void)ECMC_CMD_MOVEREL;
+  (void)ECMC_CMD_MOVEABS; (void)ECMC_CMD_HOMING;
+  // asyn arms this counter AFTER the command handler has published Done=0.
+  // A short homing command can fault before the poller observes any motion.
+  for (int wait : {1,2,3}) for (int fault : {0x1460e,0x14417}) {
+    ecmcMotorRecordAxis axis;
+    axis.done(0);
+    axis.waitNumPollsBeforeReady_ = wait;
+    axis.drvlocal.nErrorIdMcu = axis.drvlocal.status_.errorCode = fault;
+    axis.drvlocal.status_.statusWord_.execute = false;
+    axis.drvlocal.status_.statusWord_.enable = false;
+    axis.drvlocal.status_.statusWord_.enabled = false;
+    axis.completion();
+    assert(axis.controller.params[axis.pC_->motorStatusDone_] == 1);
+    assert(axis.waitNumPollsBeforeReady_ == 0);
+    axis.callParamCallbacksUpdateError();
+    axis.terminated = true;
+    axis.drvlocal.nErrorIdMcu = axis.drvlocal.status_.errorCode = 0;
+    axis.callParamCallbacksUpdateError();
+    assert(!axis.recordMoving());
+  }
+  // Exercise all completion reasons through the real base setter with a
+  // newly armed ready delay, including commands shorter than one poll.
+  for (int reason = 0; reason < 9; ++reason) {
+    ecmcMotorRecordAxis axis;
+    axis.done(0); axis.waitNumPollsBeforeReady_ = 3;
+    switch (reason) {
+      case 0: break; // Still settling: must remain not done.
+      case 1: axis.drvlocal.status_.statusWord_.attarget = true; break;
+      case 2: axis.drvlocal.status_.errorCode = 0x1460e; break;
+      case 3: axis.drvlocal.ecmcSummaryInterlock = true; break;
+      case 4: axis.drvlocal.ecmcSoftLimitInterlock = true; break;
+      case 5: axis.drvlocal.status_.statusWord_.execute = false; break;
+      case 6: axis.drvlocal.status_.statusWord_.enable = false; break;
+      case 7: axis.drvlocal.status_.statusWord_.enabled = false; break;
+      case 8: axis.drvlocal.ecmcAtTargetMonEnable = false; break;
+    }
+    axis.completion();
+    assert(axis.controller.params[axis.pC_->motorStatusDone_] == (reason != 0));
+    if (!reason) {
+      axis.drvlocal.status_.statusWord_.attarget = true;
+      axis.completion();
+    }
+    for (int poll=0; poll<10; ++poll) {
+      axis.completion();
+      assert(!axis.recordMoving());
+    }
+    // A fresh motor command must return to DMOV=0, then complete again.
+    axis.drvlocal.status_.errorCode = 0;
+    axis.drvlocal.ecmcSummaryInterlock = axis.drvlocal.ecmcSoftLimitInterlock = false;
+    axis.drvlocal.status_.statusWord_ = ecmcMotorRecordAxis::Word();
+    axis.drvlocal.moveReady = false;
+    axis.done(0); axis.waitNumPollsBeforeReady_ = 3;
+    axis.drvlocal.ecmcBusy = true;
+    axis.completion();
+    assert(axis.recordMoving());
+    axis.drvlocal.ecmcBusy = false;
+    axis.drvlocal.status_.statusWord_.attarget = true;
+    axis.completion();
+    assert(!axis.recordMoving());
+  }
+  // A stale sample or a still-busy fault must never complete the request.
+  for (bool fresh : {false,true}) {
+    ecmcMotorRecordAxis axis;
+    axis.done(0); axis.waitNumPollsBeforeReady_ = 3;
+    axis.fresh = fresh;
+    axis.drvlocal.ecmcBusy = fresh;
+    axis.drvlocal.status_.errorCode = 0x1460e;
+    axis.completion();
+    assert(!axis.drvlocal.moveReady);
+    assert(axis.controller.params[axis.pC_->motorStatusDone_] == 0);
+  }
+
   for(int fault : {0x1460e,0x14417}) {
     ecmcMotorRecordAxis axis;
     axis.done(0);
@@ -182,6 +259,6 @@ with tempfile.TemporaryDirectory(prefix='motor-fault-reset-') as tmp:
     cpp, binary = Path(tmp)/'status.cpp', Path(tmp)/'status'
     cpp.write_text(program)
     subprocess.run([os.environ.get('CXX', 'c++'), '-std=c++11', '-Wall', '-Wextra',
-                    '-Werror', str(cpp), '-o', str(binary)], check=True)
+                    '-Werror', '-DmotorWaitPollsBeforeReadyString', str(cpp), '-o', str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
 print('ECMC completion/error callbacks with real motor setter: drive/encoder fault reset stays done; stale and suppressed Done expose false motion.')

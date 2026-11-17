@@ -162,6 +162,7 @@ class ecmcMasterSlaveStateMachine : public ecmcError {
     bool asynInitOk_;
     bool validationOK_;
     bool masterTrajectoryStartAllowed_;
+    double startWaitDiagnosticTimeS_ = 0;
     bool optionAutoDisableMasters_;
     ecmcAxisGroup *masterGrp_;
     ecmcAxisGroup *slaveGrp_;    

@@ -83,6 +83,7 @@ public:
   }
   int setExecute(bool);
   int setExecute(bool, bool);
+  void clearDisabledBusy();
   void autoEnableSM();
   bool getStartupCommandsHeld() { return startupHeld; }
   bool getEnable() { return data_.status_.statusWord_.enable; }
@@ -190,8 +191,38 @@ int ecmcMasterSlaveStateMachine::initAsyn() { return 0; }
 void ecmcMasterSlaveStateMachine::refreshAsyn() {}
 void ecmcMasterSlaveStateMachine::setMrIgnoreEnableAlarm() {}
 '''
+# Exercise the production disabled-state busy cleanup, including the cycle
+# where enable feedback has arrived but the axis state has not advanced yet.
+disabled = axis_source.split('case ECMC_AXIS_STATE_DISABLED:', 1)[1]
+disabled = disabled.split('    statusWord.busy = false;', 1)[0]
+methods += '\nvoid ecmcAxisBase::clearDisabledBusy() {\n' + disabled + '\n}\n'
 main = r'''
 int main() {
+  // Native execute may arrive on the final DISABLED cycle after explicit
+  // enable. Losing globalBusy here leaves the group waiting for a master
+  // request while the master waits for group readiness, until 0x1432f.
+  {
+    ecmcAxisData d;
+    ecmcTrajectoryTrapetz t(d, .001);
+    ecmcAxisBase a(d, t);
+    bool ready = false;
+    a.motionStartPermissive_ = &ready;
+    a.setEnable(true);
+    t.setAcc(1); t.setDec(1); t.setTargetVel(.4); t.setTargetPos(.2);
+    assert(a.setExecute(true) == 0 && a.motionStartPending_);
+    a.clearDisabledBusy();
+    assert(a.getBusy());
+    for (int i = 0; i < 50; ++i) assert(a.tick() == 0);
+    ready = true;
+    for (int i = 0; i < 2000; ++i) a.tick();
+    assert(a.executed == 1 && !a.getError());
+    assert(std::abs(t.ecmcTrajectoryBase::getCurrentPosSet() - .2) < 1e-9);
+    // Ordinary disabled cleanup still clears stale global busy.
+    a.setEnable(false);
+    a.seq_.setGlobalBusy(true);
+    a.clearDisabledBusy();
+    assert(!a.getBusy());
+  }
   // Encoder-power live fixture: disabling the axis auto-disable flag invokes
   // the physical group's immediate-disable fallback when SLAVE completes.
   // A long positive timeout retains enable without changing that SM policy.

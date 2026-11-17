@@ -240,6 +240,36 @@ void ecmcMasterSlaveStateMachine::abortMasterToIdle(int errorCode,
 
 void ecmcMasterSlaveStateMachine::execute(){
 
+  // Bounded diagnostics while the master start barrier is closed. Capture
+  // group readiness before an axis timeout disables it and loses evidence.
+  // Additional group scans occur at most once per second, never every cycle.
+  if (control_.enable && !masterTrajectoryStartAllowed_ && masterGrp_ && slaveGrp_) {
+    startWaitDiagnosticTimeS_ += sampleTimeS_;
+    if (startWaitDiagnosticTimeS_ >= 1.0) {
+      startWaitDiagnosticTimeS_ = 0;
+      const auto masters = masterGrp_->getStatusSummary(false);
+      if (masters.anyBusy) {
+        const auto slaves = slaveGrp_->getStatusSummary(false);
+        ecmcRtLoggerLogError(
+          "Master/slave start-wait diagnostic[%d]: state=%d phase=0x%x valid=%d "
+          "idleCycles=%d startupTime=%g prepareTime=%g.\n",
+          index_, static_cast<int>(state_), status_, validationOK_, idleCounter_,
+          timeCounter_, masterPrepareTimeS_);
+        ecmcRtLoggerLogError(
+          "SM[%d] start-wait masters: enable=%d enabled=%d anyEnabled=%d busy=%d error=0x%x.\n",
+          index_, masters.allEnableCmd, masters.allEnabled,
+          masters.anyEnabled, masters.anyBusy, masters.firstErrorId);
+        ecmcRtLoggerLogError(
+          "SM[%d] start-wait slaves: enable=%d enabled=%d busy=%d external=%d interlock=%d error=0x%x.\n",
+          index_,
+          slaves.allEnableCmd, slaves.allEnabled, slaves.anyBusy,
+          slaves.allTrajExternal, slaves.anyIlocked, slaves.firstErrorId);
+      }
+    }
+  } else {
+    startWaitDiagnosticTimeS_ = 0;
+  }
+
   if(executeCycleCounter_ < UINT64_MAX) {
     executeCycleCounter_++;
   }
