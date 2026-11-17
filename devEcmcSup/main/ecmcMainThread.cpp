@@ -1234,7 +1234,11 @@ int setAppModeRun(int mode) {
   ecmcLogBufferSetRuntimeMode(1);
 
   if (asynPort) {
-    asynPort->setAllowRtThreadCom(true);  // Set by epics state hooks
+  asynPort->setAllowRtThreadCom(true);
+
+    mainAsynParams[ECMC_ASYN_MAIN_PAR_STATUS_ID]->refreshParam(1);
+    asynPort->callParamCallbacks(ECMC_ASYN_DEFAULT_LIST,
+                                 ECMC_ASYN_DEFAULT_ADDR);
   }
 
   int masterId = ec->getMasterIndex();

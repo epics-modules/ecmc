@@ -61,6 +61,13 @@ is not a promise that motor limits are untouched throughout startup. With
 restoration requested and sync disabled, initialization remains pending instead.
 Both behaviors are checked.
 
+Motor-local restore mode (`restoreMotorSoftLims=2`) suppresses ECMC read-only
+limit publication while synchronization remains disabled. The ESS motor record
+copies a newly published read-only pair into `DLLM`/`DHLM`; publishing the YAML
+pair would therefore replace the independently autosave-restored motor limits.
+ECMC continues enforcing its native limits. Enabling synchronization later
+resumes normal synchronized readback behavior.
+
 The driver asserts a valid read-only dial range only while soft-limit
 synchronization is enabled; the startup seed and the sync on->off transition both
 clear the range instead. This matters because the ESS motor record latches any

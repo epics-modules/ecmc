@@ -253,8 +253,14 @@ int ecmcEcData::validate() {
                       ERROR_EC_ENTRY_INVALID_DOMAIN_ADR);
   }
 
-  if (startEntry_->getDirection() != direction_) {
-    const ec_direction_t entryDirection = startEntry_->getDirection();
+  const ec_direction_t entryDirection = startEntry_->getDirection();
+  // An input data item over an output PDO is a safe, read-only monitoring
+  // view of the output process image. This is used by the ILK byteOutput*_Ptr
+  // diagnostics and must not be treated as a configuration mismatch. The
+  // reverse case remains invalid because it would write into an input PDO.
+  const bool readOnlyOutputView = direction_ == EC_DIR_INPUT &&
+                                  entryDirection == EC_DIR_OUTPUT;
+  if (entryDirection != direction_ && !readOnlyOutputView) {
     const char *dataDirectionText = direction_ == EC_DIR_OUTPUT ? "output" :
                                     direction_ == EC_DIR_INPUT  ? "input"  : "invalid";
     const char *entryDirectionText = entryDirection == EC_DIR_OUTPUT ? "output" :

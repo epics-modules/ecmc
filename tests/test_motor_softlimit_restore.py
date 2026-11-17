@@ -402,6 +402,13 @@ int main() {
   assert(localA.monitor.low == -100 && localA.monitor.high == 100);
   assert(localC.values[Controller::motorLowLimit_] == -80);
   assert(localC.values[Controller::motorHighLimit_] == 80);
+  assert(!localC.values.count(Controller::motorLowLimitRO_));
+  assert(!localC.values.count(Controller::motorHighLimitRO_));
+  // Repeated no-sync polls must not publish the native YAML range back into
+  // the ESS motor record and replace its independently restored pair.
+  assert(local.poll(&moving) == asynSuccess);
+  assert(localC.values[Controller::motorLowLimit_] == -80);
+  assert(localC.values[Controller::motorHighLimit_] == 80);
 }
 '''
 

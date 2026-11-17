@@ -704,7 +704,15 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParam
 
   // Constructor/config readback must not overwrite the motor limits before
   // IOC initialization (including autosave pass 1) has supplied the restore pair.
-  if (drvlocal.restoreMotorSoftlimits == 1 && !updateFirstPollDone_) {
+  if (drvlocal.restoreMotorSoftlimits && !updateFirstPollDone_) {
+    return asynSuccess;
+  }
+
+  // Restore mode 2 deliberately keeps the motor pair independent. Publishing
+  // the ECMC read-only range makes the ESS motor record copy those endpoints
+  // into DLLM/DHLM, undoing the autosave restore even though sync is disabled.
+  // If synchronization is enabled later, normal bidirectional handling resumes.
+  if (drvlocal.restoreMotorSoftlimits == 2 && !isSoftLimitSyncEnabled()) {
     return asynSuccess;
   }
 
@@ -759,11 +767,7 @@ asynStatus ecmcMotorRecordAxis::syncMotorSoftLimits(bool force, bool updateParam
     asynMotorAxis::setDoubleParam(pC_->motorHighLimitRO_, desiredHighRO);
   }
 
-  // In motor-local restore mode the initialized motor fields are the fallback
-  // when autosave supplies no values.  Publish the ECMC RO boundary before
-  // autosave, but never replace those writable template fields during the
-  // pending restore window (especially motor-only mode with ECMC disabled).
-  if (force && !(drvlocal.restoreMotorSoftlimits == 2 && !updateFirstPollDone_)) {
+  if (force) {
     // Legacy initial seed: the writable motor limits follow the ECMC pair once.
     if (ecmcLimitsDefined) {
       asynMotorAxis::setDoubleParam(pC_->motorLowLimit_,  fValueBwd);
