@@ -25,7 +25,9 @@ std::vector<std::string> events;
 const int ERROR_EC_SDO_STARTUP_PENDING=100;
 bool iocRunning=true;
 int sleeps=0, collections=0, activationResult=0, modeCalls=0;
+int exitRequests=0, requestedExitCode=0;
 int ecmcIocRunning() { return iocRunning; }
+int requestIocExitFromRt(int code) { ++exitRequests; requestedExitCode=code; return 0; }
 void epicsThreadSleep(double) { ++sleeps; }
 struct Port {
  bool held=false;
@@ -51,6 +53,7 @@ struct Queue {
 struct ec_master_state_t { int al_states=2; };
 struct Ethercat {
  Queue sdoQueue_;
+ bool sdoStartupFailureFatal_=false;
  Queue& sdoQueue() { return sdoQueue_; }
  ec_master_state_t masterState_;
  void *master_=nullptr;
@@ -82,7 +85,8 @@ void reset() {
  assert(!port.held);
  ethercat=Ethercat{}; sdo=Sdo{}; sdoRestoreRecords.clear();
  sdoRestoreCollected=false; iocRunning=true;
- sleeps=collections=activationResult=modeCalls=logs=0; events.clear();
+ sleeps=collections=activationResult=modeCalls=logs=0;
+ exitRequests=requestedExitCode=0; events.clear();
 }
 int main() {
  reset();
@@ -114,6 +118,15 @@ int main() {
  ethercat.receiveVerification(); // Complete in-flight result even after leaving OP.
  assert(!ethercat.sdoQueue_.remaining && logs==1);
  ethercat.receiveVerification(); assert(logs==1);
+
+ reset(); ethercat.sdoQueue_.remaining=1; ethercat.sdoQueue_.inFlight=true;
+ ethercat.sdoQueue_.error=91;
+ ethercat.receiveVerification();
+ assert(logs==1 && exitRequests==0);
+ reset(); ethercat.sdoQueue_.remaining=1; ethercat.sdoQueue_.inFlight=true;
+ ethercat.sdoQueue_.error=92; ethercat.sdoStartupFailureFatal_=true;
+ ethercat.receiveVerification();
+ assert(logs==1 && exitRequests==1 && requestedExitCode==EXIT_FAILURE);
 
  puts("SDO startup coordination: restore collection, final append ordering, activation errors, producer locking and mixed PREOP/OP and in-flight readback dispatch passed");
 }
