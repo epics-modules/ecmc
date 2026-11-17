@@ -254,12 +254,24 @@ int ecmcEcData::validate() {
   }
 
   if (startEntry_->getDirection() != direction_) {
-    ecmcRtLoggerLogWarning(
-      "%s/%s:%d: WARNING: EcDataItem %s: Data item direction is not same as for start ec-entry (0x%x).\n",
+    const ec_direction_t entryDirection = startEntry_->getDirection();
+    const char *dataDirectionText = direction_ == EC_DIR_OUTPUT ? "output" :
+                                    direction_ == EC_DIR_INPUT  ? "input"  : "invalid";
+    const char *entryDirectionText = entryDirection == EC_DIR_OUTPUT ? "output" :
+                                     entryDirection == EC_DIR_INPUT  ? "input"  : "invalid";
+    // Use the visible error-log level for this warning. The subsequent
+    // setErrorID() message does not contain the affected item or directions.
+    ecmcRtLoggerLogError(
+      "%s/%s:%d: WARNING: EcDataItem %s direction=%s(%d) does not match start entry %s direction=%s(%d) (0x%x).\n",
       __FILE__,
       __FUNCTION__,
       __LINE__,
       idString_.c_str(),
+      dataDirectionText,
+      static_cast<int>(direction_),
+      startEntry_->getIdentificationName().c_str(),
+      entryDirectionText,
+      static_cast<int>(entryDirection),
       WARNING_DATA_ITEM_EC_ENTRY_DIR_MISSMATCH);
     setErrorID(__FILE__,
                __FUNCTION__,

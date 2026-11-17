@@ -139,6 +139,7 @@ public:
   bool hasQueuedSdos() const { return !queuedSdos_.empty(); }
   int startupSdoError() const;
   bool startupSdosReady() const { return !sdoQueue_.startupHeld(); }
+  void setSdoStartupFailureFatal(bool enable) { sdoStartupFailureFatal_ = enable; }
   void reportStartupSdoStatus() const;
   int validateStartupSdo(const ecmcEcAsyncSDO *sdo);
   ecmcSdoQueue &sdoQueue() { return sdoQueue_; }
@@ -290,6 +291,7 @@ private:
   int domainsOK_;
   bool inStartupPhase_;
   bool portWiringCheckEnabled_;
+  bool sdoStartupFailureFatal_;
 
   ecmcEcMemMap *ecMemMapArray_[EC_MAX_MEM_MAPS];
   ecmcEcMemMap *ecMemMapRtInput_[EC_MAX_MEM_MAPS];

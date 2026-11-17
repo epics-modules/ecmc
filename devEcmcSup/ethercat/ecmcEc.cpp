@@ -13,9 +13,11 @@
 #include "ecmcEc.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <time.h>
 #include <string>
 #include "ecmcErrorsList.h"
+#include "ecmcMainThread.h"
 #include "ecmcRtLogger.h"
 
 #define ecmcRtLoggerLogWarning(...) \
@@ -76,6 +78,7 @@ void ecmcEc::initVars() {
   domainCounter_         = 0;
   allowOffline_          = 0;
   portWiringCheckEnabled_ = true;
+  sdoStartupFailureFatal_ = false;
   epicsTimeGetCurrent(&epicsTime_);
   clock_gettime(CLOCK_REALTIME, &timeRel_);
   clock_gettime(CLOCK_REALTIME, &timeAbs_);
@@ -763,8 +766,14 @@ void ecmcEc::receive(timespec receiveTime, timespec timeOffset) {
     const size_t remaining=sdoQueue_.startupRemaining();
     sdoQueue_.poll();
     if (remaining && !sdoQueue_.startupRemaining()) {
-      if (sdoQueue_.startupError())
-        ecmcRtLoggerLogError("SDO startup verification failed (0x%x); motion/PLCs remain held. Correct the cause and restart the IOC.\n",sdoQueue_.startupError());
+      if (sdoQueue_.startupError()) {
+        if (sdoStartupFailureFatal_) {
+          ecmcRtLoggerLogError("SDO startup verification failed (0x%x); fatal mode enabled, requesting IOC exit.\n",sdoQueue_.startupError());
+          requestIocExitFromRt(EXIT_FAILURE);
+        } else {
+          ecmcRtLoggerLogError("SDO startup verification failed (0x%x); motion/PLCs remain held. Correct the cause and restart the IOC.\n",sdoQueue_.startupError());
+        }
+      }
       else ecmcRtLoggerLogInfo("SDO startup readback verified; normal startup readiness checks continue.\n");
     }
   }

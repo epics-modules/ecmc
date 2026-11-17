@@ -2038,3 +2038,9 @@ int ecConfigureSdoQueue(int slavePosition, const char *name,
   if (!ec || !ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
   return ec->configureSdoQueue(slavePosition,name,writeOnValue,preopOnly);
 }
+
+int ecSetSdoStartupFailureFatal(int enable) {
+  if (enable != 0 && enable != 1) return ERROR_MAIN_PARSER_INVALID_FORMAT;
+  ec->setSdoStartupFailureFatal(enable != 0);
+  return 0;
+}

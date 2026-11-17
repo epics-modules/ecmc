@@ -377,6 +377,12 @@ int ecAddSdoAsync(
 int ecConfigureSdoQueue(int slavePosition, const char *name,
                         int writeOnValue, int preopOnly);
 
+/** Configure startup SDO verification failure handling.
+ *  0 (default) keeps the IOC running with motion/PLCs held.
+ *  1 requests a controlled IOC exit with failure status.
+ */
+int ecSetSdoStartupFailureFatal(int enable);
+
 int ecAddSdoAsyncArray(int slaveBusPosition, int index, int subIndex,
                        int byteSize, const char *idString);
 
