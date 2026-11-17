@@ -1523,6 +1523,11 @@ const char * ecmcError::convertErrorIdToString(int errorId) {
 
     break;
 
+  case 0x21150:
+    return "WARNING_DATA_ITEM_EC_ENTRY_DIR_MISSMATCH";
+
+    break;
+
   case 0x22000:    // ECPDO
     return "ERROR_EC_PDO_ENTRY_ARRAY_FULL";
 

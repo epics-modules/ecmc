@@ -102,6 +102,7 @@ private:
   void rememberStartupWrite(uint64_t value);
   enum QueuePhase { QUEUE_IDLE, QUEUE_WRITE, QUEUE_READ, QUEUE_VERIFY };
   QueuePhase queuePhase_ = QUEUE_IDLE;
+  unsigned int verificationRetries_ = 0;
   uint8_t expectedWire_[8] = {};
   uint64_t readBuffer_ = 0;
   bool readValid_ = false;

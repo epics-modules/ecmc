@@ -159,10 +159,11 @@ ecmcEcAsyncSDO::ecmcEcAsyncSDO(ecmcAsynPortDriver *asynDriver,
     throw std::bad_alloc();
   }
 
-  // Uploads change the request data size. Keep a separate, fixed-size
-  // download request for arrays so short uploads cannot shorten downloads.
-  readreq_ = arrayBytes ? ecrt_slave_config_create_sdo_request(
-    sc_, index_, subindex_, size_) : sdoreq_;
+  // Keep upload and download state independent. Queued writes are followed by
+  // an upload for verification; reusing one EtherLab request can leave the
+  // verification observing the preceding download request's state.
+  readreq_ = ecrt_slave_config_create_sdo_request(
+    sc_, index_, subindex_, size_);
   if (!readreq_) {
     throw std::bad_alloc();
   }
@@ -840,66 +841,66 @@ int ecmcEcAsyncSDO::readValue() {
     break;
 
   case ECMC_EC_U8:
-    *uint8Ptr_ = EC_READ_U8(ecrt_sdo_request_data(sdoreq_));
+    *uint8Ptr_ = EC_READ_U8(ecrt_sdo_request_data(readreq_));
     break;
 
   case ECMC_EC_S8:
-    *int8Ptr_ = EC_READ_S8(ecrt_sdo_request_data(sdoreq_));
+    *int8Ptr_ = EC_READ_S8(ecrt_sdo_request_data(readreq_));
     break;
 
   case ECMC_EC_S8_TO_U8:
-    *uint8Ptr_ = static_cast<uint8_t>(EC_READ_S8(ecrt_sdo_request_data(sdoreq_)));
+    *uint8Ptr_ = static_cast<uint8_t>(EC_READ_S8(ecrt_sdo_request_data(readreq_)));
     break;
 
   case ECMC_EC_U16:
-    *uint16Ptr_ = EC_READ_U16(ecrt_sdo_request_data(sdoreq_));
+    *uint16Ptr_ = EC_READ_U16(ecrt_sdo_request_data(readreq_));
     break;
 
   case ECMC_EC_S16:
-    *int16Ptr_ = EC_READ_S16(ecrt_sdo_request_data(sdoreq_));
+    *int16Ptr_ = EC_READ_S16(ecrt_sdo_request_data(readreq_));
     break;
 
   case ECMC_EC_S16_TO_U16:
-    *uint16Ptr_ = static_cast<uint16_t>(EC_READ_S16(ecrt_sdo_request_data(sdoreq_)));
+    *uint16Ptr_ = static_cast<uint16_t>(EC_READ_S16(ecrt_sdo_request_data(readreq_)));
     break;
 
   case ECMC_EC_U32:
-    *uint32Ptr_ = EC_READ_U32(ecrt_sdo_request_data(sdoreq_));
+    *uint32Ptr_ = EC_READ_U32(ecrt_sdo_request_data(readreq_));
     break;
 
   case ECMC_EC_S32:
-    *int32Ptr_ = EC_READ_S32(ecrt_sdo_request_data(sdoreq_));
+    *int32Ptr_ = EC_READ_S32(ecrt_sdo_request_data(readreq_));
     break;
 
   case ECMC_EC_S32_TO_U32:
-    *uint32Ptr_ = static_cast<uint32_t>(EC_READ_S32(ecrt_sdo_request_data(sdoreq_)));
+    *uint32Ptr_ = static_cast<uint32_t>(EC_READ_S32(ecrt_sdo_request_data(readreq_)));
     break;
 
 #ifdef EC_READ_U64
   case ECMC_EC_U64:
-    *uint64Ptr_ = EC_READ_U64(ecrt_sdo_request_data(sdoreq_));
+    *uint64Ptr_ = EC_READ_U64(ecrt_sdo_request_data(readreq_));
     break;
 #endif // ifdef EC_READ_U64
 
 #ifdef EC_READ_S64
   case ECMC_EC_S64:
-    *int64Ptr_ = EC_READ_S64(ecrt_sdo_request_data(sdoreq_));
+    *int64Ptr_ = EC_READ_S64(ecrt_sdo_request_data(readreq_));
     break;
 
   case ECMC_EC_S64_TO_U64:
-    *uint64Ptr_ = static_cast<uint64_t>(EC_READ_S64(ecrt_sdo_request_data(sdoreq_)));
+    *uint64Ptr_ = static_cast<uint64_t>(EC_READ_S64(ecrt_sdo_request_data(readreq_)));
     break;
 #endif // ifdef EC_READ_S64
 
 #ifdef EC_READ_REAL
   case ECMC_EC_F32:
-    *float32Ptr_ = EC_READ_REAL(ecrt_sdo_request_data(sdoreq_));
+    *float32Ptr_ = EC_READ_REAL(ecrt_sdo_request_data(readreq_));
     break;
 #endif // ifdef EC_READ_REAL
 
 #ifdef EC_READ_LREAL
   case ECMC_EC_F64:
-    *float64Ptr_ = EC_READ_LREAL(ecrt_sdo_request_data(sdoreq_));
+    *float64Ptr_ = EC_READ_LREAL(ecrt_sdo_request_data(readreq_));
     break;
 
 #endif // ifdef EC_READ_LREAL
@@ -1109,8 +1110,11 @@ int ecmcEcAsyncSDO::configureQueue(ecmcSdoQueue *queue, bool writeOnValue,
     const std::string name="ec"+std::to_string(masterId_)+".s"+
       std::to_string(slaveId_)+".sdo."+idString_+".readvalue";
     asynParamReadValue_=asynPortDriver_->addNewAvailParam(name.c_str(),
-      asynParamInt32,reinterpret_cast<uint8_t*>(&readBuffer_),usedSizeBytes_,dt_,0);
+      asynParamInt32,reinterpret_cast<uint8_t*>(&readBuffer_),sizeof(readBuffer_),dt_,0);
     if (!asynParamReadValue_) return ERROR_EC_SDO_ASYNC_ASYN_OBJ_FAIL;
+    // Keep enough backing-buffer capacity for the EPICS scalar interfaces
+    // (asynInt32/asynFloat64), while retaining the SDO's native data size.
+    asynParamReadValue_->setEcmcDataSize(usedSizeBytes_);
     asynParamReadValue_->addSupportedAsynType(asynParamFloat64);
     asynParamReadValue_->addSupportedAsynType(asynParamUInt32Digital);
 #ifdef ECMC_ASYN_ASYNPARAMINT64
@@ -1160,6 +1164,12 @@ void ecmcEcAsyncSDO::queuedRequestAccepted() {
 }
 
 void ecmcEcAsyncSDO::queuedRequestComplete(int error) {
+  if (error) {
+    ecmcRtLoggerLogError(
+      "SDO queued request failed: ec%d.s%d %s 0x%04x:%02x, phase=%d, %zu bytes, error=0x%x.\n",
+      masterId_,slaveId_,idStringChar_,index_,subindex_,
+      static_cast<int>(queuePhase_),size_,error);
+  }
   if (activeQueuedWrite_) {
     if (pendingWrites_) --pendingWrites_;
     if (error) startupWriteFailed_=true;
@@ -1207,6 +1217,7 @@ int ecmcEcAsyncSDO::beginStartupVerification(uint64_t value) {
   ecmcRtLoggerLogInfo("SDO startup verification starting: ec%d.s%d %s 0x%04x:%02x, %zu bytes, expected=0x%llx.\n",
                      masterId_,slaveId_,idStringChar_,index_,subindex_,size_,
                      static_cast<unsigned long long>(value));
+  verificationRetries_=0;
   ecrt_sdo_request_read(readreq_);
   queuePhase_=QUEUE_VERIFY;
   return 0;
@@ -1231,12 +1242,33 @@ int ecmcEcAsyncSDO::beginQueuedTransfer(bool write, uint64_t value) {
 
 int ecmcEcAsyncSDO::pollQueuedTransfer(bool *done) {
   *done=false;
-  const ec_request_state_t state=ecrt_sdo_request_state(sdoreq_);
+  // Writes use the download request. Reads and write verification use the
+  // separate upload request and must poll that request's state.
+  ec_sdo_request_t *request = queuePhase_==QUEUE_WRITE ? sdoreq_ : readreq_;
+  const ec_request_state_t state=ecrt_sdo_request_state(request);
   if (state==EC_REQUEST_BUSY || state==EC_REQUEST_UNUSED) return 0;
-  if (state==EC_REQUEST_ERROR) { *done=true; return ERROR_EC_SDO_ASYNC_ERROR; }
+  if (state==EC_REQUEST_ERROR) {
+    static const unsigned int MAX_VERIFICATION_RETRIES=5;
+    if (queuePhase_==QUEUE_VERIFY && verificationRetries_<MAX_VERIFICATION_RETRIES) {
+      ++verificationRetries_;
+      ecmcRtLoggerLogInfo(
+        "SDO verification upload retry %u/%u: ec%d.s%d %s 0x%04x:%02x, %zu bytes.\n",
+        verificationRetries_,MAX_VERIFICATION_RETRIES,masterId_,slaveId_,
+        idStringChar_,index_,subindex_,size_);
+      ecrt_sdo_request_read(readreq_);
+      return 0;
+    }
+    ecmcRtLoggerLogError(
+      "SDO queued transfer failed: ec%d.s%d %s 0x%04x:%02x, phase=%d, %zu bytes (0x%x).\n",
+      masterId_,slaveId_,idStringChar_,index_,subindex_,
+      static_cast<int>(queuePhase_),size_,ERROR_EC_SDO_ASYNC_ERROR);
+    *done=true;
+    return ERROR_EC_SDO_ASYNC_ERROR;
+  }
   if (queuePhase_==QUEUE_WRITE) {
     ecmcRtLoggerLogInfo("SDO queued write verification starting: ec%d.s%d %s 0x%04x:%02x, %zu bytes.\n",
                        masterId_,slaveId_,idStringChar_,index_,subindex_,size_);
+    verificationRetries_=0;
     ecrt_sdo_request_read(readreq_); queuePhase_=QUEUE_VERIFY; return 0;
   }
   *done=true;

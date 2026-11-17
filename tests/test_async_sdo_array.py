@@ -222,16 +222,17 @@ int main() {
  assert(value.size==4096 && std::equal(bytes.begin(),bytes.end(),value.data));
  read.trigger(0); read.trigger(1); upload.data.clear(); upload.state=EC_REQUEST_SUCCESS; sdo.execute();
  assert(value.size==0 && port.get("bytes").integer()==0);
- // Scalar remains one request and uses existing scalar representation.
+ // Scalar upload and download use independent request state.
  ecmcAsynPortDriver scalarPort; ec_slave_config_t scalarSlave;
  ecmcEcAsyncSDO scalar(&scalarPort,0,3,&scalarSlave,0x2000,1,ECMC_EC_U32,"payload");
- assert(scalarSlave.requests.size()==1);
+ assert(scalarSlave.requests.size()==2);
  scalarPort.get("readcmd").trigger(1);
- auto &r=*scalarSlave.requests[0]; r.state=EC_REQUEST_SUCCESS;
+ auto &w=*scalarSlave.requests[0], &r=*scalarSlave.requests[1];
+ r.state=EC_REQUEST_SUCCESS;
  EC_WRITE_U32(r.data.data(),0x12345678); scalar.execute();
  assert(scalarPort.get("value").integer()==0x12345678);
  scalarPort.get("value").data[0]=0x42;
- scalarPort.get("writecmd").trigger(1); assert(r.data[0]==0x42);
+ scalarPort.get("writecmd").trigger(1); assert(w.data[0]==0x42);
  // Validate size before allocation.
  try {
    ecmcEcAsyncSDO invalid(&port,0,3,&slave,1,1,ECMC_EC_U8,"invalid",ECMC_SDO_ASYNC_MAX_BYTES+1);
@@ -287,7 +288,7 @@ int main() {
  assert(smallPort.get("readcmd").trigger(1)==asynSuccess);
  assert(small.requestRead()==ERROR_EC_SDO_ASYNC_BUSY);
  // Scalar element 0 and integer validation (no narrowing of invalid doubles).
- r.state=EC_REQUEST_SUCCESS; scalar.execute();
+ w.state=EC_REQUEST_SUCCESS; scalar.execute();
  assert(scalar.setValue(0,42)==0);
  double numeric=0;
  assert(scalar.getValue(0,&numeric)==0 && numeric==42);
@@ -371,7 +372,7 @@ int main() {
   queue.setRunning(true);
   for(int i=0;i<2;++i) {
    queue.poll();
-   auto &read=*slave.requests[0];
+   auto &read=*slave.requests[1];
    assert(read.writes==0 && read.reads==i+1 && queue.startupHeld());
    read.data=hardware; read.state=EC_REQUEST_SUCCESS;
    queue.poll();
@@ -400,14 +401,14 @@ int main() {
   assert(a.setValue(0,100)==0 && a.requestWrite()==0);
   assert(b.setValue(0,200)==0 && b.requestWrite()==0 && queue.prepareStartup()==0);
   queue.setRunning(true); queue.poll();
-  EC_WRITE_U32(slave.requests[0]->data.data(),200); slave.requests[0]->state=EC_REQUEST_SUCCESS;
-  queue.poll();
   EC_WRITE_U32(slave.requests[1]->data.data(),200); slave.requests[1]->state=EC_REQUEST_SUCCESS;
+  queue.poll();
+  EC_WRITE_U32(slave.requests[3]->data.data(),200); slave.requests[3]->state=EC_REQUEST_SUCCESS;
   queue.poll();
   assert(!queue.startupHeld() && !a.getSdoError() && !b.getSdoError());
   // Subsequent runtime errors do not change the completed startup latch.
   assert(b.requestRead()==0); queue.poll();
-  slave.requests[1]->state=EC_REQUEST_ERROR; queue.poll();
+  slave.requests[3]->state=EC_REQUEST_ERROR; queue.poll();
   assert(b.getSdoError()==ERROR_EC_SDO_ASYNC_ERROR && !queue.startupHeld());
  }
 
@@ -423,16 +424,16 @@ int main() {
   assert(restored.setValue(0,800)==0 && restored.requestWrite()==0);
   assert(queue.prepareStartup()==0);
   queue.setRunning(true); slave.operational=false;
-  queue.poll(); assert(slave.requests[0]->reads==0 && queue.startupRemaining()==2);
+  queue.poll(); assert(slave.requests[1]->reads==0 && queue.startupRemaining()==2);
   slave.operational=true; queue.poll();
-  assert(slave.requests[0]->reads==1); // Begins as soon as the target is OP.
-  slave.operational=false; slave.requests[0]->state=EC_REQUEST_ERROR;
+  assert(slave.requests[1]->reads==1); // Begins as soon as the target is OP.
+  slave.operational=false; slave.requests[1]->state=EC_REQUEST_ERROR;
   queue.poll();
   assert(queue.startupRemaining()==1 && restored.getSdoError()==ERROR_EC_SDO_ASYNC_ERROR);
-  assert(slave.requests[0]->reads==1); // No next transaction while target is PREOP.
+  assert(slave.requests[1]->reads==1); // No next transaction while target is PREOP.
   slave.operational=true; queue.poll();
-  assert(slave.requests[0]->reads==2);
-  EC_WRITE_U32(slave.requests[0]->data.data(),800); slave.requests[0]->state=EC_REQUEST_SUCCESS;
+  assert(slave.requests[1]->reads==2);
+  EC_WRITE_U32(slave.requests[1]->data.data(),800); slave.requests[1]->state=EC_REQUEST_SUCCESS;
   queue.poll();
   assert(!queue.startupRemaining() && queue.startupHeld()); // Error remains latched.
  }
@@ -455,7 +456,7 @@ int main() {
   assert(restored.configureQueue(&queue,false,false)==0);
   assert(restored.setValue(0,700)==0 && restored.requestWrite()==0 && queue.prepareStartup()==0);
   queue.setRunning(true); queue.poll();
-  auto &read=*slave.requests[0]; EC_WRITE_U32(read.data.data(),500); read.state=EC_REQUEST_SUCCESS;
+  auto &read=*slave.requests[1]; EC_WRITE_U32(read.data.data(),500); read.state=EC_REQUEST_SUCCESS;
   queue.poll();
   assert(queue.startupHeld() && !queue.startupRemaining() && queue.startupError()==ERROR_EC_SDO_VERIFY);
   assert(restored.getSdoError()==ERROR_EC_SDO_VERIFY);
@@ -494,24 +495,26 @@ int main() {
   assert(b.setValue(0,33)==0 && b.requestWrite()==0 && a.requestRead()==0);
   assert(queue.pending()==4 && a.getBusy()==1 && aSlave.requests[0]->writes==0);
   queue.setRunning(true); queue.poll();
-  auto &aReq=*aSlave.requests[0], &bReq=*bSlave.requests[0];
-  assert(EC_READ_U32(aReq.data.data())==11 && bReq.writes==0);
-  aReq.state=EC_REQUEST_SUCCESS; queue.poll();
-  assert(aReq.reads==1 && bReq.writes==0 && a.getBusy());
-  EC_WRITE_U32(aReq.data.data(),11); aReq.state=EC_REQUEST_SUCCESS; queue.poll();
-  assert(EC_READ_U32(aReq.data.data())==22 && aReq.writes==2 && bReq.writes==0);
+  auto &aWrite=*aSlave.requests[0], &aRead=*aSlave.requests[1];
+  auto &bWrite=*bSlave.requests[0], &bRead=*bSlave.requests[1];
+  assert(EC_READ_U32(aWrite.data.data())==11 && bWrite.writes==0);
+  aWrite.state=EC_REQUEST_SUCCESS; queue.poll();
+  assert(aRead.reads==1 && bWrite.writes==0 && a.getBusy());
+  EC_WRITE_U32(aRead.data.data(),11); aRead.state=EC_REQUEST_SUCCESS; queue.poll();
+  assert(EC_READ_U32(aWrite.data.data())==22 && aWrite.writes==2 && bWrite.writes==0);
   assert(EC_READ_U32(aPort.get("readvalue").data)==11);
-  aReq.state=EC_REQUEST_SUCCESS; queue.poll();
+  aWrite.state=EC_REQUEST_SUCCESS; queue.poll();
   // Verification mismatch is retained across the rest of this object's burst.
-  EC_WRITE_U32(aReq.data.data(),23); aReq.state=EC_REQUEST_SUCCESS; queue.poll();
-  assert(a.getSdoError()==ERROR_EC_SDO_VERIFY && bReq.writes==1 && a.getBusy());
-  bReq.state=EC_REQUEST_SUCCESS; queue.poll(); bReq.state=EC_REQUEST_SUCCESS; queue.poll();
-  assert(!b.getBusy() && aReq.reads==3);
-  EC_WRITE_U32(aReq.data.data(),24); aReq.state=EC_REQUEST_SUCCESS; queue.poll();
+  EC_WRITE_U32(aRead.data.data(),23); aRead.state=EC_REQUEST_SUCCESS; queue.poll();
+  assert(a.getSdoError()==ERROR_EC_SDO_VERIFY && bWrite.writes==1 && a.getBusy());
+  bWrite.state=EC_REQUEST_SUCCESS; queue.poll();
+  EC_WRITE_U32(bRead.data.data(),33); bRead.state=EC_REQUEST_SUCCESS; queue.poll();
+  assert(!b.getBusy() && aRead.reads==3);
+  EC_WRITE_U32(aRead.data.data(),24); aRead.state=EC_REQUEST_SUCCESS; queue.poll();
   assert(!a.getBusy() && a.getSdoError()==ERROR_EC_SDO_VERIFY && !queue.pending());
   assert(a.getValue(0,&numeric)==0 && numeric==24);
   assert(a.setValue(0,25)==0 && a.requestWrite()==0 && a.getSdoError()==0);
-  queue.poll(); aReq.state=EC_REQUEST_ERROR; queue.poll();
+  queue.poll(); aWrite.state=EC_REQUEST_ERROR; queue.poll();
   assert(!a.getBusy() && a.getSdoError()==ERROR_EC_SDO_ASYNC_ERROR);
  }
  {

@@ -46,6 +46,10 @@ int main() {
   CHECK(master == 0 && slave == 1 && bit == 3 && strcmp(alias, "status") == 0);
   CHECK(parse("ec2.s-1.status") == 0);
   CHECK(master == 2 && slave == -1 && bit == -1);
+  CHECK(parse("ec3.s15.sm2.p0.e0") == 0);
+  CHECK(master == 3 && slave == 15 && bit == -1 && strcmp(alias, "sm2.p0.e0") == 0);
+  CHECK(parse("ec3.s15.sm2.p0.e0.7") == 0);
+  CHECK(master == 3 && slave == 15 && bit == 7 && strcmp(alias, "sm2.p0.e0") == 0);
   CHECK(parse("simEntry") == 0 && slave == -1 && master == 0 && bit == -1);
   CHECK(parse("simEntry.63") == 0 && bit == 63);
   CHECK(parse(std::string(255, 'a')) == 0 && strlen(alias) == 255);

@@ -79,7 +79,7 @@ void clearStartupCommunicationAlarm(motorRecord *record) {
 }
 
 void motorRecordInitHook(initHookState state) {
-  if (state != initHookAfterInitDevSup && state != initHookAfterIocBuilt) {
+  if (state != initHookAfterInitDevSup && state != initHookAfterIocRunning) {
     return;
   }
   DBENTRY entry;
@@ -108,7 +108,8 @@ void motorRecordInitHook(initHookState state) {
             // MRES. This applies only to records linked to an ECMC motor port.
             record->mflg |= MF_DRIVER_USES_EGU;
           } else {
-            // Both autosave passes have finished. Snapshot under record then
+            // Both autosave passes and record initialization have finished.
+            // Snapshot under record then
             // port lock (the normal device-support lock order), never from poll.
             dbScanLock(address.precord);
             controller->lock();

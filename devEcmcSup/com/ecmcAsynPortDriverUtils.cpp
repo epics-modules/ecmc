@@ -15,6 +15,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <initHooks.h>
@@ -299,16 +300,40 @@ int parseEcPath(char *ecPath,
     entry = end + 1;
   }
 
-  const char *separator = strchr(entry, '.');
-  size_t aliasLen = separator ? static_cast<size_t>(separator - entry) : strlen(entry);
-  if (aliasLen == 0) {
-    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
-  }
+  // 11.0.x accepted dotted EtherCAT entry identifiers such as sm2.p0.e0.
+  // Only a final, entirely numeric component denotes a bit index.
+  const auto validAlias = [](const char *start, size_t length) {
+    if (!length) return false;
+    bool componentStart = true;
+    for (size_t index = 0; index < length; ++index) {
+      const unsigned char value = static_cast<unsigned char>(start[index]);
+      if (value == '.') {
+        if (componentStart) return false;
+        componentStart = true;
+      } else {
+        if (componentStart && isdigit(value)) return false;
+        componentStart = false;
+      }
+    }
+    return !componentStart;
+  };
+
+  size_t aliasLen = strlen(entry);
+  const char *separator = strrchr(entry, '.');
   if (separator) {
     char *end = NULL;
-    if (!parseInteger(separator + 1, &end, &bitId) || *end != '\0' || bitId < 0) {
+    int parsedBit = -1;
+    if (parseInteger(separator + 1, &end, &parsedBit) && *end == '\0') {
+      if (parsedBit < 0) return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+      aliasLen = static_cast<size_t>(separator - entry);
+      bitId = parsedBit;
+    } else if (!separator[1] || isdigit(static_cast<unsigned char>(separator[1])) ||
+               separator[1] == '-' || separator[1] == '+') {
       return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
     }
+  }
+  if (!validAlias(entry, aliasLen)) {
+    return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
   }
 
   // Publish outputs only after the complete path has passed validation.

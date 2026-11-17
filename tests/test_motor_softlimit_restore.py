@@ -176,7 +176,8 @@ struct ecmcMotorRecordAxis : asynMotorAxis {
 
 // Database/asyn plumbing for exercising the actual init hook on two motor
 // records. The second belongs to another driver and must remain untouched.
-enum initHookState { initHookAfterInitDevSup, initHookAfterIocBuilt, otherHook };
+enum initHookState { initHookAfterInitDevSup, initHookAfterIocBuilt,
+                     initHookAfterIocRunning, otherHook };
 constexpr unsigned MF_DRIVER_USES_EGU = 8;
 constexpr int INST_IO = 1;
 struct DBLINK { int type = INST_IO; const char *port = "ECMC"; };
@@ -293,6 +294,8 @@ int main() {
   c.values[Controller::motorHighLimit_] = 1365.333333333;
   hookController.axis = &m;
   motorRecordInitHook(initHookAfterIocBuilt);
+  assert(!m.restoredSoftLimitsCaptured_);
+  motorRecordInitHook(initHookAfterIocRunning);
   assert(m.restoredSoftLimitsReady_ && !hookController.locked && !recordLocked);
   m.failWrite = true;
   assert(m.poll(&moving) == asynSuccess);
@@ -377,16 +380,28 @@ int main() {
   localA.rtStarted = true;
   localA.startup = false;
   iocReady = true;
-  // These model the standard YAML/template defaults when autosave has no
-  // saved file (or does not replace the fields).
-  localC.values[Controller::motorLowLimit_] = -40;
-  localC.values[Controller::motorHighLimit_] = 50;
-  local.captureRestoredSoftLimits(-40, 50, 1);
+  // At initHookAfterIocBuilt the record still contains its YAML defaults.
+  // Autosave replaces them before initHookAfterIocRunning; mode 2 must
+  // snapshot that final pair, not the earlier defaults.
+  records[0].dllm = -100;
+  records[0].dhlm = 100;
+  hookController.axis = &local;
+  motorRecordInitHook(initHookAfterIocBuilt);
+  assert(!local.restoredSoftLimitsCaptured_);
+  records[0].dllm = -80;
+  records[0].dhlm = 80;
+  records[0].mres = 1;
+  motorRecordInitHook(initHookAfterIocRunning);
+  assert(local.restoredSoftLimitsCaptured_ && local.restoredSoftLimitsReady_);
+  assert(local.restoredSoftLimitLow_ == -80);
+  assert(local.restoredSoftLimitHigh_ == 80);
+  localC.values[Controller::motorLowLimit_] = records[0].dllm;
+  localC.values[Controller::motorHighLimit_] = records[0].dhlm;
   assert(local.poll(&moving) == asynSuccess);
   assert(local.updateFirstPollDone_ && !local.writes);
   assert(localA.monitor.low == -100 && localA.monitor.high == 100);
-  assert(localC.values[Controller::motorLowLimit_] == -40);
-  assert(localC.values[Controller::motorHighLimit_] == 50);
+  assert(localC.values[Controller::motorLowLimit_] == -80);
+  assert(localC.values[Controller::motorHighLimit_] == 80);
 }
 '''
 
