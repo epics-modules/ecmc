@@ -2921,8 +2921,8 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   // STOP and disable must always remain effective. If a disabled motion
   // request arrives together with enableCmd=0, remove only its momentary
   // execute/tweak bits and continue so the disable is applied. With
-  // enableCmd=1 retain the fast return: an ignored move must not re-enable an
-  // axis that another command source is disabling during a transition.
+  // enableCmd=1, process reset separately. An ignored move must not re-enable
+  // an axis that another command source is disabling during a transition.
   bool ignoredMotionRequest = false;
   if (!controlWordNew.stopCmd) {
     if (controlWordNew.executeCmd &&
@@ -2936,7 +2936,14 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
       controlWordNew.tweakFwdCmd = 0;
       ignoredMotionRequest = true;
     }
-    if (ignoredMotionRequest && controlWordNew.enableCmd) return asynSuccess;
+    if (ignoredMotionRequest && controlWordNew.enableCmd) {
+      if (controlWordNew.resetCmd && !controlWordCurrent.resetCmd &&
+          !getBlockCom() && !controlWordNew.blockCom) {
+        setReset(true);
+        refreshStatusWd();
+      }
+      return asynSuccess;
+    }
   }
   const bool executeRequest = controlWordNew.executeCmd;
   const bool tweakBwdRequest = controlWordNew.tweakBwdCmd;

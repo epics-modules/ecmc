@@ -746,6 +746,39 @@ int main() {
       CHECK(r.axis->getEncoderMode()==2); ++count;
     }
     {
+      scenario="ignored execute preserves reset and disable in packed control writes";
+      Rig r; r.idle();
+      auto *axis = r.axis.get();
+      auto *data = axis->dataForTest();
+      CHECK(axis->setAllowMotionFunctions(false, true, true) == 0);
+      CHECK(axis->setIgnoreDisabledMotionCommands(1) == 0);
+      CHECK(axis->setCommand(ECMC_CMD_MOVEABS) == 0);
+      const auto write = [axis](ecmcAsynAxisControlType word) {
+        return axis->axisAsynWriteCmd(&word, sizeof(word), asynParamUInt32Digital);
+      };
+      auto word = data->control_.controlWord_;
+      word.enableCmd = 1;
+      word.executeCmd = 1;
+      word.resetCmd = 1;
+      axis->setErrorID(ERROR_MON_MAX_POSITION_LAG_EXCEEDED);
+      CHECK(write(word) == asynSuccess);
+      CHECK(axis->getErrorID() == 0 && !axis->getEnable() && !axis->getExecute());
+      CHECK(!axis->getBusy() && !axis->getReset());
+
+      CHECK(axis->setEnable(true) == 0);
+      axis->setErrorID(ERROR_MON_MAX_POSITION_LAG_EXCEEDED);
+      word = data->control_.controlWord_;
+      word.enableCmd = 0;
+      word.executeCmd = 1;
+      word.resetCmd = 1;
+      word.enableDbgPrintout = !word.enableDbgPrintout;
+      CHECK(write(word) == asynSuccess);
+      CHECK(axis->getErrorID() == 0 && !axis->getEnable() && !axis->getExecute());
+      CHECK(!axis->getBusy() && !axis->getReset());
+      CHECK(data->control_.controlWord_.enableDbgPrintout == word.enableDbgPrintout);
+      ++count;
+    }
+    {
       scenario="fixed powered encoder waits for warmup without a backup pair";
       Rig r; r.idle();
       CHECK(r.axis->setEncoderMode(1)==0);
