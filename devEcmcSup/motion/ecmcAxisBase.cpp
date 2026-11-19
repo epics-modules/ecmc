@@ -2917,10 +2917,27 @@ asynStatus ecmcAxisBase::axisAsynWriteCmd(void         *data,
   // These are momentary commands that are auto-reset after this callback.
   // Each callback with a command bit set is a new request; the stored control
   // word is also used as state/readback and is not reliable edge history.
-  if (controlWordNew.enableCmd && !controlWordNew.stopCmd &&
-      ((controlWordNew.executeCmd && ignoreMotionCommand(data_.control_.command)) ||
-       ((controlWordNew.tweakBwdCmd || controlWordNew.tweakFwdCmd) &&
-        ignoreMotionCommand(ECMC_CMD_MOVEREL)))) return asynSuccess;
+  //
+  // STOP and disable must always remain effective. If a disabled motion
+  // request arrives together with enableCmd=0, remove only its momentary
+  // execute/tweak bits and continue so the disable is applied. With
+  // enableCmd=1 retain the fast return: an ignored move must not re-enable an
+  // axis that another command source is disabling during a transition.
+  bool ignoredMotionRequest = false;
+  if (!controlWordNew.stopCmd) {
+    if (controlWordNew.executeCmd &&
+        ignoreMotionCommand(data_.control_.command)) {
+      controlWordNew.executeCmd = 0;
+      ignoredMotionRequest = true;
+    }
+    if ((controlWordNew.tweakBwdCmd || controlWordNew.tweakFwdCmd) &&
+        ignoreMotionCommand(ECMC_CMD_MOVEREL)) {
+      controlWordNew.tweakBwdCmd = 0;
+      controlWordNew.tweakFwdCmd = 0;
+      ignoredMotionRequest = true;
+    }
+    if (ignoredMotionRequest && controlWordNew.enableCmd) return asynSuccess;
+  }
   const bool executeRequest = controlWordNew.executeCmd;
   const bool tweakBwdRequest = controlWordNew.tweakBwdCmd;
   const bool tweakFwdRequest = controlWordNew.tweakFwdCmd;
