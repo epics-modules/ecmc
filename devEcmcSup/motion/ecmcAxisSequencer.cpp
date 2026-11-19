@@ -1106,18 +1106,9 @@ int ecmcAxisSequencer::seqHoming15() {  // nCmdData==15
 
   switch (seqState_) {
   case 0:      // Set parameters and start initial motion
-    traj_->setCurrentPosSet(homePosition_);
-    traj_->setTargetPos(homePosition_);
+    setNewPositionCtrlDrvTrajBumpless(homePosition_);
     getPrimEnc()->setActPos(homePosition_);
     getPrimEnc()->setHomed(true);
-    data_->status_.currentPositionActual   = homePosition_;
-    data_->status_.currentPositionSetpoint = homePosition_;
-    data_->status_.currentTargetPosition   = homePosition_;
-    data_->control_.positionTarget         = homePosition_;
-
-    if (cntrl_) {
-      cntrl_->reset();
-    }
 
     // trigg post home motion if enabled and not already triggered
     if (homeEnablePostMove_) {
