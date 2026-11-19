@@ -1,5 +1,34 @@
 Release Notes
 ===
+# 11.2.0 (release candidate)
+
+## Motion and motor records
+
+* Keep the axis busy throughout multi-stage homing, including between trajectory segments. The AtTarget monitor can still settle during those pauses.
+* Update the CSP drive offset during homing sequence 15 so setting a new position reference does not move the drive or cause a following error.
+* Set the motion command type before interpreting the target in PLC `mc_move_abs` and `mc_move_rel`. Switching between absolute and relative moves now interprets the target in the correct mode.
+* Let the motor record publish completion when a move aborts before the first busy poll, without holding `DMOV` low for the normal startup delay.
+* Reset the auto-disable timer and AtTarget latch when enabling an axis. Preserve pending motion through auto-enable and honor disable requests even when a motion command is ignored.
+* Add opt-in `mc_set_ignore_disabled_motion_cmds(axis, ignore)` to ignore disabled motion commands without raising an error.
+* Expose native soft-limit configuration independently of the motor record. Add motor-local soft-limit autosave restore alongside synchronized restore, retain the default enforcement of the ECMC limit range, and hold motion during startup restore.
+* Add drive lookup-table correction and a readback of the active correction offset.
+* Add optional motion execution on native target-position writes. The axis can start or retarget supported position moves subject to the usual motion checks.
+
+## EtherCAT, simulation, and startup
+
+* Add a memory-backed simulation I/O backend behind the same motion-link interface as EtherCAT. Expose typed simulation PVs for external device models and allow motion links to resolve data items configured later in startup. See [simulation I/O](documentation/simulation-io.md).
+* Support byte-aligned `Cfg.EcAddDataDT` views within one simulated PDO entry. Reads and writes share the parent entry's storage. Bit-offset and cross-entry mappings remain unsupported.
+* Accept scalar and array async SDO registration as no-ops in simulation. Simulation does not create async SDO objects or perform transfers.
+* Add queued scalar SDO transfers and startup autosave restore support, improve restore ordering and readiness checks, and allow startup to abort if configured SDO restore fails. Add startup SDO string reads.
+* Add encoder relay power control, readiness checks, selectable feedback modes, and handover to a backup encoder. See [encoder power](documentation/encoder-power.md).
+* Correct IOC realtime status publication when realtime startup is deferred until after EPICS initialization.
+
+## Diagnostics and regression checks
+
+* Publish axis diagnostic text through the realtime logger port and serialize motion diagnostic dumps outside the realtime mutex.
+* Harden filter sizes, memory-map initialization, EtherCAT path parsing, storage bounds, and lookup-table reload handling.
+* Add hardware-free regression checks and CI coverage for controller startup, motion, EtherCAT data access, simulation, and PLC libraries.
+
 # 11.1.1
 * Fix overflow issue in motor interface
 
