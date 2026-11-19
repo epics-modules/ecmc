@@ -107,6 +107,38 @@ ecmcSimulationDriver::Entry *ecmcSimulationDriver::findEntry(int position, const
 int ecmcSimulationDriver::addEntry(int position, uint32_t vendor, uint32_t product,
   int direction, int syncManager, int pdo, int index, int subIndex,
   ecmcEcDataType type, const char *name, bool realtime) {
+  return addEntryInternal(position, vendor, product, direction, syncManager, pdo,
+                          index, subIndex, type, name, realtime, nullptr);
+}
+
+int ecmcSimulationDriver::addDataItem(int position, const char *sourceName,
+  size_t byteOffset, size_t bitOffset, int direction, ecmcEcDataType type,
+  const char *name) {
+  auto *device = findDevice(position);
+  auto *source = findEntry(position, sourceName);
+  if (!device || !source) return ERROR_MAIN_EC_ENTRY_NULL;
+
+  // Simulated PDOs have independent backing words. An aligned view can
+  // share bytes with its parent but cannot cross into another PDO entry.
+  const size_t bytes = ecmcDataAccess::sizeOf(type);
+  const size_t sourceBytes = source->access->getBits() / 8;
+  if (!bytes || bitOffset || byteOffset > sourceBytes ||
+      bytes > sourceBytes - byteOffset)
+    return ERROR_MAIN_IO_CONFIG_UNSUPPORTED;
+  if (source->direction != direction || !source->access->wordStorage ||
+      source->access->data != reinterpret_cast<uint8_t *>(&source->value))
+    return ERROR_MAIN_ECMC_LINK_INVALID;
+
+  return addEntryInternal(position, device->vendor, device->product, direction,
+                          source->syncManager, source->pdo, source->index,
+                          source->subIndex, type, name, true,
+                          source->access->data + byteOffset);
+}
+
+int ecmcSimulationDriver::addEntryInternal(int position, uint32_t vendor,
+  uint32_t product, int direction, int syncManager, int pdo, int index,
+  int subIndex, ecmcEcDataType type, const char *name, bool realtime,
+  uint8_t *sharedData) {
   const int bits = bitsOf(type);
   if (!name || !*name || strchr(name, '.') || !bits ||
       (direction != 1 && direction != 2)) return ERROR_EC_ENTRY_DATATYPE_INVALID;
@@ -124,16 +156,17 @@ int ecmcSimulationDriver::addEntry(int position, uint32_t vendor, uint32_t produ
   entry->realtime = realtime;
   entry->access = std::make_shared<ecmcDataAccess>();
   auto &access = *entry->access;
-  access.identity = entry.get(); access.data = reinterpret_cast<uint8_t *>(&entry->value);
+  access.identity = entry.get();
+  access.data = sharedData ? sharedData : reinterpret_cast<uint8_t *>(&entry->value);
   access.type = type; access.bits = bits;
-  access.wordStorage = true; access.writable = true;
+  access.wordStorage = !sharedData; access.writable = true;
   access.finiteRequired = type == ECMC_EC_F32 || type == ECMC_EC_F64;
   access.validation = access.finiteRequired ? ecmcDataAccess::NATIVE_ITEM : ecmcDataAccess::DIRECT_STATUS;
   access.validityOwner = healthy_; access.validity = healthy_.get();
   if (port_ && realtime && (position >= 0 || id_ != 0)) {
     const std::string path = "ec" + std::to_string(id_) + ".s" + std::to_string(position) + "." + name;
     auto *parameter = port_->addNewAvailParam(path.c_str(), asynParamInt32,
-      access.data, sizeof(entry->value), type, 0);
+      access.data, sharedData ? (bits + 7) / 8 : sizeof(entry->value), type, 0);
     if (!parameter) return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
     entry->parameter = parameter;
     parameter->addSupportedAsynType(asynParamFloat64);
@@ -266,7 +299,12 @@ int ecmcSimulationDriver::setValue(int position, const char *name, const char *t
   uint64_t value = 0;
   int error = parseValue(entry->access->type, text, &value);
   if (error) return error;
-  entry->access->store<uint64_t>(value);
+  if (entry->access->wordStorage) {
+    entry->access->store<uint64_t>(value);
+  } else {
+    // parseValue returns the native bit representation, including floats.
+    std::memcpy(entry->access->data, &value, (entry->access->bits + 7) / 8);
+  }
   if (entry->parameter) entry->parameter->refreshParam(1);
   else if (entry->access->publish) return entry->access->publish(entry->access->publishContext);
   return 0;
@@ -331,7 +369,8 @@ int ecmcSimulationDriver::prepareSimulationParameter(int position, const char *n
   if (!simulationPort_) return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   const std::string path = "sim.ec" + std::to_string(id_) + ".s" + std::to_string(position) + "." + name;
   auto *parameter = simulationPort_->addNewAvailParam(path.c_str(), asynType,
-    entry->access->data, sizeof(entry->value), type, 0);
+    entry->access->data, entry->access->wordStorage ? sizeof(entry->value) :
+      (entry->access->getBits() + 7) / 8, type, 0);
   if (!parameter) return ERROR_MAIN_ASYN_CREATE_PARAM_FAIL;
   entry->simulationParameter = parameter;
   parameter->setEcmcDataSize((entry->access->getBits() + 7) / 8);

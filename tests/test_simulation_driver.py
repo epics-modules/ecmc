@@ -26,6 +26,30 @@ uint32_t diagnostic(ecmcAsynPortDriver &port, const char *name) {
   return value;
 }
 int main() {
+  {
+    ecmcAsynPortDriver itemPort;
+    ecmcSimulationDriver sim(0, &itemPort);
+    assert(sim.addEntry(2, 123, 456, 1, 2, 0x1602, 0x2067, 0,
+                        ECMC_EC_S32, "tmlComIF01", true) == 0);
+    assert(sim.addDataItem(2, "tmlComIF01", 2, 0, 1, ECMC_EC_U16, "cfg") == 0);
+    assert(sim.addDataItem(2, "tmlComIF01", 0, 0, 1, ECMC_EC_S16, "vel") == 0);
+    assert(sim.addDataItem(2, "tmlComIF01", 3, 0, 1, ECMC_EC_U16, "outside") != 0);
+    assert(sim.addDataItem(2, "tmlComIF01", 0, 0, 2, ECMC_EC_S16, "wrongDir") != 0);
+    assert(sim.addDataItem(2, "tmlComIF01", 0, 1, 1, ECMC_EC_U16, "unaligned") != 0);
+    assert(sim.addDataItem(2, "tmlComIF01", 0, 0, 1, ECMC_EC_S16, "vel") != 0);
+    assert(itemPort.find("ec0.s2.cfg") && itemPort.find("ec0.s2.vel"));
+    assert(sim.setValue(2, "tmlComIF01", "0x1234ffff") == 0);
+    auto cfg = sim.findEntry(2, "cfg")->access;
+    auto vel = sim.findEntry(2, "vel")->access;
+    double number = 0;
+    assert(vel->readNumber(&number) == 0 && number == -1);
+    assert(cfg->readNumber(&number) == 0 && number == 0x1234);
+    assert(sim.setValue(2, "cfg", "0x2345") == 0);
+    assert(vel->writeDouble(-2) == 0);
+    assert(sim.findEntry(2, "tmlComIF01")->access->readNumber(&number) == 0 &&
+           number == 0x2345fffe);
+  }
+
   ecmcAsynPortDriver port;
   auto driver = std::make_unique<ecmcSimulationDriver>(0, &port);
   assert(driver->configurationError() == 0);

@@ -762,10 +762,7 @@ int ecAddDataDT(
   char  *dataType,
   char  *idString
   ) {
-  if (ecmcSelectedSimulation()) {
-    return ERROR_MAIN_IO_CONFIG_UNSUPPORTED;
-  }
-
+  auto *simulation = ecmcSelectedSimulation();
   LOGINFO4(
     "%s/%s:%d startEntryID=%s entryByteOffset=%zu, entryBitOffset=%zu, direction=%d dataType=%s entryId=%s\n",
     __FILE__,
@@ -778,7 +775,7 @@ int ecAddDataDT(
     dataType,
     idString);
 
-  if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
+  if (!simulation && !ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;
 
   int  masterId   = -1;
   int  slaveIndex = -1;
@@ -790,6 +787,14 @@ int ecAddDataDT(
 
   if (errorCode) {
     return errorCode;
+  }
+
+  if (simulation) {
+    if (bitIndex >= 0) return ERROR_MAIN_ECMC_COMMAND_FORMAT_ERROR;
+    if (masterId != simulation->id()) return ERROR_MAIN_EC_INDEX_OUT_OF_RANGE;
+    return simulation->addDataItem(slaveIndex, alias, entryByteOffset,
+                                   entryBitOffset, direction,
+                                   getEcDataTypeFromStr(dataType), idString);
   }
 
   std::string Id           = idString;
@@ -811,7 +816,7 @@ int ecAddSdoAsync(
   char    *datatype,
   char    *idString) {
   if (ecmcSelectedSimulation()) {
-    return ERROR_MAIN_IO_CONFIG_UNSUPPORTED;
+    return 0; // No asynchronous SDO transport in simulation.
   }
 
   std::string id = idString;
@@ -841,7 +846,7 @@ int ecAddSdoAsync(
 int ecAddSdoAsyncArray(int slaveBusPosition, int index, int subIndex,
                        int byteSize, const char *idString) {
   if (ecmcSelectedSimulation()) {
-    return ERROR_MAIN_IO_CONFIG_UNSUPPORTED;
+    return 0; // No asynchronous SDO transport in simulation.
   }
 
   if (!ec->getInitDone()) return ERROR_MAIN_EC_NOT_INITIALIZED;

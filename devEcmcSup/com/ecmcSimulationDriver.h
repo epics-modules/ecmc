@@ -44,6 +44,8 @@ public:
   int addEntry(int position, uint32_t vendor, uint32_t product, int direction,
                int syncManager, int pdo, int index, int subIndex,
                ecmcEcDataType type, const char *name, bool realtime);
+  int addDataItem(int position, const char *sourceName, size_t byteOffset,
+                  size_t bitOffset, int direction, ecmcEcDataType type, const char *name);
   int importEntry(int position, const char *name, const std::shared_ptr<ecmcDataAccess> &source);
   int addAlias(int position, const char *name, const char *alias);
   Device *findDevice(int position);
@@ -76,6 +78,10 @@ public:
   void slowExecute() override {}
 
 private:
+  int addEntryInternal(int position, uint32_t vendor, uint32_t product, int direction,
+                       int syncManager, int pdo, int index, int subIndex,
+                       ecmcEcDataType type, const char *name, bool realtime,
+                       uint8_t *sharedData);
   static int parseValue(ecmcEcDataType type, const char *text, uint64_t *result);
   int registerDiagnostic(const std::string &name, uint32_t *value);
   void updateStatusWords();
