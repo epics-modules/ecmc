@@ -3,6 +3,7 @@
 #include "ecmcAxisVirt.h"
 #include "ecmcDataAccess.h"
 #include "ecmcDataItem.h"
+#include "ecmcPositionCompare.h"
 #include <cmath>
 #include <iostream>
 #include <memory>
@@ -81,9 +82,70 @@ struct Bench {
     CHECK(!axis->getBusy()); CHECK(axis->getPrimEnc()->getHomed());
   }
 };
+static void checkTimedPositionCompare() {
+  ecmcPositionCompare compare;
+  uint64_t output = 0, activate = 3, startTime = 0;
+  auto link = [&](uint64_t &word, int index) {
+    ecmcDataAccess access;
+    access.data = reinterpret_cast<uint8_t *>(&word);
+    access.type = ECMC_EC_U64;
+    access.bits = 64;
+    access.writable = true;
+    access.validation = ecmcDataAccess::DIRECT_STATUS;
+    CHECK(compare.setDataAtIndex(access, index, -1) == 0);
+  };
+  link(output, ECMC_POS_COMPARE_ENTRY_OUTPUT);
+  link(activate, ECMC_POS_COMPARE_ENTRY_ACTIVATE);
+  link(startTime, ECMC_POS_COMPARE_ENTRY_START_TIME);
+  CHECK(compare.configure(20000000, 100000000, 3, 0, 200000000, 0) == 0);
+  CHECK(compare.validate() == 0);
+
+  // The terminal latches a scheduled output on an idle-to-schedule edge.
+  // Advance both the simulated sample clock and the output clock by 1 ms.
+  constexpr uint64_t epoch = 1000000000;
+  uint64_t lastActivate = activate, pendingTime = 0, pendingOutput = 0, level = 0;
+  uint64_t rise = 0, fall = 0;
+  int writes = 0, edges = 0;
+  auto tick = [&](int ms) {
+    const uint64_t now = epoch + uint64_t(ms) * 1000000;
+    if (pendingTime && now >= pendingTime) {
+      CHECK(pendingOutput != level);
+      level = pendingOutput;
+      if (level) rise = now;
+      else fall = now;
+      ++edges;
+      pendingTime = 0;
+    }
+    compare.execute(true, ms * .00025, .25, 0., now, true, now);
+    if (lastActivate == 3 && activate == 0) {
+      CHECK(!pendingTime && startTime > now);
+      pendingTime = startTime;
+      pendingOutput = output;
+      ++writes;
+    }
+    lastActivate = activate;
+  };
+
+  CHECK(compare.arm(.125, 1, 1) == 0);
+  for (int ms = 0; ms <= 800; ++ms) tick(ms);
+  CHECK(compare.getStatus().state == ECMC_POS_COMPARE_FIRED);
+  CHECK(compare.getStatus().sequence == 1 && writes == 2 && edges == 2);
+  CHECK(rise == epoch + 500000000 && fall == rise + 200000000);
+  CHECK(level == 0 && activate == 3);
+
+  CHECK(compare.arm(.25, 1, 1) == 0);
+  tick(801);
+  CHECK(compare.cancel() == 0);
+  for (int ms = 802; ms <= 1200; ++ms) tick(ms);
+  CHECK(compare.getStatus().state == ECMC_POS_COMPARE_DISABLED);
+  CHECK(compare.getStatus().sequence == 1 && writes == 2 && edges == 2 && level == 0);
+}
+
 int main() {
   try {
     int scenarios=0;
+    context="position compare with a valid simulated clock";
+    checkTimedPositionCompare(); ++scenarios;
     context="homing settling: trajectory idle but sequence busy";
     {
       Bench b(false,0);
