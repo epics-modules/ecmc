@@ -1,6 +1,6 @@
 Release Notes
 ===
-# 11.2.0 (release candidate)
+# 11.2.0
 
 ## Motion and motor records
 
